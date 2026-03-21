@@ -9,7 +9,6 @@ from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.neo4j import neo4j_manager
-from app.db.redis import redis_manager
 from app.models.entity import Detection, Entity, Sighting
 from app.schemas.entity import EntitySearchRequest
 

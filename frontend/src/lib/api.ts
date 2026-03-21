@@ -2,7 +2,12 @@
  * API client for the VIOSINT backend.
  */
 
-import type { Stream, Entity, Target, Alert, EntityGraph } from '@/types';
+import type {
+  Stream, Entity, Target, Alert, EntityGraph,
+  EntityProfile, TemporalEvent, BehaviorRecord,
+  IntelligenceInsight, AnalysisResult, NLQueryResult,
+  RiskScore, Prediction,
+} from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 const API_PREFIX = '/api/v1';
@@ -165,4 +170,110 @@ export const alertsApi = {
 export const healthApi = {
   check: () => fetch(`${API_URL}/health`).then(r => r.json()),
   detailed: () => fetch(`${API_URL}/health/detailed`).then(r => r.json()),
+};
+
+// Intelligence endpoints
+export const intelligenceApi = {
+  // Entity Profiles
+  listProfiles: (params?: {
+    risk_level?: string;
+    entity_type?: string;
+    min_risk_score?: number;
+    limit?: number;
+    offset?: number;
+  }) => {
+    const query = new URLSearchParams();
+    if (params?.risk_level) query.set('risk_level', params.risk_level);
+    if (params?.entity_type) query.set('entity_type', params.entity_type);
+    if (params?.min_risk_score !== undefined) query.set('min_risk_score', params.min_risk_score.toString());
+    if (params?.limit) query.set('limit', params.limit.toString());
+    if (params?.offset) query.set('offset', params.offset.toString());
+    const qs = query.toString();
+    return fetchAPI<EntityProfile[]>(`/intelligence/profiles${qs ? `?${qs}` : ''}`);
+  },
+
+  getProfile: (entityId: string) =>
+    fetchAPI<EntityProfile>(`/intelligence/profiles/${entityId}`),
+
+  // Temporal Events
+  listEvents: (params?: {
+    entity_id?: string;
+    stream_id?: string;
+    event_type?: string;
+    limit?: number;
+  }) => {
+    const query = new URLSearchParams();
+    if (params?.entity_id) query.set('entity_id', params.entity_id);
+    if (params?.stream_id) query.set('stream_id', params.stream_id);
+    if (params?.event_type) query.set('event_type', params.event_type);
+    if (params?.limit) query.set('limit', params.limit.toString());
+    const qs = query.toString();
+    return fetchAPI<TemporalEvent[]>(`/intelligence/events${qs ? `?${qs}` : ''}`);
+  },
+
+  // Behavior Records
+  listBehaviors: (params?: {
+    entity_id?: string;
+    behavior_type?: string;
+    is_active?: boolean;
+    limit?: number;
+  }) => {
+    const query = new URLSearchParams();
+    if (params?.entity_id) query.set('entity_id', params.entity_id);
+    if (params?.behavior_type) query.set('behavior_type', params.behavior_type);
+    if (params?.is_active !== undefined) query.set('is_active', params.is_active.toString());
+    if (params?.limit) query.set('limit', params.limit.toString());
+    const qs = query.toString();
+    return fetchAPI<BehaviorRecord[]>(`/intelligence/behaviors${qs ? `?${qs}` : ''}`);
+  },
+
+  // Intelligence Insights
+  listInsights: (params?: {
+    insight_type?: string;
+    severity?: string;
+    is_reviewed?: boolean;
+    limit?: number;
+  }) => {
+    const query = new URLSearchParams();
+    if (params?.insight_type) query.set('insight_type', params.insight_type);
+    if (params?.severity) query.set('severity', params.severity);
+    if (params?.is_reviewed !== undefined) query.set('is_reviewed', params.is_reviewed.toString());
+    if (params?.limit) query.set('limit', params.limit.toString());
+    const qs = query.toString();
+    return fetchAPI<IntelligenceInsight[]>(`/intelligence/insights${qs ? `?${qs}` : ''}`);
+  },
+
+  reviewInsight: (insightId: string) =>
+    fetchAPI<IntelligenceInsight>(`/intelligence/insights/${insightId}/review`, { method: 'POST' }),
+
+  dismissInsight: (insightId: string) =>
+    fetchAPI<IntelligenceInsight>(`/intelligence/insights/${insightId}/dismiss`, { method: 'POST' }),
+
+  // Analysis
+  analyzeEntity: (entityId: string) =>
+    fetchAPI<AnalysisResult>('/intelligence/analyze', {
+      method: 'POST',
+      body: JSON.stringify({ entity_id: entityId }),
+    }),
+
+  analyzeBatch: (minEvents?: number) =>
+    fetchAPI<{ entities_analyzed: number; errors: number; total_eligible: number }>(
+      '/intelligence/analyze-batch',
+      { method: 'POST', body: JSON.stringify({ min_events: minEvents || 3 }) },
+    ),
+
+  // NL Query
+  query: (queryText: string, maxResults?: number) =>
+    fetchAPI<NLQueryResult>('/intelligence/query', {
+      method: 'POST',
+      body: JSON.stringify({ query: queryText, max_results: maxResults || 20 }),
+    }),
+
+  // Risk Scores
+  getRisk: (entityId: string) =>
+    fetchAPI<RiskScore>(`/intelligence/risk/${entityId}`),
+
+  // Predictions
+  getPrediction: (entityId: string) =>
+    fetchAPI<Prediction>(`/intelligence/predictions/${entityId}`),
 };

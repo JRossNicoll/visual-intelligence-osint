@@ -3,7 +3,7 @@
 import logging
 from typing import Any, Optional
 
-from neo4j import AsyncGraphDatabase, AsyncDriver
+from neo4j import AsyncDriver, AsyncGraphDatabase
 
 from app.core.config import settings
 
@@ -135,14 +135,22 @@ class Neo4jManager:
     async def create_co_occurred_relationship(
         self, entity_id_1: str, entity_id_2: str, timestamp: str, stream_id: str
     ) -> None:
-        """Create a CO_OCCURRED_WITH relationship between two entities."""
+        """Create a CO_OCCURRED_WITH relationship between two entities.
+
+        Uses decay-weighted edge model:
+        - Tracks co-occurrence count, first/last seen timestamps
+        - Stores all co-occurrence timestamps for temporal analysis
+        - Weight is computed by the intelligence engine using exponential decay
+        """
         query = """
         MATCH (e1:Entity {entity_id: $entity_id_1})
         MATCH (e2:Entity {entity_id: $entity_id_2})
         MERGE (e1)-[r:CO_OCCURRED_WITH]->(e2)
         SET r.last_seen = $timestamp,
             r.stream_id = $stream_id,
-            r.count = COALESCE(r.count, 0) + 1
+            r.count = COALESCE(r.count, 0) + 1,
+            r.first_seen = COALESCE(r.first_seen, $timestamp),
+            r.timestamps = COALESCE(r.timestamps, []) + [$timestamp]
         """
         await self.execute_query(
             query,

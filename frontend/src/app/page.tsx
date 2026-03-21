@@ -8,6 +8,11 @@ import TargetsView from '@/components/TargetsView';
 import EntitiesView from '@/components/EntitiesView';
 import AlertsView from '@/components/AlertsView';
 import LiveFeedView from '@/components/LiveFeedView';
+import IntelligenceDashboard from '@/components/IntelligenceDashboard';
+import TimelineView from '@/components/TimelineView';
+import StoryModeView from '@/components/StoryModeView';
+import GraphExplorer from '@/components/GraphExplorer';
+import NLQueryView from '@/components/NLQueryView';
 import type { Detection } from '@/types';
 import { getGeneralWS, getAlertWS } from '@/lib/websocket';
 
@@ -77,6 +82,16 @@ export default function Home() {
         return <EntitiesView />;
       case 'alerts':
         return <AlertsView />;
+      case 'intelligence':
+        return <IntelligenceDashboard onViewChange={setActiveView} />;
+      case 'timeline':
+        return <TimelineView />;
+      case 'story':
+        return <StoryModeView />;
+      case 'graph':
+        return <GraphExplorer />;
+      case 'query':
+        return <NLQueryView />;
       default:
         return (
           <Dashboard

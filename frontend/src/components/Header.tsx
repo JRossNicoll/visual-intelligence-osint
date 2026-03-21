@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Activity, Bell, Eye, Shield, Wifi, WifiOff } from 'lucide-react';
+import { Activity, Bell, BookOpen, Brain, Clock, Eye, GitBranch, MessageSquare, Shield, Wifi, WifiOff } from 'lucide-react';
 import { alertsApi } from '@/lib/api';
 
 interface HeaderProps {
@@ -29,8 +29,12 @@ export default function Header({ activeView, onViewChange, wsConnected }: Header
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Activity },
+    { id: 'intelligence', label: 'Intelligence', icon: Brain },
+    { id: 'timeline', label: 'Timeline', icon: Clock },
+    { id: 'story', label: 'Story Mode', icon: BookOpen },
+    { id: 'graph', label: 'Graph', icon: GitBranch },
+    { id: 'query', label: 'Query', icon: MessageSquare },
     { id: 'streams', label: 'Streams', icon: Eye },
-    { id: 'targets', label: 'Targets', icon: Shield },
     { id: 'entities', label: 'Entities', icon: Eye },
     { id: 'alerts', label: 'Alerts', icon: Bell },
   ];

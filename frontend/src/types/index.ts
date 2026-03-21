@@ -138,3 +138,142 @@ export interface EntityGraph {
   nodes: GraphNode[];
   edges: GraphEdge[];
 }
+
+// Intelligence Engine Types
+
+export interface EntityProfile {
+  id: string;
+  entity_id: string;
+  entity_type: string;
+  first_seen: string;
+  last_seen: string;
+  visit_count: number;
+  total_duration_seconds: number;
+  common_locations?: Array<{ location_id: string; name: string; visit_count: number }>;
+  last_location_id?: string;
+  last_location_name?: string;
+  behavior_summary?: { behaviors: string[]; behavior_count: number };
+  behavior_tags?: string[];
+  temporal_pattern?: {
+    has_periodicity: boolean;
+    dominant_period_hours?: number;
+    peak_hours?: number[];
+    peak_days?: number[];
+    periodicity_confidence?: number;
+  };
+  associated_entities?: Array<{ entity_id: string; strength: number }>;
+  association_count: number;
+  risk_score: number;
+  risk_factors?: Array<{ factor: string; weight: number; description: string }>;
+  risk_level: 'low' | 'medium' | 'high' | 'critical';
+  predicted_next_location?: { location_id: string; name: string; probability: number };
+  predicted_next_time?: { window_start: string; window_end: string; confidence: number };
+  profile_completeness: number;
+  last_analyzed_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TemporalEvent {
+  id: string;
+  entity_id: string;
+  stream_id: string;
+  location_id?: string;
+  location_name?: string;
+  event_type: string;
+  timestamp: string;
+  duration_seconds?: number;
+  confidence: number;
+  attributes?: Record<string, unknown>;
+  co_occurring_entities?: string[];
+  hour_of_day: number;
+  day_of_week: number;
+  is_weekend: boolean;
+  created_at: string;
+}
+
+export interface BehaviorRecord {
+  id: string;
+  entity_id: string;
+  behavior_type: string;
+  description: string;
+  confidence: number;
+  severity: string;
+  location_id?: string;
+  location_name?: string;
+  stream_id?: string;
+  started_at: string;
+  ended_at?: string;
+  duration_seconds?: number;
+  associated_entity_ids?: string[];
+  pattern_data?: Record<string, unknown>;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface IntelligenceInsight {
+  id: string;
+  insight_type: string;
+  title: string;
+  description: string;
+  severity: string;
+  entity_ids?: string[];
+  location_ids?: string[];
+  stream_ids?: string[];
+  confidence: number;
+  evidence?: Record<string, unknown>;
+  recommendation?: string;
+  is_reviewed: boolean;
+  is_dismissed: boolean;
+  created_at: string;
+}
+
+export interface AnalysisResult {
+  entity_id: string;
+  status: string;
+  temporal_pattern?: Record<string, unknown>;
+  anomaly?: Record<string, unknown>;
+  behaviors: Array<Record<string, unknown>>;
+  relationships: Array<Record<string, unknown>>;
+  risk?: Record<string, unknown>;
+  prediction?: Record<string, unknown>;
+  analysis_timestamp?: string;
+}
+
+export interface NLQueryResult {
+  original_query: string;
+  interpreted_query: string;
+  generated_sql?: string;
+  generated_cypher?: string;
+  query_explanation: string;
+  results: Array<Record<string, unknown>>;
+  result_count: number;
+  confidence: number;
+}
+
+export interface RiskScore {
+  entity_id: string;
+  risk_score: number;
+  risk_level: string;
+  anomaly_component: number;
+  association_component: number;
+  behavior_component: number;
+  w1: number;
+  w2: number;
+  w3: number;
+  risk_factors: Array<{ factor: string; weight: number; description: string }>;
+  explanation: string;
+}
+
+export interface Prediction {
+  entity_id: string;
+  predicted_time_window_start?: string;
+  predicted_time_window_end?: string;
+  time_confidence: number;
+  predicted_location_id?: string;
+  predicted_location_name?: string;
+  location_confidence: number;
+  method: string;
+  evidence?: Record<string, unknown>;
+  explanation: string;
+}
