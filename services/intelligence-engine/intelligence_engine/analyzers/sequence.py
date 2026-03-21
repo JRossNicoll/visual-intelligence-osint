@@ -267,10 +267,10 @@ class SequenceDetector:
                     continue
 
                 # Statistical test: binomial test
-                p_value = float(stats.binom_test(
+                p_value = float(stats.binomtest(
                     follow_count, len(ts_leader), baseline_prob,
                     alternative="greater"
-                ))
+                ).pvalue)
 
                 if p_value >= 0.1:
                     continue

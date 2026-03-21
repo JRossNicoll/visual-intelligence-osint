@@ -287,7 +287,7 @@ class CoordinationDetector:
                 n_leading = n_ba
                 lags = ba_lags
 
-            p_value = float(stats.binom_test(n_leading, total, 0.5, alternative="greater"))
+            p_value = float(stats.binomtest(n_leading, total, 0.5, alternative="greater").pvalue)
 
             if p_value < 0.1 and n_leading >= self.min_co_occurrences:
                 confidence = min(1.0 - p_value, 0.99)

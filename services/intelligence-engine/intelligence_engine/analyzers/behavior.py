@@ -194,7 +194,7 @@ class BehaviorModeler:
                 continue
 
             # Binomial test: is this location visited significantly more than expected?
-            p_value = float(stats.binom_test(count, total_visits, expected_prob, alternative="greater"))
+            p_value = float(stats.binomtest(count, total_visits, expected_prob, alternative="greater").pvalue)
 
             if p_value < 0.05:  # Statistically significant at 5% level
                 confidence = min(1.0 - p_value, 0.99)
