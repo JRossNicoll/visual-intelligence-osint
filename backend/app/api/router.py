@@ -10,6 +10,7 @@ from app.api.endpoints import (
     intelligence,
     operator,
     pipeline,
+    seed,
     streams,
     targets,
     websocket,
@@ -26,6 +27,7 @@ api_router.include_router(pipeline.router)
 api_router.include_router(intelligence.router)
 api_router.include_router(operator.router)
 api_router.include_router(cases.router)
+api_router.include_router(seed.router)
 
 # Health and WebSocket routes are mounted at root level
 health_router = health.router

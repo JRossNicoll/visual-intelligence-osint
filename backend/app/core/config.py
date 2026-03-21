@@ -59,6 +59,9 @@ class Settings(BaseSettings):
     DETECTION_CONFIDENCE_THRESHOLD: float = 0.5
     EMBEDDING_SIMILARITY_THRESHOLD: float = 0.75
 
+    # Demo mode — auto-seed database on startup if empty
+    DEMO_MODE: bool = False
+
     # Storage
     UPLOAD_DIR: str = "/tmp/viosint/uploads"
     FRAME_CAPTURE_DIR: str = "/tmp/viosint/frames"
