@@ -46,9 +46,9 @@ class ExplainabilityEngine:
             if score > 0.7:
                 return "Appeared at an unexpected location with no prior history"
             elif score > 0.4:
-                return "Appeared at a location rarely visited before"
+                return "Appeared at an unusual location - rarely visited before"
             else:
-                return "Minor location deviation from normal patterns"
+                return "Minor deviation from usual locations"
         if score > 0.7:
             return "Highly anomalous behavior detected - significant deviation from baseline"
         elif score > 0.4:
@@ -184,13 +184,30 @@ class AlertPrioritizer:
         return hashlib.sha256(key.encode()).hexdigest()[:16]
 
     @staticmethod
-    def should_suppress(severity: str, confidence: float) -> bool:
+    def should_suppress(
+        severity: str, confidence: float,
+        recent_suppressed: dict[str, int] | None = None,
+        dedup_hash: str = "",
+    ) -> bool:
+        """Suppress low-value alerts.
+
+        Rules:
+        1. Low severity + low confidence (<0.3) → always suppress
+        2. Low severity + medium confidence (<0.5) + already seen recently → suppress (rate limit)
+        """
         if severity == "low" and confidence < 0.3:
             return True
+        if severity == "low" and confidence < 0.5 and recent_suppressed and dedup_hash:
+            if recent_suppressed.get(dedup_hash, 0) >= 2:
+                return True
         return False
 
     @staticmethod
     def group_related_alerts(alerts: list[dict]) -> list[dict]:
+        """Group alerts by shared entities AND by location+time proximity."""
+        if not alerts:
+            return alerts
+
         entity_to_alerts: dict[str, list[int]] = defaultdict(list)
         for i, alert in enumerate(alerts):
             for eid in alert.get("entity_ids", []):
@@ -208,9 +225,31 @@ class AlertPrioritizer:
             if ra != rb:
                 parent[ra] = rb
 
+        # Group by shared entities
         for indices in entity_to_alerts.values():
             for j in range(1, len(indices)):
                 union(indices[0], indices[j])
+
+        # Also group alerts at the same location within a 5-minute window
+        from datetime import datetime as dt
+        location_time: dict[str, list[tuple[int, str]]] = defaultdict(list)
+        for i, alert in enumerate(alerts):
+            meta = alert.get("metadata_json") or {}
+            loc = meta.get("location", "")
+            if loc:
+                location_time[loc].append((i, alert.get("created_at", "")))
+
+        for loc, entries in location_time.items():
+            entries.sort(key=lambda x: x[1])
+            for j in range(1, len(entries)):
+                try:
+                    t0 = dt.fromisoformat(entries[j - 1][1])
+                    t1 = dt.fromisoformat(entries[j][1])
+                    if abs((t1 - t0).total_seconds()) <= 300:
+                        union(entries[j - 1][0], entries[j][0])
+                except (ValueError, TypeError):
+                    pass
+
         group_map: dict[int, str] = {}
         for i in range(len(alerts)):
             root = find(i)
