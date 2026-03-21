@@ -277,3 +277,180 @@ export interface Prediction {
   evidence?: Record<string, unknown>;
   explanation: string;
 }
+
+// ===================== Operator Types =====================
+
+export interface OperatorDashboardData {
+  unread_alerts: number;
+  critical_alerts_24h: number;
+  high_risk_entities: number;
+  watchlist_count: number;
+  recent_events_1h: number;
+  total_tracked_entities: number;
+  severity_breakdown_24h: {
+    critical: number;
+    high: number;
+    medium: number;
+    low: number;
+  };
+  timestamp: string;
+}
+
+export interface OperatorAlert {
+  id: string;
+  alert_type: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  title: string;
+  description: string;
+  entity_ids: string[];
+  confidence: number;
+  priority_score: number;
+  is_read: boolean;
+  is_acknowledged: boolean;
+  recommended_actions: string[];
+  created_at: string;
+  dedup_hash: string;
+  group_id?: string;
+}
+
+export interface FeedEvent {
+  id: string;
+  entity_id: string;
+  event_type: string;
+  timestamp: string;
+  location_id?: string;
+  location_name: string;
+  confidence?: number;
+  co_occurring_entities: string[];
+  hour_of_day?: number;
+  is_weekend?: boolean;
+}
+
+export interface WatchlistEntry {
+  entity_id: string;
+  added_at: string;
+  reason: string;
+  priority: string;
+  entity_type: string;
+  risk_score: number;
+  risk_level: string;
+  last_seen?: string;
+  last_location?: string;
+  visit_count: number;
+  behavior_tags: string[];
+}
+
+export interface EntityFullProfile {
+  entity_id: string;
+  entity_type: string;
+  risk_score: number;
+  risk_level: string;
+  risk_summary: string;
+  first_seen?: string;
+  last_seen?: string;
+  visit_count: number;
+  last_location?: string;
+  common_locations: Array<{ location_id: string; name: string; visit_count: number }>;
+  associated_entities: Array<{ entity_id: string; strength: number }>;
+  behavior_tags: string[];
+  behaviors: Array<{
+    type: string;
+    description: string;
+    confidence: number;
+    severity: string;
+    started_at: string;
+    is_active: boolean;
+  }>;
+  recent_events: Array<{
+    id: string;
+    event_type: string;
+    timestamp: string;
+    location_name: string;
+    confidence?: number;
+  }>;
+  alerts: Array<{
+    id: string;
+    severity: string;
+    title: string;
+    alert_type: string;
+    created_at: string;
+  }>;
+  insights: Array<{
+    id: string;
+    type: string;
+    title: string;
+    description: string;
+    severity: string;
+    confidence: number;
+  }>;
+  temporal_pattern?: Record<string, unknown>;
+  predicted_next_time?: Record<string, unknown>;
+  predicted_next_location?: Record<string, unknown>;
+  is_on_watchlist: boolean;
+  profile_completeness: number;
+  last_analyzed_at?: string;
+}
+
+export interface TimelineItem {
+  type: 'event' | 'alert';
+  id: string;
+  timestamp: string;
+  entity_id?: string;
+  event_type?: string;
+  location_name?: string;
+  confidence?: number;
+  co_occurring_entities?: string[];
+  alert_type?: string;
+  severity?: string;
+  title?: string;
+  description?: string;
+}
+
+export interface InvestigationTimeline {
+  entity_id?: string;
+  from_time: string;
+  to_time: string;
+  total_events: number;
+  total_alerts: number;
+  items: TimelineItem[];
+}
+
+export interface EntitySearchResult {
+  entity_id: string;
+  entity_type: string;
+  risk_score: number;
+  risk_level: string;
+  visit_count: number;
+  first_seen?: string;
+  last_seen?: string;
+  last_location?: string;
+  behavior_tags: string[];
+}
+
+export interface IntelligenceSummary {
+  period_days: number;
+  risk_distribution: Record<string, number>;
+  top_risk_entities: Array<{
+    entity_id: string;
+    entity_type: string;
+    risk_score: number;
+    risk_level: string;
+    visit_count: number;
+    last_seen?: string;
+    behavior_tags: string[];
+  }>;
+  behavior_distribution: Record<string, number>;
+  alert_trend: Array<{ date: string; count: number }>;
+  entity_trend: Array<{ date: string; new_entities: number }>;
+  active_insights: Array<{
+    id: string;
+    type: string;
+    title: string;
+    description: string;
+    severity: string;
+    confidence: number;
+    created_at: string;
+  }>;
+  top_locations: Array<{ location: string; event_count: number }>;
+  generated_at: string;
+}

@@ -7,6 +7,9 @@ import type {
   EntityProfile, TemporalEvent, BehaviorRecord,
   IntelligenceInsight, AnalysisResult, NLQueryResult,
   RiskScore, Prediction,
+  OperatorDashboardData, OperatorAlert, FeedEvent,
+  WatchlistEntry, EntityFullProfile, InvestigationTimeline,
+  EntitySearchResult, IntelligenceSummary,
 } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -276,4 +279,103 @@ export const intelligenceApi = {
   // Predictions
   getPrediction: (entityId: string) =>
     fetchAPI<Prediction>(`/intelligence/predictions/${entityId}`),
+};
+
+// Operator endpoints
+export const operatorApi = {
+  // Dashboard
+  getDashboard: () =>
+    fetchAPI<OperatorDashboardData>('/operator/dashboard'),
+
+  // Alerts (prioritized, deduplicated, grouped)
+  getAlerts: (params?: {
+    severity?: string;
+    alert_type?: string;
+    unread_only?: boolean;
+    limit?: number;
+    offset?: number;
+  }) => {
+    const query = new URLSearchParams();
+    if (params?.severity) query.set('severity', params.severity);
+    if (params?.alert_type) query.set('alert_type', params.alert_type);
+    if (params?.unread_only) query.set('unread_only', 'true');
+    if (params?.limit) query.set('limit', params.limit.toString());
+    if (params?.offset) query.set('offset', params.offset.toString());
+    const qs = query.toString();
+    return fetchAPI<OperatorAlert[]>(`/operator/alerts${qs ? `?${qs}` : ''}`);
+  },
+
+  reviewAlert: (alertId: string) =>
+    fetchAPI<{ id: string; status: string }>(`/operator/alerts/${alertId}/review`, { method: 'POST' }),
+
+  escalateAlert: (alertId: string) =>
+    fetchAPI<{ id: string; status: string; new_severity?: string }>(`/operator/alerts/${alertId}/escalate`, { method: 'POST' }),
+
+  dismissAlert: (alertId: string) =>
+    fetchAPI<{ id: string; status: string }>(`/operator/alerts/${alertId}/dismiss`, { method: 'POST' }),
+
+  // Live Feed
+  getFeed: (params?: { limit?: number; entity_id?: string; since?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.limit) query.set('limit', params.limit.toString());
+    if (params?.entity_id) query.set('entity_id', params.entity_id);
+    if (params?.since) query.set('since', params.since);
+    const qs = query.toString();
+    return fetchAPI<FeedEvent[]>(`/operator/feed${qs ? `?${qs}` : ''}`);
+  },
+
+  // Watchlist
+  getWatchlist: () =>
+    fetchAPI<WatchlistEntry[]>('/operator/watchlist'),
+
+  addToWatchlist: (entityId: string, reason?: string, priority?: string) =>
+    fetchAPI<{ entity_id: string; status: string }>(`/operator/watchlist/${entityId}`, {
+      method: 'POST',
+      body: JSON.stringify({ reason: reason || '', priority: priority || 'medium' }),
+    }),
+
+  removeFromWatchlist: (entityId: string) =>
+    fetch(`${API_URL}${API_PREFIX}/operator/watchlist/${entityId}`, { method: 'DELETE' }).then(r => r.json()),
+
+  // Investigation Mode
+  getEntityProfile: (entityId: string) =>
+    fetchAPI<EntityFullProfile>(`/operator/entities/${entityId}/profile`),
+
+  getTimeline: (params?: {
+    entity_id?: string;
+    from_time?: string;
+    to_time?: string;
+    limit?: number;
+  }) => {
+    const query = new URLSearchParams();
+    if (params?.entity_id) query.set('entity_id', params.entity_id);
+    if (params?.from_time) query.set('from_time', params.from_time);
+    if (params?.to_time) query.set('to_time', params.to_time);
+    if (params?.limit) query.set('limit', params.limit.toString());
+    const qs = query.toString();
+    return fetchAPI<InvestigationTimeline>(`/operator/timeline${qs ? `?${qs}` : ''}`);
+  },
+
+  searchEntities: (params?: {
+    query?: string;
+    risk_level?: string;
+    entity_type?: string;
+    min_risk_score?: number;
+    limit?: number;
+  }) => {
+    const query = new URLSearchParams();
+    if (params?.query) query.set('query', params.query);
+    if (params?.risk_level) query.set('risk_level', params.risk_level);
+    if (params?.entity_type) query.set('entity_type', params.entity_type);
+    if (params?.min_risk_score !== undefined) query.set('min_risk_score', params.min_risk_score.toString());
+    if (params?.limit) query.set('limit', params.limit.toString());
+    const qs = query.toString();
+    return fetchAPI<EntitySearchResult[]>(`/operator/search${qs ? `?${qs}` : ''}`);
+  },
+
+  // Intelligence Mode
+  getIntelligenceSummary: (days?: number) => {
+    const query = days ? `?days=${days}` : '';
+    return fetchAPI<IntelligenceSummary>(`/operator/intelligence${query}`);
+  },
 };

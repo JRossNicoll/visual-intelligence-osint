@@ -1,18 +1,21 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Dashboard from '@/components/Dashboard';
 import StreamsView from '@/components/StreamsView';
 import TargetsView from '@/components/TargetsView';
 import EntitiesView from '@/components/EntitiesView';
 import AlertsView from '@/components/AlertsView';
-import LiveFeedView from '@/components/LiveFeedView';
 import IntelligenceDashboard from '@/components/IntelligenceDashboard';
 import TimelineView from '@/components/TimelineView';
 import StoryModeView from '@/components/StoryModeView';
 import GraphExplorer from '@/components/GraphExplorer';
 import NLQueryView from '@/components/NLQueryView';
+import OperatorDashboard from '@/components/OperatorDashboard';
+import InvestigationView from '@/components/InvestigationView';
+import IntelligenceView from '@/components/IntelligenceView';
+import EntityProfileView from '@/components/EntityProfileView';
 import type { Detection } from '@/types';
 import { getGeneralWS, getAlertWS } from '@/lib/websocket';
 
@@ -20,6 +23,7 @@ export default function Home() {
   const [activeView, setActiveView] = useState('dashboard');
   const [wsConnected, setWsConnected] = useState(false);
   const [realtimeDetections, setRealtimeDetections] = useState<Detection[]>([]);
+  const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
   const [alertNotification, setAlertNotification] = useState<{
     title: string;
     severity: string;
@@ -92,6 +96,37 @@ export default function Home() {
         return <GraphExplorer />;
       case 'query':
         return <NLQueryView />;
+      case 'operator':
+        return (
+          <OperatorDashboard
+            onViewChange={setActiveView}
+            onEntitySelect={(id) => {
+              setSelectedEntityId(id);
+              setActiveView('entity-profile');
+            }}
+          />
+        );
+      case 'investigation':
+        return (
+          <InvestigationView
+            onViewChange={setActiveView}
+            initialEntityId={selectedEntityId || undefined}
+          />
+        );
+      case 'intel-summary':
+        return <IntelligenceView onViewChange={setActiveView} />;
+      case 'entity-profile':
+        return selectedEntityId ? (
+          <EntityProfileView
+            entityId={selectedEntityId}
+            onViewChange={setActiveView}
+            onEntitySelect={(id) => {
+              setSelectedEntityId(id);
+            }}
+          />
+        ) : (
+          <InvestigationView onViewChange={setActiveView} />
+        );
       default:
         return (
           <Dashboard
