@@ -44,21 +44,21 @@ export default function Header({ activeView, onViewChange, wsConnected }: Header
   ];
 
   return (
-    <header className="bg-intel-surface border-b border-intel-border select-none">
-      <div className="flex items-center h-10 px-3">
+    <header className="bg-intel-surface border-b border-intel-border/80 select-none">
+      <div className="flex items-center h-10 px-4">
         {/* Logo — compact */}
         <button
           onClick={() => onViewChange('dashboard')}
           className="flex items-center gap-2 mr-4 flex-shrink-0"
         >
-          <div className="w-5 h-5 rounded-sm bg-intel-accent/20 flex items-center justify-center">
+          <div className="w-5 h-5 rounded bg-intel-accent/15 flex items-center justify-center">
             <Eye className="w-3 h-3 text-intel-accent" />
           </div>
-          <span className="text-xs font-bold tracking-[0.2em] text-gray-200">VIOSINT</span>
+          <span className="text-xs font-bold tracking-[0.2em] text-gray-300">VIOSINT</span>
         </button>
 
         {/* Separator */}
-        <div className="w-px h-5 bg-intel-border mr-3" />
+        <div className="w-px h-5 bg-intel-border/60 mr-3" />
 
         {/* Navigation — tight horizontal tabs */}
         <nav className="flex items-center gap-0 flex-1 overflow-x-auto">
@@ -69,7 +69,7 @@ export default function Header({ activeView, onViewChange, wsConnected }: Header
               <button
                 key={item.id}
                 onClick={() => onViewChange(item.id)}
-                className={`relative flex items-center gap-1.5 px-2.5 h-10 text-2xs font-semibold tracking-wide whitespace-nowrap transition-colors ${
+                className={`relative flex items-center gap-1.5 px-2.5 h-10 text-2xs font-semibold tracking-wide whitespace-nowrap transition-all duration-200 ${
                   isActive
                     ? 'text-intel-accent'
                     : 'text-gray-500 hover:text-gray-300'
@@ -78,12 +78,12 @@ export default function Header({ activeView, onViewChange, wsConnected }: Header
                 <Icon className="w-3 h-3" />
                 {item.label}
                 {item.id === 'alerts' && unreadCount > 0 && (
-                  <span className="ml-0.5 px-1 py-px text-2xs font-bold bg-sev-critical text-white rounded-sm leading-none">
+                  <span className="ml-0.5 px-1 py-px text-2xs font-bold bg-sev-critical/90 text-white rounded leading-none">
                     {unreadCount}
                   </span>
                 )}
                 {isActive && (
-                  <div className="absolute bottom-0 left-1 right-1 h-px bg-intel-accent" />
+                  <div className="absolute bottom-0 left-1 right-1 h-0.5 bg-intel-accent rounded-full" />
                 )}
               </button>
             );
@@ -95,8 +95,8 @@ export default function Header({ activeView, onViewChange, wsConnected }: Header
           <div className="flex items-center gap-1.5 text-2xs">
             {wsConnected ? (
               <>
-                <span className="w-1.5 h-1.5 rounded-full bg-intel-accent" />
-                <span className="text-intel-accent font-medium">LIVE</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-intel-accent animate-pulse" />
+                  <span className="text-intel-accent font-medium">LIVE</span>
               </>
             ) : (
               <>

@@ -105,11 +105,21 @@ export default function OperatorDashboard({ onViewChange, onEntitySelect, onCase
 
   const riskLevelColor = (level: string) => {
     switch (level) {
-      case 'critical': return 'text-red-400';
-      case 'high': return 'text-orange-400';
-      case 'medium': return 'text-yellow-400';
-      default: return 'text-green-400';
+      case 'critical': return 'text-sev-critical';
+      case 'high': return 'text-sev-high';
+      case 'medium': return 'text-sev-medium';
+      default: return 'text-intel-accent';
     }
+  };
+
+  const eventTypeBadge = (type: string) => {
+    const t = type.toLowerCase();
+    if (t.includes('alert')) return { label: 'ALR', bg: 'bg-evt-alert/20', text: 'text-evt-alert' };
+    if (t.includes('movement') || t.includes('mov')) return { label: 'MOV', bg: 'bg-evt-movement/20', text: 'text-evt-movement' };
+    if (t.includes('transaction') || t.includes('txn')) return { label: 'TXN', bg: 'bg-evt-transaction/20', text: 'text-evt-transaction' };
+    if (t.includes('detection') || t.includes('det')) return { label: 'DET', bg: 'bg-evt-detection/20', text: 'text-evt-detection' };
+    if (t.includes('appearance') || t.includes('app')) return { label: 'APP', bg: 'bg-evt-appearance/20', text: 'text-evt-appearance' };
+    return { label: t.slice(0, 3).toUpperCase(), bg: 'bg-evt-system/20', text: 'text-evt-system' };
   };
 
   if (loading) {
@@ -125,22 +135,22 @@ export default function OperatorDashboard({ onViewChange, onEntitySelect, onCase
       {/* Top Bar — mode + controls */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Radio className="w-3 h-3 text-sev-critical animate-pulse" />
+          <Radio className="w-3 h-3 text-intel-accent animate-pulse" />
           <span className="text-2xs font-semibold text-gray-400 uppercase tracking-widest">Operator Console</span>
-          <span className="text-2xs text-gray-600 ml-2">
+          <span className="text-2xs text-gray-500 ml-2">
             {lastRefresh.toLocaleTimeString()}
           </span>
         </div>
         <div className="flex items-center gap-1">
           <button
             onClick={() => onViewChange('investigation')}
-            className="px-2 py-1 text-2xs text-gray-500 hover:text-gray-300 border border-intel-border rounded-sm hover:border-intel-border-light transition-colors"
+            className="px-2 py-1 text-2xs text-gray-500 hover:text-gray-300 border border-intel-border rounded-sm hover:border-intel-border-light hover:bg-intel-card/50 transition-all duration-200"
           >
             INVESTIGATION
           </button>
           <button
             onClick={() => onViewChange('intel-summary')}
-            className="px-2 py-1 text-2xs text-gray-500 hover:text-gray-300 border border-intel-border rounded-sm hover:border-intel-border-light transition-colors"
+            className="px-2 py-1 text-2xs text-gray-500 hover:text-gray-300 border border-intel-border rounded-sm hover:border-intel-border-light hover:bg-intel-card/50 transition-all duration-200"
           >
             INTELLIGENCE
           </button>
@@ -156,14 +166,14 @@ export default function OperatorDashboard({ onViewChange, onEntitySelect, onCase
 
       {/* Stat Strip — horizontal, compact */}
       {dashboard && (
-        <div className="flex items-center gap-px bg-intel-border rounded-sm overflow-hidden">
+        <div className="flex items-center gap-px bg-intel-border/60 rounded overflow-hidden">
           {[
             { label: 'UNREAD', value: dashboard.unread_alerts, color: 'text-sev-critical' },
             { label: 'CRITICAL 24H', value: dashboard.critical_alerts_24h, color: 'text-sev-high' },
             { label: 'HIGH RISK', value: dashboard.high_risk_entities, color: 'text-sev-medium' },
             { label: 'WATCHLIST', value: dashboard.watchlist_count, color: 'text-intel-accent' },
-            { label: 'EVENTS 1H', value: dashboard.recent_events_1h, color: 'text-gray-300' },
-            { label: 'TRACKED', value: dashboard.total_tracked_entities, color: 'text-gray-300' },
+            { label: 'EVENTS 1H', value: dashboard.recent_events_1h, color: 'text-gray-200' },
+            { label: 'TRACKED', value: dashboard.total_tracked_entities, color: 'text-gray-200' },
           ].map((stat) => (
             <div key={stat.label} className="flex-1 bg-intel-panel px-3 py-2 text-center">
               <div className={`text-sm font-bold tabular-nums ${stat.color}`}>{stat.value}</div>
@@ -184,13 +194,13 @@ export default function OperatorDashboard({ onViewChange, onEntitySelect, onCase
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         {/* ALERTS — Table-like rows */}
-        <div className="lg:col-span-2 bg-intel-panel border border-intel-border rounded-sm">
+        <div className="lg:col-span-2 bg-intel-panel border border-intel-border/60 rounded">
           {/* Alert header bar */}
           <div className="flex items-center justify-between px-3 py-2 border-b border-intel-border">
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-3 h-3 text-sev-critical" />
               <span className="text-2xs font-semibold text-gray-300 uppercase tracking-wider">Active Alerts</span>
-              <span className="text-2xs font-bold text-sev-critical bg-sev-critical/10 px-1.5 py-px rounded-sm">
+              <span className="text-2xs font-bold text-sev-critical bg-sev-critical/10 px-1.5 py-px rounded">
                 {alerts.filter(a => !a.is_read).length}
               </span>
             </div>
@@ -230,7 +240,7 @@ export default function OperatorDashboard({ onViewChange, onEntitySelect, onCase
                 {alerts.map((alert) => (
                   <div
                     key={alert.id}
-                    className={`flex items-center gap-2 px-3 py-2 border-b border-intel-border/50 hover:bg-white/[0.015] transition-colors ${
+                    className={`flex items-center gap-2 px-3 py-2 border-b border-intel-border/30 hover:bg-intel-card/40 transition-all duration-150 ${
                       !alert.is_read ? `sev-${alert.severity}` : ''
                     }`}
                   >
@@ -293,10 +303,10 @@ export default function OperatorDashboard({ onViewChange, onEntitySelect, onCase
         {/* Right Column — Watchlist + Feed */}
         <div className="space-y-3">
           {/* Watchlist */}
-          <div className="bg-intel-panel border border-intel-border rounded-sm">
-            <div className="flex items-center justify-between px-3 py-2 border-b border-intel-border">
+          <div className="bg-intel-panel border border-intel-border/60 rounded">
+            <div className="flex items-center justify-between px-3 py-2 border-b border-intel-border/60">
               <div className="flex items-center gap-1.5">
-                <Star className="w-3 h-3 text-sev-medium" />
+                <Star className="w-3 h-3 text-intel-accent" />
                 <span className="text-2xs font-semibold text-gray-300 uppercase tracking-wider">Watchlist</span>
                 <span className="text-2xs font-bold text-sev-medium">{watchlist.length}</span>
               </div>
@@ -309,7 +319,7 @@ export default function OperatorDashboard({ onViewChange, onEntitySelect, onCase
                   {watchlist.map((entry) => (
                     <div
                       key={entry.entity_id}
-                      className="flex items-center gap-2 px-3 py-1.5 border-b border-intel-border/30 hover:bg-white/[0.015] cursor-pointer transition-colors"
+                      className="flex items-center gap-2 px-3 py-1.5 border-b border-intel-border/20 hover:bg-intel-card/40 cursor-pointer transition-all duration-150"
                       onClick={() => onEntitySelect?.(entry.entity_id)}
                     >
                       <div className="flex-1 min-w-0">
@@ -341,8 +351,8 @@ export default function OperatorDashboard({ onViewChange, onEntitySelect, onCase
           </div>
 
           {/* Live Feed */}
-          <div className="bg-intel-panel border border-intel-border rounded-sm">
-            <div className="flex items-center justify-between px-3 py-2 border-b border-intel-border">
+          <div className="bg-intel-panel border border-intel-border/60 rounded">
+            <div className="flex items-center justify-between px-3 py-2 border-b border-intel-border/60">
               <div className="flex items-center gap-1.5">
                 <Radio className="w-3 h-3 text-intel-accent animate-pulse" />
                 <span className="text-2xs font-semibold text-gray-300 uppercase tracking-wider">Live Feed</span>
@@ -354,28 +364,31 @@ export default function OperatorDashboard({ onViewChange, onEntitySelect, onCase
                 <p className="text-2xs text-gray-600 text-center py-4">No events</p>
               ) : (
                 <div>
-                  {feed.map((event) => (
-                    <div
-                      key={event.id}
-                      className="flex items-center gap-2 px-3 py-1.5 border-b border-intel-border/30 hover:bg-white/[0.015] transition-colors"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs text-gray-300 font-mono">{event.entity_id.slice(0, 10)}</span>
-                          <span className="text-2xs text-gray-600">{event.event_type}</span>
-                        </div>
-                        {(event.location_name || event.co_occurring_entities.length > 0) && (
-                          <div className="flex items-center gap-1.5 mt-0.5">
-                            {event.location_name && <span className="text-2xs text-gray-600">@ {event.location_name}</span>}
-                            {event.co_occurring_entities.length > 0 && (
-                              <span className="text-2xs text-gray-600">+{event.co_occurring_entities.length}</span>
-                            )}
+                  {feed.map((event) => {
+                    const badge = eventTypeBadge(event.event_type);
+                    return (
+                      <div
+                        key={event.id}
+                        className="flex items-center gap-2 px-3 py-1.5 border-b border-intel-border/20 hover:bg-intel-card/40 transition-all duration-150"
+                      >
+                        <span className={`px-1.5 py-0.5 text-2xs font-bold rounded ${badge.bg} ${badge.text}`}>{badge.label}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs text-gray-200 font-mono">{event.entity_id.slice(0, 10)}</span>
                           </div>
-                        )}
+                          {(event.location_name || event.co_occurring_entities.length > 0) && (
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              {event.location_name && <span className="text-2xs text-gray-500">@ {event.location_name}</span>}
+                              {event.co_occurring_entities.length > 0 && (
+                                <span className="text-2xs text-gray-500">+{event.co_occurring_entities.length}</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <span className="text-2xs text-gray-400 whitespace-nowrap font-medium">{formatRelativeTime(event.timestamp)}</span>
                       </div>
-                      <span className="text-2xs text-gray-700 whitespace-nowrap">{formatRelativeTime(event.timestamp)}</span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

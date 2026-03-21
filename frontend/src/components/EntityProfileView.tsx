@@ -75,7 +75,7 @@ export default function EntityProfileView({ entityId, onViewChange, onEntitySele
         <p className="text-xs">Entity not found</p>
         <button
           onClick={() => onViewChange('investigation')}
-          className="mt-2 px-2 py-1 text-2xs text-intel-accent border border-intel-accent/30 rounded-sm hover:bg-intel-accent/10 transition-colors"
+          className="mt-2 px-2 py-1 text-2xs text-intel-accent border border-intel-accent/30 rounded hover:bg-intel-accent/10 transition-all duration-200"
         >
           BACK
         </button>
@@ -121,18 +121,18 @@ export default function EntityProfileView({ entityId, onViewChange, onEntitySele
         </div>
         <div className="flex items-center gap-1">
           {!profile.is_on_watchlist && (
-            <button onClick={handleAddToWatchlist} className="flex items-center gap-1 px-2 py-1 text-2xs text-sev-medium border border-sev-medium/30 rounded-sm hover:bg-sev-medium/10 transition-colors">
+            <button onClick={handleAddToWatchlist} className="flex items-center gap-1 px-2 py-1 text-2xs text-intel-accent border border-intel-accent/30 rounded hover:bg-intel-accent/10 transition-all duration-200">
               <Star className="w-3 h-3" /> WATCH
             </button>
           )}
-          <button onClick={() => onViewChange('investigation')} className="px-2 py-1 text-2xs text-gray-500 border border-intel-border rounded-sm hover:text-gray-300 transition-colors">
+          <button onClick={() => onViewChange('investigation')} className="px-2 py-1 text-2xs text-gray-500 border border-intel-border rounded hover:text-gray-300 transition-all duration-200">
             BACK
           </button>
         </div>
       </div>
 
       {/* Risk + Stats strip */}
-      <div className="bg-intel-panel border border-intel-border rounded-sm">
+      <div className="bg-intel-panel border border-intel-border/60 rounded">
         <div className="flex items-center gap-4 px-3 py-2">
           {/* Compact risk circle */}
           <div className="relative w-14 h-14 flex-shrink-0">
@@ -179,12 +179,12 @@ export default function EntityProfileView({ entityId, onViewChange, onEntitySele
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center border-b border-intel-border">
+      <div className="flex items-center border-b border-intel-border/60">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-3 py-1.5 text-2xs font-medium border-b transition-colors ${
+            className={`px-3 py-1.5 text-2xs font-medium border-b-2 transition-all duration-200 ${
               activeTab === tab.id ? 'border-intel-accent text-intel-accent' : 'border-transparent text-gray-600 hover:text-gray-400'
             }`}
           >
@@ -197,8 +197,8 @@ export default function EntityProfileView({ entityId, onViewChange, onEntitySele
       {activeTab === 'overview' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           {/* Common Locations */}
-          <div className="bg-intel-panel border border-intel-border rounded-sm">
-            <div className="flex items-center gap-1.5 px-3 py-2 border-b border-intel-border">
+          <div className="bg-intel-panel border border-intel-border/60 rounded">
+            <div className="flex items-center gap-1.5 px-3 py-2 border-b border-intel-border/60">
               <MapPin className="w-3 h-3 text-gray-400" />
               <span className="text-2xs font-semibold text-gray-300 uppercase tracking-wider">Locations</span>
             </div>
@@ -207,7 +207,7 @@ export default function EntityProfileView({ entityId, onViewChange, onEntitySele
                 <p className="text-2xs text-gray-600 text-center py-4">None</p>
               ) : (
                 profile.common_locations.map((loc, i) => (
-                  <div key={i} className="flex items-center justify-between px-3 py-1.5 border-b border-intel-border/30">
+                  <div key={i} className="flex items-center justify-between px-3 py-1.5 border-b border-intel-border/20">
                     <span className="text-xs text-gray-300">{loc.name}</span>
                     <span className="text-2xs text-gray-600 tabular-nums">{loc.visit_count}v</span>
                   </div>
@@ -217,8 +217,8 @@ export default function EntityProfileView({ entityId, onViewChange, onEntitySele
           </div>
 
           {/* Associated Entities */}
-          <div className="bg-intel-panel border border-intel-border rounded-sm">
-            <div className="flex items-center gap-1.5 px-3 py-2 border-b border-intel-border">
+          <div className="bg-intel-panel border border-intel-border/60 rounded">
+            <div className="flex items-center gap-1.5 px-3 py-2 border-b border-intel-border/60">
               <Users className="w-3 h-3 text-gray-400" />
               <span className="text-2xs font-semibold text-gray-300 uppercase tracking-wider">Associations</span>
             </div>
@@ -229,13 +229,13 @@ export default function EntityProfileView({ entityId, onViewChange, onEntitySele
                 profile.associated_entities.map((assoc) => (
                   <div
                     key={assoc.entity_id}
-                    className="flex items-center gap-2 px-3 py-1.5 border-b border-intel-border/30 hover:bg-white/[0.015] cursor-pointer transition-colors"
+                    className="flex items-center gap-2 px-3 py-1.5 border-b border-intel-border/20 hover:bg-intel-card/40 cursor-pointer transition-all duration-150"
                     onClick={() => onEntitySelect?.(assoc.entity_id)}
                   >
                     <GitBranch className="w-3 h-3 text-gray-600" />
                     <span className="text-xs text-gray-200 font-mono flex-1 truncate">{assoc.entity_id.slice(0, 12)}</span>
-                    <div className="w-12 bg-intel-bg rounded-sm h-1">
-                      <div className="h-1 rounded-sm bg-blue-500/60" style={{ width: `${assoc.strength * 100}%` }} />
+                    <div className="w-12 bg-intel-bg rounded h-1">
+                      <div className="h-1 rounded bg-intel-accent/50" style={{ width: `${assoc.strength * 100}%` }} />
                     </div>
                     <span className="text-2xs text-gray-600 tabular-nums">{(assoc.strength * 100).toFixed(0)}%</span>
                     <ChevronRight className="w-3 h-3 text-gray-700" />
@@ -246,8 +246,8 @@ export default function EntityProfileView({ entityId, onViewChange, onEntitySele
           </div>
 
           {/* Behaviors */}
-          <div className="bg-intel-panel border border-intel-border rounded-sm">
-            <div className="flex items-center gap-1.5 px-3 py-2 border-b border-intel-border">
+          <div className="bg-intel-panel border border-intel-border/60 rounded">
+            <div className="flex items-center gap-1.5 px-3 py-2 border-b border-intel-border/60">
               <Eye className="w-3 h-3 text-gray-400" />
               <span className="text-2xs font-semibold text-gray-300 uppercase tracking-wider">Behaviors</span>
             </div>
@@ -256,7 +256,7 @@ export default function EntityProfileView({ entityId, onViewChange, onEntitySele
                 <p className="text-2xs text-gray-600 text-center py-4">None</p>
               ) : (
                 profile.behaviors.map((behavior, i) => (
-                  <div key={i} className="px-3 py-1.5 border-b border-intel-border/30">
+                  <div key={i} className="px-3 py-1.5 border-b border-intel-border/20">
                     <div className="flex items-center gap-1.5 text-2xs">
                       <span className={`font-bold uppercase ${sevColor(behavior.severity)}`}>{behavior.severity}</span>
                       <span className="text-gray-600">{behavior.type}</span>
@@ -271,8 +271,8 @@ export default function EntityProfileView({ entityId, onViewChange, onEntitySele
           </div>
 
           {/* Predictions */}
-          <div className="bg-intel-panel border border-intel-border rounded-sm">
-            <div className="flex items-center gap-1.5 px-3 py-2 border-b border-intel-border">
+          <div className="bg-intel-panel border border-intel-border/60 rounded">
+            <div className="flex items-center gap-1.5 px-3 py-2 border-b border-intel-border/60">
               <TrendingUp className="w-3 h-3 text-gray-400" />
               <span className="text-2xs font-semibold text-gray-300 uppercase tracking-wider">Predictions</span>
             </div>
@@ -321,13 +321,13 @@ export default function EntityProfileView({ entityId, onViewChange, onEntitySele
       )}
 
       {activeTab === 'events' && (
-        <div className="bg-intel-panel border border-intel-border rounded-sm">
+        <div className="bg-intel-panel border border-intel-border/60 rounded">
           <div className="max-h-[400px] overflow-y-auto">
             {profile.recent_events.length === 0 ? (
               <p className="text-2xs text-gray-600 text-center py-8">No events</p>
             ) : (
               profile.recent_events.map((event) => (
-                <div key={event.id} className="flex items-center gap-2 px-3 py-1.5 border-b border-intel-border/30 hover:bg-white/[0.015]">
+                <div key={event.id} className="flex items-center gap-2 px-3 py-1.5 border-b border-intel-border/20 hover:bg-intel-card/40 transition-all duration-150">
                   <div className="w-1.5 h-1.5 rounded-full bg-intel-accent flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 text-2xs">
@@ -336,7 +336,7 @@ export default function EntityProfileView({ entityId, onViewChange, onEntitySele
                       {event.confidence !== undefined && <span className="text-gray-700 tabular-nums">{Math.round(event.confidence * 100)}%</span>}
                     </div>
                   </div>
-                  <span className="text-2xs text-gray-600 flex-shrink-0">{formatRelativeTime(event.timestamp)}</span>
+                  <span className="text-2xs text-gray-400 flex-shrink-0 font-medium">{formatRelativeTime(event.timestamp)}</span>
                 </div>
               ))
             )}
@@ -345,13 +345,13 @@ export default function EntityProfileView({ entityId, onViewChange, onEntitySele
       )}
 
       {activeTab === 'alerts' && (
-        <div className="bg-intel-panel border border-intel-border rounded-sm">
+        <div className="bg-intel-panel border border-intel-border/60 rounded">
           <div className="max-h-[400px] overflow-y-auto">
             {profile.alerts.length === 0 ? (
               <p className="text-2xs text-gray-600 text-center py-8">No alerts</p>
             ) : (
               profile.alerts.map((alert) => (
-                <div key={alert.id} className="px-3 py-1.5 border-b border-intel-border/30 hover:bg-white/[0.015]">
+                <div key={alert.id} className="px-3 py-1.5 border-b border-intel-border/20 hover:bg-intel-card/40 transition-all duration-150">
                   <div className="flex items-center gap-1.5 text-2xs">
                     <span className={`font-bold uppercase ${sevColor(alert.severity)}`}>{alert.severity}</span>
                     <span className="text-gray-600">{alert.alert_type}</span>
@@ -366,13 +366,13 @@ export default function EntityProfileView({ entityId, onViewChange, onEntitySele
       )}
 
       {activeTab === 'insights' && (
-        <div className="bg-intel-panel border border-intel-border rounded-sm">
+        <div className="bg-intel-panel border border-intel-border/60 rounded">
           <div className="max-h-[400px] overflow-y-auto">
             {profile.insights.length === 0 ? (
               <p className="text-2xs text-gray-600 text-center py-8">No insights</p>
             ) : (
               profile.insights.map((insight) => (
-                <div key={insight.id} className="px-3 py-1.5 border-b border-intel-border/30 hover:bg-white/[0.015]">
+                <div key={insight.id} className="px-3 py-1.5 border-b border-intel-border/20 hover:bg-intel-card/40 transition-all duration-150">
                   <div className="flex items-center gap-1.5 text-2xs">
                     <span className={`font-bold uppercase ${sevColor(insight.severity)}`}>{insight.severity}</span>
                     <span className="text-gray-600">{insight.type}</span>

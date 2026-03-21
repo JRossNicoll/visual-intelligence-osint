@@ -19,7 +19,7 @@ const PRIORITY_COLORS: Record<string, string> = {
 
 const STATUS_COLORS: Record<string, string> = {
   open: 'text-intel-accent',
-  active: 'text-blue-400',
+  active: 'text-sky-400',
   closed: 'text-gray-500',
 };
 
@@ -104,7 +104,7 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
         </div>
         <button
           onClick={() => setShowCreate(true)}
-          className="flex items-center gap-1 px-2 py-1 text-2xs text-intel-accent border border-intel-accent/30 rounded-sm hover:bg-intel-accent/10 transition-colors"
+          className="flex items-center gap-1 px-2 py-1 text-2xs text-intel-accent border border-intel-accent/30 rounded hover:bg-intel-accent/10 transition-all duration-200"
         >
           <Plus className="w-3 h-3" />
           NEW
@@ -112,12 +112,12 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
       </div>
 
       {/* Status strip */}
-      <div className="flex items-center gap-px bg-intel-border rounded-sm overflow-hidden">
+      <div className="flex items-center gap-px bg-intel-border/60 rounded overflow-hidden">
         {(['open', 'active', 'closed'] as const).map((status) => (
           <button
             key={status}
             onClick={() => setStatusFilter(statusFilter === status ? '' : status)}
-            className={`flex-1 px-3 py-2 text-center transition-colors ${
+            className={`flex-1 px-3 py-2 text-center transition-all duration-200 ${
               statusFilter === status ? 'bg-intel-card' : 'bg-intel-panel hover:bg-intel-card/50'
             }`}
           >
@@ -135,7 +135,7 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
             <button
               key={p}
               onClick={() => setPriorityFilter(priorityFilter === p ? '' : p)}
-              className={`px-2 py-0.5 text-2xs rounded-sm border capitalize transition-colors ${
+              className={`px-2 py-0.5 text-2xs rounded border capitalize transition-all duration-200 ${
                 priorityFilter === p
                   ? `${PRIORITY_COLORS[p]} border-current bg-current/10`
                   : 'text-gray-600 border-intel-border hover:border-intel-border-light'
@@ -154,8 +154,8 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
 
       {/* Create Case Modal — compact */}
       {showCreate && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
-          <div className="bg-intel-surface border border-intel-border rounded-sm p-4 w-full max-w-md space-y-3">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-intel-surface border border-intel-border/60 rounded-md p-4 w-full max-w-md space-y-3">
             <div className="text-xs font-semibold text-gray-200 uppercase tracking-wider">New Case</div>
 
             <div>
@@ -164,7 +164,7 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
                 type="text"
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
-                className="w-full px-2 py-1.5 rounded-sm bg-intel-bg border border-intel-border text-xs text-gray-200 focus:border-intel-border-light focus:outline-none"
+                className="w-full px-2 py-1.5 rounded bg-intel-bg border border-intel-border text-xs text-gray-200 focus:border-intel-accent/40 focus:outline-none transition-colors"
                 placeholder="Case title..."
               />
             </div>
@@ -175,7 +175,7 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
                 value={newDescription}
                 onChange={(e) => setNewDescription(e.target.value)}
                 rows={2}
-                className="w-full px-2 py-1.5 rounded-sm bg-intel-bg border border-intel-border text-xs text-gray-200 focus:border-intel-border-light focus:outline-none resize-none"
+                className="w-full px-2 py-1.5 rounded bg-intel-bg border border-intel-border text-xs text-gray-200 focus:border-intel-accent/40 focus:outline-none resize-none transition-colors"
                 placeholder="Description..."
               />
             </div>
@@ -184,7 +184,7 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
               <div>
                 <label className="block text-2xs text-gray-500 mb-0.5">Priority</label>
                 <select value={newPriority} onChange={(e) => setNewPriority(e.target.value)}
-                  className="w-full px-2 py-1.5 rounded-sm bg-intel-bg border border-intel-border text-xs text-gray-200 focus:outline-none">
+                  className="w-full px-2 py-1.5 rounded bg-intel-bg border border-intel-border text-xs text-gray-200 focus:outline-none">
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
                   <option value="high">High</option>
@@ -194,7 +194,7 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
               <div>
                 <label className="block text-2xs text-gray-500 mb-0.5">Severity</label>
                 <select value={newSeverity} onChange={(e) => setNewSeverity(e.target.value)}
-                  className="w-full px-2 py-1.5 rounded-sm bg-intel-bg border border-intel-border text-xs text-gray-200 focus:outline-none">
+                  className="w-full px-2 py-1.5 rounded bg-intel-bg border border-intel-border text-xs text-gray-200 focus:outline-none">
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
                   <option value="high">High</option>
@@ -208,7 +208,7 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
               <button
                 onClick={handleCreate}
                 disabled={creating || !newTitle.trim()}
-                className="px-3 py-1 text-2xs text-intel-accent border border-intel-accent/30 rounded-sm hover:bg-intel-accent/10 transition-colors disabled:opacity-40"
+                className="px-3 py-1 text-2xs text-intel-accent border border-intel-accent/30 rounded hover:bg-intel-accent/10 transition-all duration-200 disabled:opacity-40"
               >
                 {creating ? 'Creating...' : 'CREATE'}
               </button>
@@ -227,12 +227,12 @@ export default function CaseManagement({ onCaseSelect }: CaseManagementProps) {
           <p className="text-2xs text-gray-600 mt-0.5">Create manually or from an alert</p>
         </div>
       ) : (
-        <div className="bg-intel-panel border border-intel-border rounded-sm">
+        <div className="bg-intel-panel border border-intel-border/60 rounded">
           {cases.map((c) => (
             <button
               key={c.id}
               onClick={() => onCaseSelect(c.id)}
-              className="w-full text-left flex items-center gap-2 px-3 py-2 border-b border-intel-border/50 hover:bg-white/[0.015] transition-colors"
+              className="w-full text-left flex items-center gap-2 px-3 py-2 border-b border-intel-border/30 hover:bg-intel-card/40 transition-all duration-150"
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">

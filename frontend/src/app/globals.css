@@ -5,8 +5,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --foreground-rgb: 210, 215, 225;
-  --background-rgb: 8, 10, 16;
+  --foreground-rgb: 200, 202, 208;
+  --background-rgb: 18, 20, 22;
 }
 
 body {
@@ -29,12 +29,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e2738;
-  border-radius: 2px;
+  background: #32353b;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #2a3648;
+  background: #3e4148;
 }
 
 /* Detection overlay styles */
@@ -64,12 +64,12 @@ body {
   position: absolute;
   width: 100%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(212, 149, 106, 0.15), transparent);
   animation: scanline 4s linear infinite;
 }
 
 /* Severity indicator left-border */
-.sev-critical { border-left: 2px solid #ef4444; }
-.sev-high { border-left: 2px solid #f97316; }
-.sev-medium { border-left: 2px solid #eab308; }
-.sev-low { border-left: 2px solid #4b5563; }
+.sev-critical { border-left: 2px solid #c75050; }
+.sev-high { border-left: 2px solid #d97736; }
+.sev-medium { border-left: 2px solid #c9a74e; }
+.sev-low { border-left: 2px solid #6b7280; }

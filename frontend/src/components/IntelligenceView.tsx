@@ -93,7 +93,7 @@ export default function IntelligenceView({ onViewChange }: IntelligenceViewProps
           <select
             value={periodDays}
             onChange={(e) => setPeriodDays(Number(e.target.value))}
-            className="bg-intel-bg border border-intel-border text-2xs text-gray-400 rounded-sm px-2 py-1"
+            className="bg-intel-bg border border-intel-border text-2xs text-gray-400 rounded px-2 py-1"
           >
             <option value={7}>7d</option>
             <option value={14}>14d</option>
@@ -117,8 +117,8 @@ export default function IntelligenceView({ onViewChange }: IntelligenceViewProps
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {/* Risk Distribution */}
-            <div className="bg-intel-panel border border-intel-border rounded-sm">
-              <div className="flex items-center gap-1.5 px-3 py-2 border-b border-intel-border">
+            <div className="bg-intel-panel border border-intel-border/60 rounded">
+              <div className="flex items-center gap-1.5 px-3 py-2 border-b border-intel-border/60">
                 <Shield className="w-3 h-3 text-sev-high" />
                 <span className="text-2xs font-semibold text-gray-300 uppercase tracking-wider">Risk Distribution</span>
               </div>
@@ -131,8 +131,8 @@ export default function IntelligenceView({ onViewChange }: IntelligenceViewProps
                         <span className="text-gray-500 capitalize">{level}</span>
                         <span className="text-gray-300 tabular-nums">{count} ({pct.toFixed(0)}%)</span>
                       </div>
-                      <div className="w-full bg-intel-bg rounded-sm h-1.5">
-                        <div className={`h-1.5 rounded-sm transition-all ${riskBarColors[level] || 'bg-gray-600'}`} style={{ width: `${Math.max(pct, 1)}%` }} />
+                        <div className="w-full bg-intel-bg rounded h-1.5">
+                          <div className={`h-1.5 rounded transition-all ${riskBarColors[level] || 'bg-gray-600'}`} style={{ width: `${Math.max(pct, 1)}%` }} />
                       </div>
                     </div>
                   );
@@ -141,8 +141,8 @@ export default function IntelligenceView({ onViewChange }: IntelligenceViewProps
             </div>
 
             {/* Behavior Distribution */}
-            <div className="bg-intel-panel border border-intel-border rounded-sm">
-              <div className="flex items-center gap-1.5 px-3 py-2 border-b border-intel-border">
+            <div className="bg-intel-panel border border-intel-border/60 rounded">
+              <div className="flex items-center gap-1.5 px-3 py-2 border-b border-intel-border/60">
                 <Activity className="w-3 h-3 text-gray-400" />
                 <span className="text-2xs font-semibold text-gray-300 uppercase tracking-wider">Behavior Distribution</span>
               </div>
@@ -158,8 +158,8 @@ export default function IntelligenceView({ onViewChange }: IntelligenceViewProps
                           <span className="text-gray-500">{behavior.replace(/_/g, ' ')}</span>
                           <span className="text-gray-300 tabular-nums">{count} ({pct.toFixed(0)}%)</span>
                         </div>
-                        <div className="w-full bg-intel-bg rounded-sm h-1.5">
-                          <div className={`h-1.5 rounded-sm transition-all ${behaviorBarColors[behavior] || 'bg-gray-600'}`} style={{ width: `${Math.max(pct, 1)}%` }} />
+                            <div className="w-full bg-intel-bg rounded h-1.5">
+                              <div className={`h-1.5 rounded transition-all ${behaviorBarColors[behavior] || 'bg-gray-600'}`} style={{ width: `${Math.max(pct, 1)}%` }} />
                         </div>
                       </div>
                     );
@@ -169,8 +169,8 @@ export default function IntelligenceView({ onViewChange }: IntelligenceViewProps
             </div>
 
             {/* Alert Trend */}
-            <div className="bg-intel-panel border border-intel-border rounded-sm">
-              <div className="flex items-center gap-1.5 px-3 py-2 border-b border-intel-border">
+            <div className="bg-intel-panel border border-intel-border/60 rounded">
+              <div className="flex items-center gap-1.5 px-3 py-2 border-b border-intel-border/60">
                 <BarChart3 className="w-3 h-3 text-sev-critical" />
                 <span className="text-2xs font-semibold text-gray-300 uppercase tracking-wider">Alert Trend</span>
               </div>
@@ -183,8 +183,8 @@ export default function IntelligenceView({ onViewChange }: IntelligenceViewProps
                       const height = maxAlertCount > 0 ? (point.count / maxAlertCount) * 100 : 0;
                       return (
                         <div key={i} className="flex-1 group relative" title={`${point.date}: ${point.count}`}>
-                          <div className="w-full bg-sev-critical/40 hover:bg-sev-critical/70 transition-colors cursor-pointer" style={{ height: `${Math.max(height, 2)}%` }} />
-                          <div className="opacity-0 group-hover:opacity-100 absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-1.5 py-0.5 bg-intel-surface border border-intel-border rounded-sm text-2xs text-gray-300 whitespace-nowrap z-10">
+                          <div className="w-full bg-sev-critical/30 hover:bg-sev-critical/60 transition-all duration-200 cursor-pointer rounded-t" style={{ height: `${Math.max(height, 2)}%` }} />
+                          <div className="opacity-0 group-hover:opacity-100 absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-1.5 py-0.5 bg-intel-surface border border-intel-border rounded text-2xs text-gray-300 whitespace-nowrap z-10">
                             {point.date}: {point.count}
                           </div>
                         </div>
@@ -202,8 +202,8 @@ export default function IntelligenceView({ onViewChange }: IntelligenceViewProps
             </div>
 
             {/* Entity Trend */}
-            <div className="bg-intel-panel border border-intel-border rounded-sm">
-              <div className="flex items-center gap-1.5 px-3 py-2 border-b border-intel-border">
+            <div className="bg-intel-panel border border-intel-border/60 rounded">
+              <div className="flex items-center gap-1.5 px-3 py-2 border-b border-intel-border/60">
                 <TrendingUp className="w-3 h-3 text-gray-400" />
                 <span className="text-2xs font-semibold text-gray-300 uppercase tracking-wider">Entity Trend</span>
               </div>
@@ -216,8 +216,8 @@ export default function IntelligenceView({ onViewChange }: IntelligenceViewProps
                       const height = maxEntityCount > 0 ? (point.new_entities / maxEntityCount) * 100 : 0;
                       return (
                         <div key={i} className="flex-1 group relative" title={`${point.date}: ${point.new_entities}`}>
-                          <div className="w-full bg-intel-accent/30 hover:bg-intel-accent/60 transition-colors cursor-pointer" style={{ height: `${Math.max(height, 2)}%` }} />
-                          <div className="opacity-0 group-hover:opacity-100 absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-1.5 py-0.5 bg-intel-surface border border-intel-border rounded-sm text-2xs text-gray-300 whitespace-nowrap z-10">
+                          <div className="w-full bg-intel-accent/25 hover:bg-intel-accent/50 transition-all duration-200 cursor-pointer rounded-t" style={{ height: `${Math.max(height, 2)}%` }} />
+                          <div className="opacity-0 group-hover:opacity-100 absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-1.5 py-0.5 bg-intel-surface border border-intel-border rounded text-2xs text-gray-300 whitespace-nowrap z-10">
                             {point.date}: {point.new_entities}
                           </div>
                         </div>
@@ -238,8 +238,8 @@ export default function IntelligenceView({ onViewChange }: IntelligenceViewProps
           {/* Bottom row */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
             {/* Top Risk Entities */}
-            <div className="bg-intel-panel border border-intel-border rounded-sm">
-              <div className="flex items-center gap-1.5 px-3 py-2 border-b border-intel-border">
+            <div className="bg-intel-panel border border-intel-border/60 rounded">
+              <div className="flex items-center gap-1.5 px-3 py-2 border-b border-intel-border/60">
                 <Shield className="w-3 h-3 text-sev-high" />
                 <span className="text-2xs font-semibold text-gray-300 uppercase tracking-wider">Top Risk Entities</span>
               </div>
@@ -251,7 +251,7 @@ export default function IntelligenceView({ onViewChange }: IntelligenceViewProps
                     {summary.top_risk_entities.map((entity) => (
                       <div
                         key={entity.entity_id}
-                        className="flex items-center gap-2 px-3 py-1.5 border-b border-intel-border/30 hover:bg-white/[0.015] cursor-pointer transition-colors"
+                        className="flex items-center gap-2 px-3 py-1.5 border-b border-intel-border/20 hover:bg-intel-card/40 cursor-pointer transition-all duration-150"
                         onClick={() => onViewChange('investigation')}
                       >
                         <div className="flex-1 min-w-0">
@@ -277,8 +277,8 @@ export default function IntelligenceView({ onViewChange }: IntelligenceViewProps
             </div>
 
             {/* Top Locations */}
-            <div className="bg-intel-panel border border-intel-border rounded-sm">
-              <div className="flex items-center gap-1.5 px-3 py-2 border-b border-intel-border">
+            <div className="bg-intel-panel border border-intel-border/60 rounded">
+              <div className="flex items-center gap-1.5 px-3 py-2 border-b border-intel-border/60">
                 <MapPin className="w-3 h-3 text-gray-400" />
                 <span className="text-2xs font-semibold text-gray-300 uppercase tracking-wider">Top Locations</span>
               </div>
@@ -296,8 +296,8 @@ export default function IntelligenceView({ onViewChange }: IntelligenceViewProps
                             <span className="text-gray-300 truncate">{loc.location}</span>
                             <span className="text-gray-500 tabular-nums ml-2">{loc.event_count}</span>
                           </div>
-                          <div className="w-full bg-intel-bg rounded-sm h-1">
-                            <div className="h-1 rounded-sm bg-intel-accent/40" style={{ width: `${pct}%` }} />
+                                <div className="w-full bg-intel-bg rounded h-1">
+                                  <div className="h-1 rounded bg-intel-accent/40" style={{ width: `${pct}%` }} />
                           </div>
                         </div>
                       );
@@ -308,8 +308,8 @@ export default function IntelligenceView({ onViewChange }: IntelligenceViewProps
             </div>
 
             {/* Active Insights */}
-            <div className="bg-intel-panel border border-intel-border rounded-sm">
-              <div className="flex items-center gap-1.5 px-3 py-2 border-b border-intel-border">
+            <div className="bg-intel-panel border border-intel-border/60 rounded">
+              <div className="flex items-center gap-1.5 px-3 py-2 border-b border-intel-border/60">
                 <Brain className="w-3 h-3 text-intel-accent" />
                 <span className="text-2xs font-semibold text-gray-300 uppercase tracking-wider">Insights</span>
                 <span className="text-2xs font-bold text-intel-accent">{summary.active_insights.length}</span>
@@ -320,7 +320,7 @@ export default function IntelligenceView({ onViewChange }: IntelligenceViewProps
                 ) : (
                   <div>
                     {summary.active_insights.map((insight) => (
-                      <div key={insight.id} className="px-3 py-1.5 border-b border-intel-border/30 hover:bg-white/[0.015]">
+                      <div key={insight.id} className="px-3 py-1.5 border-b border-intel-border/20 hover:bg-intel-card/40 transition-all duration-150">
                         <div className="flex items-center gap-1.5">
                           <span className={`text-2xs font-bold uppercase ${sevColor(insight.severity)}`}>{insight.severity}</span>
                           <span className="text-2xs text-gray-600">{insight.type}</span>

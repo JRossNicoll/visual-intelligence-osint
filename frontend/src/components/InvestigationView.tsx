@@ -117,7 +117,7 @@ export default function InvestigationView({ onViewChange, initialEntityId }: Inv
       </div>
 
       {/* Search strip */}
-      <div className="flex items-center gap-2 bg-intel-panel border border-intel-border rounded-sm p-2">
+      <div className="flex items-center gap-2 bg-intel-panel border border-intel-border/60 rounded p-2">
         <div className="flex-1 relative">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-600" />
           <input
@@ -126,29 +126,29 @@ export default function InvestigationView({ onViewChange, initialEntityId }: Inv
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             placeholder="Search entities..."
-            className="w-full pl-7 pr-3 py-1.5 bg-intel-bg border border-intel-border rounded-sm text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-intel-border-light"
+            className="w-full pl-7 pr-3 py-1.5 bg-intel-bg border border-intel-border rounded text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-intel-accent/40 transition-colors"
           />
         </div>
-        <select value={riskFilter} onChange={(e) => setRiskFilter(e.target.value)} className="bg-intel-bg border border-intel-border text-2xs text-gray-400 rounded-sm px-2 py-1.5">
+        <select value={riskFilter} onChange={(e) => setRiskFilter(e.target.value)} className="bg-intel-bg border border-intel-border text-2xs text-gray-400 rounded px-2 py-1.5">
           <option value="all">Risk: All</option>
           <option value="critical">Critical</option>
           <option value="high">High</option>
           <option value="medium">Medium</option>
           <option value="low">Low</option>
         </select>
-        <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="bg-intel-bg border border-intel-border text-2xs text-gray-400 rounded-sm px-2 py-1.5">
+        <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="bg-intel-bg border border-intel-border text-2xs text-gray-400 rounded px-2 py-1.5">
           <option value="all">Type: All</option>
           <option value="person">Person</option>
           <option value="vehicle">Vehicle</option>
           <option value="object">Object</option>
         </select>
-        <button onClick={handleSearch} className="px-3 py-1.5 bg-intel-accent/10 text-intel-accent text-2xs font-semibold rounded-sm hover:bg-intel-accent/20 transition-colors">SEARCH</button>
+        <button onClick={handleSearch} className="px-3 py-1.5 bg-intel-accent/10 text-intel-accent text-2xs font-semibold rounded hover:bg-intel-accent/20 transition-all duration-200">SEARCH</button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         {/* Results list */}
-        <div className="bg-intel-panel border border-intel-border rounded-sm">
-          <div className="px-3 py-2 border-b border-intel-border">
+        <div className="bg-intel-panel border border-intel-border/60 rounded">
+          <div className="px-3 py-2 border-b border-intel-border/60">
             <span className="text-2xs font-semibold text-gray-300 uppercase tracking-wider">
               {searchResults.length > 0 ? `Results (${searchResults.length})` : 'Entities'}
             </span>
@@ -169,8 +169,8 @@ export default function InvestigationView({ onViewChange, initialEntityId }: Inv
                   <div
                     key={entity.entity_id}
                     onClick={() => setSelectedEntity(entity.entity_id)}
-                    className={`flex items-center gap-2 px-3 py-1.5 border-b border-intel-border/30 cursor-pointer transition-colors ${
-                      selectedEntity === entity.entity_id ? 'bg-intel-accent/5 border-l-2 border-l-intel-accent' : 'hover:bg-white/[0.015]'
+                    className={`flex items-center gap-2 px-3 py-1.5 border-b border-intel-border/20 cursor-pointer transition-all duration-150 ${
+                      selectedEntity === entity.entity_id ? 'bg-intel-accent/5 border-l-2 border-l-intel-accent' : 'hover:bg-intel-card/40'
                     }`}
                   >
                     <div className="flex-1 min-w-0">
@@ -201,8 +201,8 @@ export default function InvestigationView({ onViewChange, initialEntityId }: Inv
           ) : selectedEntity && entityProfile ? (
             <>
               {/* Profile panel */}
-              <div className="bg-intel-panel border border-intel-border rounded-sm">
-                <div className="flex items-center justify-between px-3 py-2 border-b border-intel-border">
+              <div className="bg-intel-panel border border-intel-border/60 rounded">
+                <div className="flex items-center justify-between px-3 py-2 border-b border-intel-border/60">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-medium text-gray-200">{entityProfile.entity_id}</span>
                     <span className={`text-2xs font-bold ${riskLevelColor(entityProfile.risk_level)}`}>{entityProfile.risk_level.toUpperCase()}</span>
@@ -210,7 +210,7 @@ export default function InvestigationView({ onViewChange, initialEntityId }: Inv
                   </div>
                   <div className="flex items-center gap-1">
                     {!entityProfile.is_on_watchlist && (
-                      <button onClick={() => handleAddToWatchlist(entityProfile.entity_id)} className="px-2 py-0.5 text-2xs text-sev-medium border border-sev-medium/30 rounded-sm hover:bg-sev-medium/10 transition-colors">WATCH</button>
+                      <button onClick={() => handleAddToWatchlist(entityProfile.entity_id)} className="px-2 py-0.5 text-2xs text-intel-accent border border-intel-accent/30 rounded hover:bg-intel-accent/10 transition-all duration-200">WATCH</button>
                     )}
                   </div>
                 </div>
@@ -220,8 +220,8 @@ export default function InvestigationView({ onViewChange, initialEntityId }: Inv
                   {/* Risk bar */}
                   <div className="flex items-center gap-2 mt-2">
                     <span className="text-2xs text-gray-600 w-12">Risk</span>
-                    <div className="flex-1 bg-intel-bg rounded-sm h-1.5">
-                      <div className={`h-1.5 rounded-sm transition-all ${
+                    <div className="flex-1 bg-intel-bg rounded h-1.5">
+                      <div className={`h-1.5 rounded transition-all ${
                         entityProfile.risk_score > 0.7 ? 'bg-sev-critical' :
                         entityProfile.risk_score > 0.4 ? 'bg-sev-high' :
                         entityProfile.risk_score > 0.2 ? 'bg-sev-medium' : 'bg-intel-accent'
@@ -252,7 +252,7 @@ export default function InvestigationView({ onViewChange, initialEntityId }: Inv
                       <div className="flex flex-wrap gap-1">
                         {entityProfile.associated_entities.map((assoc) => (
                           <button key={assoc.entity_id} onClick={() => setSelectedEntity(assoc.entity_id)}
-                            className="flex items-center gap-1 px-1.5 py-0.5 bg-intel-bg border border-intel-border rounded-sm text-2xs hover:border-intel-border-light transition-colors">
+                            className="flex items-center gap-1 px-1.5 py-0.5 bg-intel-bg border border-intel-border rounded text-2xs hover:border-intel-border-light transition-all duration-150">
                             <Users className="w-2.5 h-2.5 text-gray-600" />
                             <span className="text-gray-300">{assoc.entity_id.slice(0, 10)}</span>
                             <span className="text-gray-600">{(assoc.strength * 100).toFixed(0)}%</span>
@@ -267,7 +267,7 @@ export default function InvestigationView({ onViewChange, initialEntityId }: Inv
                     <div className="mt-2 pt-2 border-t border-intel-border/50">
                       <div className="flex flex-wrap gap-1">
                         {entityProfile.behavior_tags.map((tag, i) => (
-                          <span key={i} className="px-1.5 py-0.5 text-2xs bg-gray-700/20 text-gray-400 border border-intel-border rounded-sm">{tag}</span>
+                          <span key={i} className="px-1.5 py-0.5 text-2xs bg-intel-card/60 text-gray-400 border border-intel-border/40 rounded">{tag}</span>
                         ))}
                       </div>
                     </div>
@@ -278,7 +278,7 @@ export default function InvestigationView({ onViewChange, initialEntityId }: Inv
                     <div className="mt-2 pt-2 border-t border-intel-border/50 space-y-1">
                       <div className="text-2xs text-gray-600">INSIGHTS</div>
                       {entityProfile.insights.slice(0, 3).map((insight) => (
-                        <div key={insight.id} className="px-2 py-1.5 bg-intel-bg/50 border border-intel-border/50 rounded-sm">
+                        <div key={insight.id} className="px-2 py-1.5 bg-intel-bg/50 border border-intel-border/40 rounded">
                           <div className="flex items-center gap-1.5">
                             <span className={`text-2xs font-bold uppercase ${sevColor(insight.severity)}`}>{insight.severity}</span>
                             <span className="text-2xs text-gray-600">{insight.type}</span>
@@ -293,8 +293,8 @@ export default function InvestigationView({ onViewChange, initialEntityId }: Inv
 
               {/* Timeline */}
               {timeline && (
-                <div className="bg-intel-panel border border-intel-border rounded-sm">
-                  <div className="flex items-center justify-between px-3 py-2 border-b border-intel-border">
+                <div className="bg-intel-panel border border-intel-border/60 rounded">
+                  <div className="flex items-center justify-between px-3 py-2 border-b border-intel-border/60">
                     <div className="flex items-center gap-1.5">
                       <Clock className="w-3 h-3 text-intel-accent" />
                       <span className="text-2xs font-semibold text-gray-300 uppercase tracking-wider">Timeline</span>
@@ -310,7 +310,7 @@ export default function InvestigationView({ onViewChange, initialEntityId }: Inv
                     ) : (
                       <div>
                         {timeline.items.map((item: TimelineItem) => (
-                          <div key={item.id} className={`flex items-start gap-2 px-3 py-1.5 border-b border-intel-border/30 hover:bg-white/[0.015] transition-colors ${
+                          <div key={item.id} className={`flex items-start gap-2 px-3 py-1.5 border-b border-intel-border/20 hover:bg-intel-card/40 transition-all duration-150 ${
                             item.type === 'alert' ? 'sev-' + (item.severity || 'low') : ''
                           }`}>
                             <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${
@@ -337,7 +337,7 @@ export default function InvestigationView({ onViewChange, initialEntityId }: Inv
                                 </>
                               )}
                             </div>
-                            <span className="text-2xs text-gray-700 whitespace-nowrap">{formatRelativeTime(item.timestamp)}</span>
+                            <span className="text-2xs text-gray-400 whitespace-nowrap font-medium">{formatRelativeTime(item.timestamp)}</span>
                           </div>
                         ))}
                       </div>
@@ -348,13 +348,13 @@ export default function InvestigationView({ onViewChange, initialEntityId }: Inv
 
               {/* Past Alerts */}
               {entityProfile.alerts.length > 0 && (
-                <div className="bg-intel-panel border border-intel-border rounded-sm">
-                  <div className="px-3 py-2 border-b border-intel-border">
+                <div className="bg-intel-panel border border-intel-border/60 rounded">
+                  <div className="px-3 py-2 border-b border-intel-border/60">
                     <span className="text-2xs font-semibold text-gray-300 uppercase tracking-wider">Past Alerts ({entityProfile.alerts.length})</span>
                   </div>
                   <div className="max-h-[200px] overflow-y-auto">
                     {entityProfile.alerts.map((alert) => (
-                      <div key={alert.id} className="flex items-center gap-2 px-3 py-1.5 border-b border-intel-border/30 hover:bg-white/[0.015]">
+                      <div key={alert.id} className="flex items-center gap-2 px-3 py-1.5 border-b border-intel-border/20 hover:bg-intel-card/40 transition-all duration-150">
                         <span className={`text-2xs font-bold uppercase ${sevColor(alert.severity)}`}>{alert.severity}</span>
                         <span className="text-2xs text-gray-600">{alert.alert_type}</span>
                         <span className="text-xs text-gray-300 flex-1 truncate">{alert.title}</span>

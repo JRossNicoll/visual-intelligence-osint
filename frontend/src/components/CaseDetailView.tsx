@@ -27,7 +27,7 @@ const PRIORITY_COLORS: Record<string, string> = {
 
 const STATUS_COLORS: Record<string, string> = {
   open: 'text-intel-accent',
-  active: 'text-blue-400',
+  active: 'text-sky-400',
   closed: 'text-gray-500',
 };
 
@@ -189,16 +189,16 @@ export default function CaseDetailView({ caseId, onViewChange, onEntitySelect }:
         <div className="relative">
           <button
             onClick={() => setStatusExpanded(!statusExpanded)}
-            className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-sm border border-intel-border font-bold uppercase ${STATUS_COLORS[caseData.status]}`}
+            className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded border border-intel-border font-bold uppercase ${STATUS_COLORS[caseData.status]}`}
             disabled={updatingStatus}
           >
             {caseData.status}
             {statusExpanded ? <ChevronUp className="w-2.5 h-2.5" /> : <ChevronDown className="w-2.5 h-2.5" />}
           </button>
           {statusExpanded && (
-            <div className="absolute top-full mt-0.5 left-0 bg-intel-surface border border-intel-border rounded-sm overflow-hidden z-10">
+            <div className="absolute top-full mt-0.5 left-0 bg-intel-surface border border-intel-border/60 rounded overflow-hidden z-10">
               {['open', 'active', 'closed'].map((s) => (
-                <button key={s} onClick={() => handleStatusChange(s)} className="block w-full text-left px-3 py-1 text-2xs text-gray-300 hover:bg-white/[0.03] capitalize">{s}</button>
+                <button key={s} onClick={() => handleStatusChange(s)} className="block w-full text-left px-3 py-1 text-2xs text-gray-300 hover:bg-intel-card/60 capitalize transition-colors">{s}</button>
               ))}
             </div>
           )}
@@ -210,7 +210,7 @@ export default function CaseDetailView({ caseId, onViewChange, onEntitySelect }:
       </div>
 
       {/* Stat strip */}
-      <div className="flex items-center gap-px bg-intel-border rounded-sm overflow-hidden">
+      <div className="flex items-center gap-px bg-intel-border/60 rounded overflow-hidden">
         {[
           { label: 'Entities', value: caseData.entity_count },
           { label: 'Alerts', value: caseData.alert_count },
@@ -228,26 +228,26 @@ export default function CaseDetailView({ caseId, onViewChange, onEntitySelect }:
       {caseData.tags.length > 0 && (
         <div className="flex items-center gap-1 flex-wrap">
           {caseData.tags.map((tag) => (
-            <span key={tag} className="px-1.5 py-0.5 text-2xs text-gray-500 bg-intel-bg border border-intel-border rounded-sm">{tag}</span>
+            <span key={tag} className="px-1.5 py-0.5 text-2xs text-gray-500 bg-intel-bg border border-intel-border/40 rounded">{tag}</span>
           ))}
         </div>
       )}
 
       {/* Tabs */}
-      <div className="flex items-center border-b border-intel-border">
+      <div className="flex items-center border-b border-intel-border/60">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-3 py-1.5 text-2xs font-medium border-b transition-colors ${
+              className={`px-3 py-1.5 text-2xs font-medium border-b-2 transition-all duration-200 ${
                 isActive ? 'border-intel-accent text-intel-accent' : 'border-transparent text-gray-600 hover:text-gray-400'
               }`}
             >
               {tab.label}
               {tab.count !== undefined && tab.count > 0 && (
-                <span className="ml-1 text-gray-700">{tab.count}</span>
+                <span className="ml-1 text-gray-600">{tab.count}</span>
               )}
             </button>
           );
@@ -313,9 +313,9 @@ function TimelineTab({ timeline, formatDate }: { timeline: CaseTimeline | null; 
   };
 
   return (
-    <div className="bg-intel-panel border border-intel-border rounded-sm">
+    <div className="bg-intel-panel border border-intel-border/60 rounded">
       {timeline.items.map((item: CaseTimelineItem) => (
-        <div key={item.id} className="flex items-start gap-2 px-3 py-1.5 border-b border-intel-border/30 hover:bg-white/[0.015]">
+        <div key={item.id} className="flex items-start gap-2 px-3 py-1.5 border-b border-intel-border/20 hover:bg-intel-card/40 transition-all duration-150">
           <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${typeDot[item.type] || 'bg-gray-600'}`} />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 text-2xs">
@@ -343,9 +343,9 @@ function EvidenceTab({ evidence, formatDate }: { evidence: CaseEvidence[]; forma
   }
 
   return (
-    <div className="bg-intel-panel border border-intel-border rounded-sm">
+    <div className="bg-intel-panel border border-intel-border/60 rounded">
       {evidence.map((ev) => (
-        <div key={ev.id} className="px-3 py-2 border-b border-intel-border/30 hover:bg-white/[0.015]">
+        <div key={ev.id} className="px-3 py-2 border-b border-intel-border/20 hover:bg-intel-card/40 transition-all duration-150">
           <div className="flex items-center gap-1.5 text-2xs">
             <span className="text-intel-accent font-medium capitalize">{ev.evidence_type}</span>
             <span className="text-gray-600">{formatDate(ev.created_at)}</span>
@@ -372,12 +372,12 @@ function EntitiesTab({ entityIds, onEntitySelect }: { entityIds: string[]; onEnt
   }
 
   return (
-    <div className="bg-intel-panel border border-intel-border rounded-sm">
+    <div className="bg-intel-panel border border-intel-border/60 rounded">
       {entityIds.map((eid) => (
         <button
           key={eid}
           onClick={() => onEntitySelect(eid)}
-          className="w-full text-left flex items-center gap-2 px-3 py-1.5 border-b border-intel-border/30 hover:bg-white/[0.015] transition-colors"
+          className="w-full text-left flex items-center gap-2 px-3 py-1.5 border-b border-intel-border/20 hover:bg-intel-card/40 transition-all duration-150"
         >
           <Shield className="w-3 h-3 text-gray-500" />
           <span className="text-xs text-gray-200 font-mono flex-1">{eid.substring(0, 16)}</span>
@@ -410,19 +410,19 @@ function NotesTab({
   return (
     <div className="space-y-3">
       {/* Add note form */}
-      <div className="bg-intel-panel border border-intel-border rounded-sm p-3 space-y-2">
+      <div className="bg-intel-panel border border-intel-border/60 rounded p-3 space-y-2">
         <textarea
           value={newNote}
           onChange={(e) => setNewNote(e.target.value)}
           rows={2}
-          className="w-full px-2 py-1.5 rounded-sm bg-intel-bg border border-intel-border text-xs text-gray-200 focus:border-intel-border-light focus:outline-none resize-none"
+          className="w-full px-2 py-1.5 rounded bg-intel-bg border border-intel-border text-xs text-gray-200 focus:border-intel-accent/40 focus:outline-none resize-none transition-colors"
           placeholder="Add a note..."
         />
         <div className="flex items-center justify-between">
           <select
             value={noteType}
             onChange={(e) => setNoteType(e.target.value)}
-            className="px-2 py-1 rounded-sm bg-intel-bg border border-intel-border text-2xs text-gray-400 focus:outline-none"
+            className="px-2 py-1 rounded bg-intel-bg border border-intel-border text-2xs text-gray-400 focus:outline-none"
           >
             <option value="general">General</option>
             <option value="finding">Finding</option>
@@ -432,7 +432,7 @@ function NotesTab({
           <button
             onClick={onAddNote}
             disabled={addingNote || !newNote.trim()}
-            className="flex items-center gap-1 px-2 py-1 text-2xs text-intel-accent border border-intel-accent/30 rounded-sm hover:bg-intel-accent/10 disabled:opacity-40 transition-colors"
+            className="flex items-center gap-1 px-2 py-1 text-2xs text-intel-accent border border-intel-accent/30 rounded hover:bg-intel-accent/10 disabled:opacity-40 transition-all duration-200"
           >
             <Plus className="w-3 h-3" />
             {addingNote ? 'Adding...' : 'ADD'}
@@ -443,9 +443,9 @@ function NotesTab({
       {notes.length === 0 ? (
         <EmptyState icon={MessageSquare} message="No notes" />
       ) : (
-        <div className="bg-intel-panel border border-intel-border rounded-sm">
+        <div className="bg-intel-panel border border-intel-border/60 rounded">
           {notes.map((note) => (
-            <div key={note.id} className="px-3 py-2 border-b border-intel-border/30">
+            <div key={note.id} className="px-3 py-2 border-b border-intel-border/20">
               <div className="flex items-center gap-1.5 text-2xs">
                 <span className={`font-medium capitalize ${noteTypeColors[note.note_type] || noteTypeColors.general}`}>{note.note_type}</span>
                 <span className="text-gray-600">{note.author}</span>
@@ -466,7 +466,7 @@ function SummaryTab({ summary, onRegenerate }: { summary: CaseIntelSummary | nul
       <div className="text-center py-8">
         <BarChart3 className="w-5 h-5 text-gray-700 mx-auto mb-2" />
         <p className="text-xs text-gray-500 mb-2">No summary generated</p>
-        <button onClick={onRegenerate} className="px-3 py-1 text-2xs text-intel-accent border border-intel-accent/30 rounded-sm hover:bg-intel-accent/10 transition-colors">GENERATE</button>
+        <button onClick={onRegenerate} className="px-3 py-1 text-2xs text-intel-accent border border-intel-accent/30 rounded hover:bg-intel-accent/10 transition-all duration-200">GENERATE</button>
       </div>
     );
   }
@@ -482,10 +482,10 @@ function SummaryTab({ summary, onRegenerate }: { summary: CaseIntelSummary | nul
 
       {/* Key Entities */}
       {summary.key_entities.length > 0 && (
-        <div className="bg-intel-panel border border-intel-border rounded-sm">
-          <div className="px-3 py-1.5 border-b border-intel-border text-2xs text-gray-500 font-medium">Key Entities</div>
+        <div className="bg-intel-panel border border-intel-border/60 rounded">
+          <div className="px-3 py-1.5 border-b border-intel-border/60 text-2xs text-gray-500 font-medium">Key Entities</div>
           {summary.key_entities.map((entity) => (
-            <div key={entity.entity_id} className="flex items-center gap-2 px-3 py-1.5 border-b border-intel-border/30">
+            <div key={entity.entity_id} className="flex items-center gap-2 px-3 py-1.5 border-b border-intel-border/20">
               <span className="text-xs text-gray-200 font-mono">{entity.entity_id.substring(0, 12)}</span>
               <span className={`text-2xs font-bold uppercase ${PRIORITY_COLORS[entity.risk_level] || 'text-gray-500'}`}>{entity.risk_level}</span>
               <span className="text-2xs text-gray-600">{entity.entity_type} &middot; {entity.visit_count}v</span>
@@ -496,10 +496,10 @@ function SummaryTab({ summary, onRegenerate }: { summary: CaseIntelSummary | nul
 
       {/* Findings */}
       {summary.findings.length > 0 && (
-        <div className="bg-intel-panel border border-intel-border rounded-sm">
-          <div className="px-3 py-1.5 border-b border-intel-border text-2xs text-gray-500 font-medium">Findings</div>
+        <div className="bg-intel-panel border border-intel-border/60 rounded">
+          <div className="px-3 py-1.5 border-b border-intel-border/60 text-2xs text-gray-500 font-medium">Findings</div>
           {summary.findings.map((finding, idx) => (
-            <div key={idx} className="px-3 py-1.5 border-b border-intel-border/30 text-xs text-gray-300">{finding}</div>
+            <div key={idx} className="px-3 py-1.5 border-b border-intel-border/20 text-xs text-gray-300">{finding}</div>
           ))}
         </div>
       )}
@@ -529,10 +529,10 @@ function SummaryTab({ summary, onRegenerate }: { summary: CaseIntelSummary | nul
 
       {/* Detected Patterns */}
       {summary.detected_patterns.length > 0 && (
-        <div className="bg-intel-panel border border-intel-border rounded-sm">
-          <div className="px-3 py-1.5 border-b border-intel-border text-2xs text-gray-500 font-medium">Patterns</div>
+        <div className="bg-intel-panel border border-intel-border/60 rounded">
+          <div className="px-3 py-1.5 border-b border-intel-border/60 text-2xs text-gray-500 font-medium">Patterns</div>
           {summary.detected_patterns.map((pattern, idx) => (
-            <div key={idx} className="px-3 py-1.5 border-b border-intel-border/30">
+            <div key={idx} className="px-3 py-1.5 border-b border-intel-border/20">
               <div className="flex items-center gap-1.5 text-2xs">
                 <span className="text-intel-accent capitalize">{pattern.type}</span>
                 {pattern.confidence !== undefined && <span className="text-gray-700 tabular-nums">{(pattern.confidence * 100).toFixed(0)}%</span>}
@@ -546,10 +546,10 @@ function SummaryTab({ summary, onRegenerate }: { summary: CaseIntelSummary | nul
 
       {/* Limitations */}
       {summary.limitations.length > 0 && (
-        <div className="bg-intel-panel border border-intel-border rounded-sm">
-          <div className="px-3 py-1.5 border-b border-intel-border text-2xs text-gray-500 font-medium">Limitations</div>
+        <div className="bg-intel-panel border border-intel-border/60 rounded">
+          <div className="px-3 py-1.5 border-b border-intel-border/60 text-2xs text-gray-500 font-medium">Limitations</div>
           {summary.limitations.map((lim, idx) => (
-            <div key={idx} className="px-3 py-1 border-b border-intel-border/30 text-2xs text-gray-500 flex items-start gap-1">
+            <div key={idx} className="px-3 py-1 border-b border-intel-border/20 text-2xs text-gray-500 flex items-start gap-1">
               <span className="text-sev-medium">!</span> {lim}
             </div>
           ))}
@@ -567,9 +567,9 @@ function AuditTab({ audit, formatDate }: { audit: AuditLogEntry[]; formatDate: (
   }
 
   return (
-    <div className="bg-intel-panel border border-intel-border rounded-sm">
+    <div className="bg-intel-panel border border-intel-border/60 rounded">
       {audit.map((entry) => (
-        <div key={entry.id} className="px-3 py-1.5 border-b border-intel-border/30 hover:bg-white/[0.015]">
+        <div key={entry.id} className="px-3 py-1.5 border-b border-intel-border/20 hover:bg-intel-card/40 transition-all duration-150">
           <div className="flex items-center gap-1.5 text-2xs">
             <span className="text-gray-300 font-medium">{entry.action.replace(/_/g, ' ')}</span>
             <span className="text-gray-600">{formatDate(entry.performed_at)}</span>

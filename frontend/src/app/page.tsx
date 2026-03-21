@@ -185,7 +185,7 @@ export default function Home() {
       {alertNotification && (
         <div className="fixed top-12 right-3 z-50">
           <div
-            className={`flex items-center gap-2 px-3 py-2 border-l-2 bg-intel-panel/95 border-t border-r border-b border-intel-border shadow-lg ${
+            className={`flex items-center gap-2 px-3 py-2 border-l-2 bg-intel-panel/95 backdrop-blur-sm border-t border-r border-b border-intel-border/60 shadow-lg rounded ${
               alertNotification.severity === 'critical'
                 ? 'border-l-sev-critical'
                 : alertNotification.severity === 'high'
@@ -222,18 +222,18 @@ export default function Home() {
       </main>
 
       {/* Status Bar — minimal */}
-      <footer className="bg-intel-surface border-t border-intel-border px-3 h-6 flex items-center justify-between text-2xs text-gray-600 select-none">
+      <footer className="bg-intel-surface border-t border-intel-border/60 px-4 h-6 flex items-center justify-between text-2xs text-gray-500 select-none">
         <div className="flex items-center gap-3">
-          <span className="font-medium text-gray-500">VIOSINT v0.1.0</span>
+          <span className="font-semibold text-intel-accent/70 tracking-wide">VIOSINT v0.1.0</span>
           <span className="text-intel-border">|</span>
-          <span className={wsConnected ? 'text-intel-accent' : 'text-gray-700'}>
+          <span className={wsConnected ? 'text-intel-accent' : 'text-gray-600'}>
             {wsConnected ? 'CONNECTED' : 'OFFLINE'}
           </span>
         </div>
         <div className="flex items-center gap-3">
           <span>{realtimeDetections.length} detections</span>
           <span className="text-intel-border">|</span>
-          <span>Visual Intelligence OSINT</span>
+          <span className="tracking-wide">Visual Intelligence OSINT</span>
         </div>
       </footer>
     </div>
