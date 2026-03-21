@@ -2,46 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 :root {
-  --foreground-rgb: 255, 255, 255;
-  --background-rgb: 10, 15, 26;
+  --foreground-rgb: 200, 202, 208;
+  --background-rgb: 18, 20, 22;
 }
 
 body {
   color: rgb(var(--foreground-rgb));
   background: rgb(var(--background-rgb));
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Custom scrollbar */
+/* Scrollbar — minimal */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #111827;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2a3a4e;
+  background: #32353b;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3b4f6b;
-}
-
-/* Glow effects */
-.glow-green {
-  box-shadow: 0 0 20px rgba(0, 255, 136, 0.15);
-}
-
-.glow-red {
-  box-shadow: 0 0 20px rgba(239, 68, 68, 0.15);
-}
-
-.glow-blue {
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+  background: #3e4148;
 }
 
 /* Detection overlay styles */
@@ -53,10 +46,10 @@ body {
 
 .detection-label {
   position: absolute;
-  top: -24px;
+  top: -20px;
   left: -2px;
-  padding: 2px 8px;
-  font-size: 11px;
+  padding: 1px 6px;
+  font-size: 10px;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -70,7 +63,13 @@ body {
 .scanline {
   position: absolute;
   width: 100%;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.4), transparent);
-  animation: scanline 3s linear infinite;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212, 149, 106, 0.15), transparent);
+  animation: scanline 4s linear infinite;
 }
+
+/* Severity indicator left-border */
+.sev-critical { border-left: 2px solid #c75050; }
+.sev-high { border-left: 2px solid #d97736; }
+.sev-medium { border-left: 2px solid #c9a74e; }
+.sev-low { border-left: 2px solid #6b7280; }

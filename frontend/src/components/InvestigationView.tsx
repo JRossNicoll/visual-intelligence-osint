@@ -5,7 +5,6 @@ import {
   ArrowLeft,
   ChevronRight,
   Clock,
-  MapPin,
   RefreshCw,
   Search,
   Star,
@@ -18,7 +17,16 @@ import type {
   EntityFullProfile,
   TimelineItem,
 } from '@/types';
-import { formatRelativeTime, severityColor } from '@/lib/utils';
+import { formatRelativeTime } from '@/lib/utils';
+
+const sevColor = (s: string) => {
+  switch (s) {
+    case 'critical': return 'text-sev-critical';
+    case 'high': return 'text-sev-high';
+    case 'medium': return 'text-sev-medium';
+    default: return 'text-sev-low';
+  }
+};
 
 interface InvestigationViewProps {
   onViewChange: (view: string) => void;
@@ -83,150 +91,100 @@ export default function InvestigationView({ onViewChange, initialEntityId }: Inv
 
   const riskLevelColor = (level: string) => {
     switch (level) {
-      case 'critical': return 'text-red-400 bg-red-500/10';
-      case 'high': return 'text-orange-400 bg-orange-500/10';
-      case 'medium': return 'text-yellow-400 bg-yellow-500/10';
-      default: return 'text-green-400 bg-green-500/10';
+      case 'critical': return 'text-sev-critical';
+      case 'high': return 'text-sev-high';
+      case 'medium': return 'text-sev-medium';
+      default: return 'text-intel-accent';
     }
   };
 
   const riskBarWidth = (score: number) => `${Math.min(Math.max(score * 100, 2), 100)}%`;
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
+    <div className="p-3 space-y-3">
+      {/* Header bar */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => onViewChange('operator')}
-            className="p-1.5 text-gray-400 hover:text-white transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h2 className="text-lg font-bold text-white tracking-wide">Investigation Mode</h2>
-            <p className="text-xs text-gray-500">Search entities, explore timelines, analyze relationships</p>
-          </div>
-        </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => onViewChange('operator')}
-            className="px-3 py-1.5 text-xs font-medium text-gray-300 bg-intel-surface border border-intel-border rounded-lg hover:bg-intel-card transition-colors"
-          >
-            Operator Mode
+          <button onClick={() => onViewChange('operator')} className="p-1 text-gray-600 hover:text-gray-300 transition-colors">
+            <ArrowLeft className="w-3.5 h-3.5" />
           </button>
-          <button
-            onClick={() => onViewChange('intel-summary')}
-            className="px-3 py-1.5 text-xs font-medium text-gray-300 bg-intel-surface border border-intel-border rounded-lg hover:bg-intel-card transition-colors"
-          >
-            Intelligence Mode
-          </button>
+          <span className="text-2xs font-semibold text-gray-400 uppercase tracking-widest">Investigation</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <button onClick={() => onViewChange('operator')} className="px-2 py-1 text-2xs text-gray-500 hover:text-gray-300 border border-intel-border rounded-sm transition-colors">OPERATOR</button>
+          <button onClick={() => onViewChange('intel-summary')} className="px-2 py-1 text-2xs text-gray-500 hover:text-gray-300 border border-intel-border rounded-sm transition-colors">INTELLIGENCE</button>
         </div>
       </div>
 
-      {/* Search Bar */}
-      <div className="bg-intel-card border border-intel-border rounded-xl p-4">
-        <div className="flex items-center gap-3">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              placeholder="Search entities by ID, type, or behavior..."
-              className="w-full pl-10 pr-4 py-2.5 bg-intel-bg border border-intel-border rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:border-intel-accent"
-            />
-          </div>
-          <select
-            value={riskFilter}
-            onChange={(e) => setRiskFilter(e.target.value)}
-            className="bg-intel-bg border border-intel-border text-xs text-gray-300 rounded-lg px-3 py-2.5"
-          >
-            <option value="all">All Risk</option>
-            <option value="critical">Critical</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
-          </select>
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="bg-intel-bg border border-intel-border text-xs text-gray-300 rounded-lg px-3 py-2.5"
-          >
-            <option value="all">All Types</option>
-            <option value="person">Person</option>
-            <option value="vehicle">Vehicle</option>
-            <option value="object">Object</option>
-          </select>
-          <button
-            onClick={handleSearch}
-            className="px-4 py-2.5 bg-intel-accent/20 text-intel-accent text-sm font-medium rounded-lg hover:bg-intel-accent/30 transition-colors"
-          >
-            Search
-          </button>
+      {/* Search strip */}
+      <div className="flex items-center gap-2 bg-intel-panel border border-intel-border/60 rounded p-2">
+        <div className="flex-1 relative">
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-600" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            placeholder="Search entities..."
+            className="w-full pl-7 pr-3 py-1.5 bg-intel-bg border border-intel-border rounded text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-intel-accent/40 transition-colors"
+          />
         </div>
+        <select value={riskFilter} onChange={(e) => setRiskFilter(e.target.value)} className="bg-intel-bg border border-intel-border text-2xs text-gray-400 rounded px-2 py-1.5">
+          <option value="all">Risk: All</option>
+          <option value="critical">Critical</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
+        <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="bg-intel-bg border border-intel-border text-2xs text-gray-400 rounded px-2 py-1.5">
+          <option value="all">Type: All</option>
+          <option value="person">Person</option>
+          <option value="vehicle">Vehicle</option>
+          <option value="object">Object</option>
+        </select>
+        <button onClick={handleSearch} className="px-3 py-1.5 bg-intel-accent/10 text-intel-accent text-2xs font-semibold rounded hover:bg-intel-accent/20 transition-all duration-200">SEARCH</button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Search Results / Entity List */}
-        <div className="bg-intel-card border border-intel-border rounded-xl">
-          <div className="p-4 border-b border-intel-border">
-            <h3 className="text-sm font-semibold text-white">
-              {searchResults.length > 0 ? `Results (${searchResults.length})` : 'Entity Search'}
-            </h3>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        {/* Results list */}
+        <div className="bg-intel-panel border border-intel-border/60 rounded">
+          <div className="px-3 py-2 border-b border-intel-border/60">
+            <span className="text-2xs font-semibold text-gray-300 uppercase tracking-wider">
+              {searchResults.length > 0 ? `Results (${searchResults.length})` : 'Entities'}
+            </span>
           </div>
           <div className="max-h-[600px] overflow-y-auto">
             {searchLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <RefreshCw className="w-5 h-5 text-gray-500 animate-spin" />
+              <div className="flex items-center justify-center py-8">
+                <RefreshCw className="w-3.5 h-3.5 text-gray-600 animate-spin" />
               </div>
             ) : searchResults.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                <Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Search for entities to investigate</p>
+              <div className="text-center py-8 text-gray-600">
+                <Search className="w-5 h-5 mx-auto mb-1.5 opacity-40" />
+                <p className="text-2xs">Search to investigate</p>
               </div>
             ) : (
-              <div className="divide-y divide-intel-border/50">
+              <div>
                 {searchResults.map((entity) => (
                   <div
                     key={entity.entity_id}
                     onClick={() => setSelectedEntity(entity.entity_id)}
-                    className={`p-3 cursor-pointer transition-colors ${
-                      selectedEntity === entity.entity_id
-                        ? 'bg-intel-accent/5 border-l-2 border-l-intel-accent'
-                        : 'hover:bg-white/[0.02]'
+                    className={`flex items-center gap-2 px-3 py-1.5 border-b border-intel-border/20 cursor-pointer transition-all duration-150 ${
+                      selectedEntity === entity.entity_id ? 'bg-intel-accent/5 border-l-2 border-l-intel-accent' : 'hover:bg-intel-card/40'
                     }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-white truncate">{entity.entity_id}</span>
-                          <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${riskLevelColor(entity.risk_level)}`}>
-                            {entity.risk_level}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs text-gray-500">{entity.entity_type}</span>
-                          <span className="text-xs text-gray-600">{entity.visit_count} visits</span>
-                          {entity.last_location && (
-                            <span className="text-xs text-gray-600">
-                              <MapPin className="w-3 h-3 inline" /> {entity.last_location}
-                            </span>
-                          )}
-                        </div>
-                        {entity.behavior_tags.length > 0 && (
-                          <div className="flex gap-1 mt-1">
-                            {entity.behavior_tags.slice(0, 3).map((tag, i) => (
-                              <span key={i} className="text-xs bg-intel-bg/50 text-gray-400 px-1.5 py-0.5 rounded">
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
-                        )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs text-gray-200 truncate font-mono">{entity.entity_id.slice(0, 14)}</span>
+                        <span className={`text-2xs font-bold ${riskLevelColor(entity.risk_level)}`}>{entity.risk_level.toUpperCase()}</span>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-gray-600 flex-shrink-0" />
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="text-2xs text-gray-600">{entity.entity_type}</span>
+                        <span className="text-2xs text-gray-700">{entity.visit_count}v</span>
+                        {entity.last_location && <span className="text-2xs text-gray-700 truncate">@ {entity.last_location}</span>}
+                      </div>
                     </div>
+                    <ChevronRight className="w-3 h-3 text-gray-700 flex-shrink-0" />
                   </div>
                 ))}
               </div>
@@ -234,245 +192,173 @@ export default function InvestigationView({ onViewChange, initialEntityId }: Inv
           </div>
         </div>
 
-        {/* Entity Profile + Timeline */}
-        <div className="lg:col-span-2 space-y-6">
+        {/* Entity detail + timeline */}
+        <div className="lg:col-span-2 space-y-3">
           {loading ? (
-            <div className="flex items-center justify-center py-24">
-              <RefreshCw className="w-5 h-5 text-gray-500 animate-spin" />
+            <div className="flex items-center justify-center py-20">
+              <RefreshCw className="w-4 h-4 text-gray-600 animate-spin" />
             </div>
           ) : selectedEntity && entityProfile ? (
             <>
-              {/* Entity Profile Card */}
-              <div className="bg-intel-card border border-intel-border rounded-xl p-5">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <div className="flex items-center gap-3">
-                      <h3 className="text-lg font-bold text-white">{entityProfile.entity_id}</h3>
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded ${riskLevelColor(entityProfile.risk_level)}`}>
-                        {entityProfile.risk_level.toUpperCase()}
-                      </span>
-                      {entityProfile.is_on_watchlist && (
-                        <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">{entityProfile.entity_type} &middot; {entityProfile.risk_summary}</p>
-                  </div>
+              {/* Profile panel */}
+              <div className="bg-intel-panel border border-intel-border/60 rounded">
+                <div className="flex items-center justify-between px-3 py-2 border-b border-intel-border/60">
                   <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium text-gray-200">{entityProfile.entity_id}</span>
+                    <span className={`text-2xs font-bold ${riskLevelColor(entityProfile.risk_level)}`}>{entityProfile.risk_level.toUpperCase()}</span>
+                    {entityProfile.is_on_watchlist && <Star className="w-3 h-3 text-sev-medium fill-sev-medium" />}
+                  </div>
+                  <div className="flex items-center gap-1">
                     {!entityProfile.is_on_watchlist && (
-                      <button
-                        onClick={() => handleAddToWatchlist(entityProfile.entity_id)}
-                        className="px-3 py-1.5 text-xs font-medium text-yellow-400 bg-yellow-500/10 border border-yellow-500/30 rounded-lg hover:bg-yellow-500/20 transition-colors"
-                      >
-                        <Star className="w-3 h-3 inline mr-1" /> Watch
-                      </button>
+                      <button onClick={() => handleAddToWatchlist(entityProfile.entity_id)} className="px-2 py-0.5 text-2xs text-intel-accent border border-intel-accent/30 rounded hover:bg-intel-accent/10 transition-all duration-200">WATCH</button>
                     )}
                   </div>
                 </div>
+                <div className="px-3 py-2">
+                  <p className="text-2xs text-gray-500">{entityProfile.entity_type} &middot; {entityProfile.risk_summary}</p>
 
-                {/* Risk Score Bar */}
-                <div className="mb-4">
-                  <div className="flex items-center justify-between text-xs mb-1">
-                    <span className="text-gray-500">Risk Score</span>
-                    <span className="text-white font-bold">{(entityProfile.risk_score * 100).toFixed(0)}%</span>
+                  {/* Risk bar */}
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-2xs text-gray-600 w-12">Risk</span>
+                    <div className="flex-1 bg-intel-bg rounded h-1.5">
+                      <div className={`h-1.5 rounded transition-all ${
+                        entityProfile.risk_score > 0.7 ? 'bg-sev-critical' :
+                        entityProfile.risk_score > 0.4 ? 'bg-sev-high' :
+                        entityProfile.risk_score > 0.2 ? 'bg-sev-medium' : 'bg-intel-accent'
+                      }`} style={{ width: riskBarWidth(entityProfile.risk_score) }} />
+                    </div>
+                    <span className="text-2xs font-bold text-gray-300 w-8 text-right">{(entityProfile.risk_score * 100).toFixed(0)}%</span>
                   </div>
-                  <div className="w-full bg-intel-bg rounded-full h-2">
-                    <div
-                      className={`h-2 rounded-full transition-all ${
-                        entityProfile.risk_score > 0.7 ? 'bg-red-500' :
-                        entityProfile.risk_score > 0.4 ? 'bg-orange-500' :
-                        entityProfile.risk_score > 0.2 ? 'bg-yellow-500' : 'bg-green-500'
-                      }`}
-                      style={{ width: riskBarWidth(entityProfile.risk_score) }}
-                    />
-                  </div>
-                </div>
 
-                {/* Key Info Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <div className="bg-intel-bg/50 rounded-lg p-2.5">
-                    <div className="text-xs text-gray-500">First Seen</div>
-                    <div className="text-sm text-white mt-0.5">
-                      {entityProfile.first_seen ? formatRelativeTime(entityProfile.first_seen) : 'N/A'}
-                    </div>
+                  {/* Key data row */}
+                  <div className="grid grid-cols-4 gap-2 mt-2">
+                    {[
+                      { l: 'First', v: entityProfile.first_seen ? formatRelativeTime(entityProfile.first_seen) : 'N/A' },
+                      { l: 'Last', v: entityProfile.last_seen ? formatRelativeTime(entityProfile.last_seen) : 'N/A' },
+                      { l: 'Visits', v: String(entityProfile.visit_count) },
+                      { l: 'Location', v: entityProfile.last_location || 'Unknown' },
+                    ].map((d) => (
+                      <div key={d.l}>
+                        <div className="text-2xs text-gray-600">{d.l}</div>
+                        <div className="text-xs text-gray-300 truncate">{d.v}</div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="bg-intel-bg/50 rounded-lg p-2.5">
-                    <div className="text-xs text-gray-500">Last Seen</div>
-                    <div className="text-sm text-white mt-0.5">
-                      {entityProfile.last_seen ? formatRelativeTime(entityProfile.last_seen) : 'N/A'}
-                    </div>
-                  </div>
-                  <div className="bg-intel-bg/50 rounded-lg p-2.5">
-                    <div className="text-xs text-gray-500">Visits</div>
-                    <div className="text-sm text-white mt-0.5">{entityProfile.visit_count}</div>
-                  </div>
-                  <div className="bg-intel-bg/50 rounded-lg p-2.5">
-                    <div className="text-xs text-gray-500">Last Location</div>
-                    <div className="text-sm text-white mt-0.5 truncate">
-                      {entityProfile.last_location || 'Unknown'}
-                    </div>
-                  </div>
-                </div>
 
-                {/* Associated Entities */}
-                {entityProfile.associated_entities.length > 0 && (
-                  <div className="mt-4">
-                    <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                      Associated Entities
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {entityProfile.associated_entities.map((assoc) => (
-                        <button
-                          key={assoc.entity_id}
-                          onClick={() => setSelectedEntity(assoc.entity_id)}
-                          className="flex items-center gap-1.5 px-2.5 py-1.5 bg-intel-bg/50 border border-intel-border rounded-lg text-xs hover:border-intel-accent/30 transition-colors"
-                        >
-                          <Users className="w-3 h-3 text-gray-500" />
-                          <span className="text-white">{assoc.entity_id}</span>
-                          <span className="text-gray-500">({(assoc.strength * 100).toFixed(0)}%)</span>
-                        </button>
-                      ))}
+                  {/* Associations */}
+                  {entityProfile.associated_entities.length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-intel-border/50">
+                      <div className="text-2xs text-gray-600 mb-1">ASSOCIATED ({entityProfile.associated_entities.length})</div>
+                      <div className="flex flex-wrap gap-1">
+                        {entityProfile.associated_entities.map((assoc) => (
+                          <button key={assoc.entity_id} onClick={() => setSelectedEntity(assoc.entity_id)}
+                            className="flex items-center gap-1 px-1.5 py-0.5 bg-intel-bg border border-intel-border rounded text-2xs hover:border-intel-border-light transition-all duration-150">
+                            <Users className="w-2.5 h-2.5 text-gray-600" />
+                            <span className="text-gray-300">{assoc.entity_id.slice(0, 10)}</span>
+                            <span className="text-gray-600">{(assoc.strength * 100).toFixed(0)}%</span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Behavior Tags */}
-                {entityProfile.behavior_tags.length > 0 && (
-                  <div className="mt-4">
-                    <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                      Behaviors
-                    </h4>
-                    <div className="flex flex-wrap gap-1.5">
-                      {entityProfile.behavior_tags.map((tag, i) => (
-                        <span key={i} className="px-2 py-1 text-xs bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-md">
-                          {tag}
-                        </span>
-                      ))}
+                  {/* Behaviors */}
+                  {entityProfile.behavior_tags.length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-intel-border/50">
+                      <div className="flex flex-wrap gap-1">
+                        {entityProfile.behavior_tags.map((tag, i) => (
+                          <span key={i} className="px-1.5 py-0.5 text-2xs bg-intel-card/60 text-gray-400 border border-intel-border/40 rounded">{tag}</span>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Active Insights */}
-                {entityProfile.insights.length > 0 && (
-                  <div className="mt-4">
-                    <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                      Intelligence Insights
-                    </h4>
-                    <div className="space-y-2">
-                      {entityProfile.insights.slice(0, 5).map((insight) => (
-                        <div key={insight.id} className="p-2.5 bg-intel-bg/50 rounded-lg border border-intel-border/50">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${severityColor(insight.severity)}`}>
-                              {insight.severity}
-                            </span>
-                            <span className="text-xs text-gray-500">{insight.type}</span>
+                  {/* Insights */}
+                  {entityProfile.insights.length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-intel-border/50 space-y-1">
+                      <div className="text-2xs text-gray-600">INSIGHTS</div>
+                      {entityProfile.insights.slice(0, 3).map((insight) => (
+                        <div key={insight.id} className="px-2 py-1.5 bg-intel-bg/50 border border-intel-border/40 rounded">
+                          <div className="flex items-center gap-1.5">
+                            <span className={`text-2xs font-bold uppercase ${sevColor(insight.severity)}`}>{insight.severity}</span>
+                            <span className="text-2xs text-gray-600">{insight.type}</span>
                           </div>
-                          <p className="text-sm text-white">{insight.title}</p>
-                          <p className="text-xs text-gray-400 mt-0.5">{insight.description}</p>
+                          <p className="text-xs text-gray-300 mt-0.5">{insight.title}</p>
                         </div>
                       ))}
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
 
               {/* Timeline */}
               {timeline && (
-                <div className="bg-intel-card border border-intel-border rounded-xl">
-                  <div className="p-4 border-b border-intel-border">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-intel-accent" />
-                        <h3 className="text-sm font-semibold text-white">Event Timeline</h3>
-                      </div>
-                      <div className="flex items-center gap-3 text-xs text-gray-500">
-                        <span>{timeline.total_events} events</span>
-                        <span>{timeline.total_alerts} alerts</span>
-                      </div>
+                <div className="bg-intel-panel border border-intel-border/60 rounded">
+                  <div className="flex items-center justify-between px-3 py-2 border-b border-intel-border/60">
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="w-3 h-3 text-intel-accent" />
+                      <span className="text-2xs font-semibold text-gray-300 uppercase tracking-wider">Timeline</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-2xs text-gray-600">
+                      <span>{timeline.total_events} events</span>
+                      <span>{timeline.total_alerts} alerts</span>
                     </div>
                   </div>
-                  <div className="max-h-[400px] overflow-y-auto">
+                  <div className="max-h-[350px] overflow-y-auto">
                     {timeline.items.length === 0 ? (
-                      <p className="text-sm text-gray-500 text-center py-8">No timeline events</p>
+                      <p className="text-2xs text-gray-600 text-center py-6">No events</p>
                     ) : (
-                      <div className="relative">
-                        <div className="absolute left-6 top-0 bottom-0 w-px bg-intel-border" />
-                        <div className="space-y-0">
-                          {timeline.items.map((item: TimelineItem) => (
-                            <div key={item.id} className="relative pl-12 pr-4 py-3 hover:bg-white/[0.02] transition-colors">
-                              <div className={`absolute left-[19px] w-3 h-3 rounded-full border-2 ${
-                                item.type === 'alert'
-                                  ? 'bg-red-500 border-red-400'
-                                  : 'bg-intel-accent border-intel-accent/70'
-                              }`} />
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1 min-w-0">
-                                  {item.type === 'alert' ? (
-                                    <>
-                                      <div className="flex items-center gap-2">
-                                        <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${severityColor(item.severity || '')}`}>
-                                          {item.severity}
-                                        </span>
-                                        <span className="text-xs text-gray-500">{item.alert_type}</span>
-                                      </div>
-                                      <p className="text-sm text-white mt-0.5">{item.title}</p>
-                                      {item.description && (
-                                        <p className="text-xs text-gray-400 mt-0.5 line-clamp-2">{item.description}</p>
-                                      )}
-                                    </>
-                                  ) : (
-                                    <>
-                                      <div className="flex items-center gap-2">
-                                        <span className="text-xs text-intel-accent font-medium">{item.event_type}</span>
-                                        {item.entity_id && (
-                                          <span className="text-xs text-gray-500">{item.entity_id}</span>
-                                        )}
-                                      </div>
-                                      {item.location_name && (
-                                        <p className="text-xs text-gray-400 mt-0.5">
-                                          <MapPin className="w-3 h-3 inline mr-1" />
-                                          {item.location_name}
-                                        </p>
-                                      )}
-                                      {item.co_occurring_entities && item.co_occurring_entities.length > 0 && (
-                                        <p className="text-xs text-gray-500 mt-0.5">
-                                          Co-occurring: {item.co_occurring_entities.join(', ')}
-                                        </p>
-                                      )}
-                                    </>
+                      <div>
+                        {timeline.items.map((item: TimelineItem) => (
+                          <div key={item.id} className={`flex items-start gap-2 px-3 py-1.5 border-b border-intel-border/20 hover:bg-intel-card/40 transition-all duration-150 ${
+                            item.type === 'alert' ? 'sev-' + (item.severity || 'low') : ''
+                          }`}>
+                            <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${
+                              item.type === 'alert' ? 'bg-sev-critical' : 'bg-intel-accent'
+                            }`} />
+                            <div className="flex-1 min-w-0">
+                              {item.type === 'alert' ? (
+                                <>
+                                  <div className="flex items-center gap-1.5">
+                                    <span className={`text-2xs font-bold uppercase ${sevColor(item.severity || '')}`}>{item.severity}</span>
+                                    <span className="text-2xs text-gray-600">{item.alert_type}</span>
+                                  </div>
+                                  <p className="text-xs text-gray-200 truncate">{item.title}</p>
+                                </>
+                              ) : (
+                                <>
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-2xs text-intel-accent font-medium">{item.event_type}</span>
+                                    {item.location_name && <span className="text-2xs text-gray-600">@ {item.location_name}</span>}
+                                  </div>
+                                  {item.co_occurring_entities && item.co_occurring_entities.length > 0 && (
+                                    <span className="text-2xs text-gray-600">+{item.co_occurring_entities.length} co-occurring</span>
                                   )}
-                                </div>
-                                <span className="text-xs text-gray-600 whitespace-nowrap ml-3">
-                                  {formatRelativeTime(item.timestamp)}
-                                </span>
-                              </div>
+                                </>
+                              )}
                             </div>
-                          ))}
-                        </div>
+                            <span className="text-2xs text-gray-400 whitespace-nowrap font-medium">{formatRelativeTime(item.timestamp)}</span>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
                 </div>
               )}
 
-              {/* Recent Alerts */}
+              {/* Past Alerts */}
               {entityProfile.alerts.length > 0 && (
-                <div className="bg-intel-card border border-intel-border rounded-xl">
-                  <div className="p-4 border-b border-intel-border">
-                    <h3 className="text-sm font-semibold text-white">Past Alerts ({entityProfile.alerts.length})</h3>
+                <div className="bg-intel-panel border border-intel-border/60 rounded">
+                  <div className="px-3 py-2 border-b border-intel-border/60">
+                    <span className="text-2xs font-semibold text-gray-300 uppercase tracking-wider">Past Alerts ({entityProfile.alerts.length})</span>
                   </div>
-                  <div className="max-h-[250px] overflow-y-auto divide-y divide-intel-border/50">
+                  <div className="max-h-[200px] overflow-y-auto">
                     {entityProfile.alerts.map((alert) => (
-                      <div key={alert.id} className="p-3 hover:bg-white/[0.02]">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${severityColor(alert.severity)}`}>
-                            {alert.severity}
-                          </span>
-                          <span className="text-xs text-gray-500">{alert.alert_type}</span>
-                          <span className="text-xs text-gray-600 ml-auto">
-                            {formatRelativeTime(alert.created_at)}
-                          </span>
-                        </div>
-                        <p className="text-sm text-white">{alert.title}</p>
+                      <div key={alert.id} className="flex items-center gap-2 px-3 py-1.5 border-b border-intel-border/20 hover:bg-intel-card/40 transition-all duration-150">
+                        <span className={`text-2xs font-bold uppercase ${sevColor(alert.severity)}`}>{alert.severity}</span>
+                        <span className="text-2xs text-gray-600">{alert.alert_type}</span>
+                        <span className="text-xs text-gray-300 flex-1 truncate">{alert.title}</span>
+                        <span className="text-2xs text-gray-700">{formatRelativeTime(alert.created_at)}</span>
                       </div>
                     ))}
                   </div>
@@ -480,10 +366,9 @@ export default function InvestigationView({ onViewChange, initialEntityId }: Inv
               )}
             </>
           ) : (
-            <div className="flex flex-col items-center justify-center py-24 text-gray-500">
-              <Search className="w-12 h-12 mb-3 opacity-30" />
-              <p className="text-sm">Select an entity to view its profile and timeline</p>
-              <p className="text-xs mt-1 opacity-50">Search above or select from results</p>
+            <div className="flex flex-col items-center justify-center py-20 text-gray-600">
+              <Search className="w-6 h-6 mb-2 opacity-30" />
+              <p className="text-xs">Select an entity to investigate</p>
             </div>
           )}
         </div>

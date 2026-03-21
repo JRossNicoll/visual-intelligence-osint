@@ -15,7 +15,16 @@ import {
 } from 'lucide-react';
 import { operatorApi } from '@/lib/api';
 import type { EntityFullProfile } from '@/types';
-import { formatRelativeTime, severityColor } from '@/lib/utils';
+import { formatRelativeTime } from '@/lib/utils';
+
+const sevColor = (s: string) => {
+  switch (s) {
+    case 'critical': return 'text-sev-critical';
+    case 'high': return 'text-sev-high';
+    case 'medium': return 'text-sev-medium';
+    default: return 'text-sev-low';
+  }
+};
 
 interface EntityProfileViewProps {
   entityId: string;
@@ -51,42 +60,37 @@ export default function EntityProfileView({ entityId, onViewChange, onEntitySele
     } catch { /* */ }
   };
 
-  const riskLabel = (level: string) => {
-    switch (level) {
-      case 'critical': return { text: 'CRITICAL', color: 'text-red-400 bg-red-500/10 border-red-500/30' };
-      case 'high': return { text: 'HIGH', color: 'text-orange-400 bg-orange-500/10 border-orange-500/30' };
-      case 'medium': return { text: 'MEDIUM', color: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30' };
-      default: return { text: 'LOW', color: 'text-green-400 bg-green-500/10 border-green-500/30' };
-    }
-  };
-
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <div className="flex items-center gap-3 text-gray-400">
-          <RefreshCw className="w-5 h-5 animate-spin" />
-          <span>Loading entity profile...</span>
-        </div>
+      <div className="flex items-center justify-center h-64">
+        <RefreshCw className="w-4 h-4 animate-spin text-gray-600" />
       </div>
     );
   }
 
   if (!profile) {
     return (
-      <div className="flex flex-col items-center justify-center h-96 text-gray-500">
-        <User className="w-12 h-12 mb-3 opacity-30" />
-        <p className="text-sm">Entity not found</p>
+      <div className="flex flex-col items-center justify-center h-64 text-gray-600">
+        <User className="w-5 h-5 mb-2 opacity-30" />
+        <p className="text-xs">Entity not found</p>
         <button
           onClick={() => onViewChange('investigation')}
-          className="mt-3 px-4 py-2 text-sm text-intel-accent bg-intel-accent/10 rounded-lg hover:bg-intel-accent/20 transition-colors"
+          className="mt-2 px-2 py-1 text-2xs text-intel-accent border border-intel-accent/30 rounded hover:bg-intel-accent/10 transition-all duration-200"
         >
-          Back to Investigation
+          BACK
         </button>
       </div>
     );
   }
 
-  const risk = riskLabel(profile.risk_level);
+  const riskColor = profile.risk_score > 0.7 ? 'text-sev-critical' :
+    profile.risk_score > 0.4 ? 'text-sev-high' :
+    profile.risk_score > 0.2 ? 'text-sev-medium' : 'text-intel-accent';
+
+  const riskStroke = profile.risk_score > 0.7 ? 'text-sev-critical' :
+    profile.risk_score > 0.4 ? 'text-sev-high' :
+    profile.risk_score > 0.2 ? 'text-sev-medium' : 'text-intel-accent';
+
   const tabs = [
     { id: 'overview' as const, label: 'Overview' },
     { id: 'events' as const, label: `Events (${profile.recent_events.length})` },
@@ -95,123 +99,93 @@ export default function EntityProfileView({ entityId, onViewChange, onEntitySele
   ];
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 space-y-3">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => onViewChange('investigation')}
-            className="p-1.5 text-gray-400 hover:text-white transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
+        <div className="flex items-center gap-2">
+          <button onClick={() => onViewChange('investigation')} className="p-1 text-gray-600 hover:text-gray-300 transition-colors">
+            <ArrowLeft className="w-3.5 h-3.5" />
           </button>
           <div>
-            <div className="flex items-center gap-3">
-              <h2 className="text-lg font-bold text-white">{profile.entity_id}</h2>
-              <span className={`text-xs font-bold px-2 py-0.5 rounded border ${risk.color}`}>
-                {risk.text}
-              </span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-mono text-gray-200">{profile.entity_id}</span>
+              <span className={`text-2xs font-bold uppercase ${sevColor(profile.risk_level)}`}>{profile.risk_level}</span>
               {profile.is_on_watchlist && (
-                <div className="flex items-center gap-1 text-yellow-400">
-                  <Star className="w-4 h-4 fill-yellow-400" />
-                  <span className="text-xs font-medium">Watched</span>
-                </div>
+                <Star className="w-3 h-3 text-sev-medium fill-sev-medium" />
               )}
             </div>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-2xs text-gray-600 mt-0.5">
               {profile.entity_type} &middot; {profile.risk_summary}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           {!profile.is_on_watchlist && (
-            <button
-              onClick={handleAddToWatchlist}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-yellow-400 bg-yellow-500/10 border border-yellow-500/30 rounded-lg hover:bg-yellow-500/20 transition-colors"
-            >
-              <Star className="w-3.5 h-3.5" />
-              Add to Watchlist
+            <button onClick={handleAddToWatchlist} className="flex items-center gap-1 px-2 py-1 text-2xs text-intel-accent border border-intel-accent/30 rounded hover:bg-intel-accent/10 transition-all duration-200">
+              <Star className="w-3 h-3" /> WATCH
             </button>
           )}
-          <button
-            onClick={() => onViewChange('investigation')}
-            className="px-3 py-1.5 text-xs font-medium text-gray-300 bg-intel-surface border border-intel-border rounded-lg hover:bg-intel-card transition-colors"
-          >
-            Back to Investigation
+          <button onClick={() => onViewChange('investigation')} className="px-2 py-1 text-2xs text-gray-500 border border-intel-border rounded hover:text-gray-300 transition-all duration-200">
+            BACK
           </button>
         </div>
       </div>
 
-      {/* Risk Score Hero */}
-      <div className="bg-intel-card border border-intel-border rounded-xl p-5">
-        <div className="flex items-center gap-6">
-          {/* Risk Circle */}
-          <div className="relative w-24 h-24 flex-shrink-0">
-            <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" strokeWidth="6" className="text-intel-border" />
+      {/* Risk + Stats strip */}
+      <div className="bg-intel-panel border border-intel-border/60 rounded">
+        <div className="flex items-center gap-4 px-3 py-2">
+          {/* Compact risk circle */}
+          <div className="relative w-14 h-14 flex-shrink-0">
+            <svg className="w-14 h-14 transform -rotate-90" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" strokeWidth="8" className="text-intel-border" />
               <circle
-                cx="50" cy="50" r="42" fill="none" strokeWidth="6"
+                cx="50" cy="50" r="42" fill="none" strokeWidth="8"
                 strokeDasharray={`${profile.risk_score * 264} 264`}
                 strokeLinecap="round"
-                className={`${
-                  profile.risk_score > 0.7 ? 'text-red-500' :
-                  profile.risk_score > 0.4 ? 'text-orange-500' :
-                  profile.risk_score > 0.2 ? 'text-yellow-500' : 'text-green-500'
-                }`}
+                className={riskStroke}
                 stroke="currentColor"
               />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-xl font-bold text-white">{(profile.risk_score * 100).toFixed(0)}</span>
+              <span className={`text-sm font-bold tabular-nums ${riskColor}`}>{(profile.risk_score * 100).toFixed(0)}</span>
             </div>
           </div>
 
-          {/* Key Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 flex-1">
+          {/* Key stats grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-1 flex-1 text-2xs">
             <div>
-              <div className="text-xs text-gray-500 mb-0.5">First Seen</div>
-              <div className="text-sm font-medium text-white">
-                {profile.first_seen ? formatRelativeTime(profile.first_seen) : 'N/A'}
-              </div>
+              <span className="text-gray-600">First seen</span>
+              <div className="text-xs text-gray-200">{profile.first_seen ? formatRelativeTime(profile.first_seen) : 'N/A'}</div>
             </div>
             <div>
-              <div className="text-xs text-gray-500 mb-0.5">Last Seen</div>
-              <div className="text-sm font-medium text-white">
-                {profile.last_seen ? formatRelativeTime(profile.last_seen) : 'N/A'}
-              </div>
+              <span className="text-gray-600">Last seen</span>
+              <div className="text-xs text-gray-200">{profile.last_seen ? formatRelativeTime(profile.last_seen) : 'N/A'}</div>
             </div>
             <div>
-              <div className="text-xs text-gray-500 mb-0.5">Total Visits</div>
-              <div className="text-sm font-medium text-white">{profile.visit_count}</div>
+              <span className="text-gray-600">Visits</span>
+              <div className="text-xs text-gray-200 tabular-nums">{profile.visit_count}</div>
             </div>
             <div>
-              <div className="text-xs text-gray-500 mb-0.5">Last Location</div>
-              <div className="text-sm font-medium text-white truncate">
-                {profile.last_location || 'Unknown'}
-              </div>
+              <span className="text-gray-600">Location</span>
+              <div className="text-xs text-gray-200 truncate">{profile.last_location || 'Unknown'}</div>
             </div>
           </div>
 
-          {/* Profile Completeness */}
           <div className="text-center flex-shrink-0">
-            <div className="text-xs text-gray-500 mb-1">Completeness</div>
-            <div className="text-lg font-bold text-intel-accent">
-              {(profile.profile_completeness * 100).toFixed(0)}%
-            </div>
+            <div className="text-2xs text-gray-600">Complete</div>
+            <div className="text-xs font-bold text-intel-accent tabular-nums">{(profile.profile_completeness * 100).toFixed(0)}%</div>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 border-b border-intel-border">
+      <div className="flex items-center border-b border-intel-border/60">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 ${
-              activeTab === tab.id
-                ? 'text-intel-accent border-intel-accent'
-                : 'text-gray-400 border-transparent hover:text-white'
+            className={`px-3 py-1.5 text-2xs font-medium border-b-2 transition-all duration-200 ${
+              activeTab === tab.id ? 'border-intel-accent text-intel-accent' : 'border-transparent text-gray-600 hover:text-gray-400'
             }`}
           >
             {tab.label}
@@ -221,147 +195,125 @@ export default function EntityProfileView({ entityId, onViewChange, onEntitySele
 
       {/* Tab Content */}
       {activeTab === 'overview' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           {/* Common Locations */}
-          <div className="bg-intel-card border border-intel-border rounded-xl">
-            <div className="flex items-center gap-2 p-4 border-b border-intel-border">
-              <MapPin className="w-4 h-4 text-green-400" />
-              <h3 className="text-sm font-semibold text-white">Common Locations</h3>
+          <div className="bg-intel-panel border border-intel-border/60 rounded">
+            <div className="flex items-center gap-1.5 px-3 py-2 border-b border-intel-border/60">
+              <MapPin className="w-3 h-3 text-gray-400" />
+              <span className="text-2xs font-semibold text-gray-300 uppercase tracking-wider">Locations</span>
             </div>
-            <div className="max-h-[250px] overflow-y-auto">
+            <div className="max-h-[200px] overflow-y-auto">
               {profile.common_locations.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-6">No location data</p>
+                <p className="text-2xs text-gray-600 text-center py-4">None</p>
               ) : (
-                <div className="divide-y divide-intel-border/50">
-                  {profile.common_locations.map((loc, i) => (
-                    <div key={i} className="flex items-center justify-between p-3">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-3.5 h-3.5 text-gray-500" />
-                        <span className="text-sm text-white">{loc.name}</span>
-                      </div>
-                      <span className="text-xs text-gray-400">{loc.visit_count} visits</span>
-                    </div>
-                  ))}
-                </div>
+                profile.common_locations.map((loc, i) => (
+                  <div key={i} className="flex items-center justify-between px-3 py-1.5 border-b border-intel-border/20">
+                    <span className="text-xs text-gray-300">{loc.name}</span>
+                    <span className="text-2xs text-gray-600 tabular-nums">{loc.visit_count}v</span>
+                  </div>
+                ))
               )}
             </div>
           </div>
 
           {/* Associated Entities */}
-          <div className="bg-intel-card border border-intel-border rounded-xl">
-            <div className="flex items-center gap-2 p-4 border-b border-intel-border">
-              <Users className="w-4 h-4 text-blue-400" />
-              <h3 className="text-sm font-semibold text-white">Associated Entities</h3>
+          <div className="bg-intel-panel border border-intel-border/60 rounded">
+            <div className="flex items-center gap-1.5 px-3 py-2 border-b border-intel-border/60">
+              <Users className="w-3 h-3 text-gray-400" />
+              <span className="text-2xs font-semibold text-gray-300 uppercase tracking-wider">Associations</span>
             </div>
-            <div className="max-h-[250px] overflow-y-auto">
+            <div className="max-h-[200px] overflow-y-auto">
               {profile.associated_entities.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-6">No associations</p>
+                <p className="text-2xs text-gray-600 text-center py-4">None</p>
               ) : (
-                <div className="divide-y divide-intel-border/50">
-                  {profile.associated_entities.map((assoc) => (
-                    <div
-                      key={assoc.entity_id}
-                      className="flex items-center justify-between p-3 cursor-pointer hover:bg-white/[0.02] transition-colors"
-                      onClick={() => onEntitySelect?.(assoc.entity_id)}
-                    >
-                      <div className="flex items-center gap-2">
-                        <GitBranch className="w-3.5 h-3.5 text-gray-500" />
-                        <span className="text-sm text-white">{assoc.entity_id}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-16 bg-intel-bg rounded-full h-1.5">
-                          <div
-                            className="h-1.5 rounded-full bg-blue-500"
-                            style={{ width: `${assoc.strength * 100}%` }}
-                          />
-                        </div>
-                        <span className="text-xs text-gray-400">{(assoc.strength * 100).toFixed(0)}%</span>
-                        <ChevronRight className="w-3.5 h-3.5 text-gray-600" />
-                      </div>
+                profile.associated_entities.map((assoc) => (
+                  <div
+                    key={assoc.entity_id}
+                    className="flex items-center gap-2 px-3 py-1.5 border-b border-intel-border/20 hover:bg-intel-card/40 cursor-pointer transition-all duration-150"
+                    onClick={() => onEntitySelect?.(assoc.entity_id)}
+                  >
+                    <GitBranch className="w-3 h-3 text-gray-600" />
+                    <span className="text-xs text-gray-200 font-mono flex-1 truncate">{assoc.entity_id.slice(0, 12)}</span>
+                    <div className="w-12 bg-intel-bg rounded h-1">
+                      <div className="h-1 rounded bg-intel-accent/50" style={{ width: `${assoc.strength * 100}%` }} />
                     </div>
-                  ))}
-                </div>
+                    <span className="text-2xs text-gray-600 tabular-nums">{(assoc.strength * 100).toFixed(0)}%</span>
+                    <ChevronRight className="w-3 h-3 text-gray-700" />
+                  </div>
+                ))
               )}
             </div>
           </div>
 
           {/* Behaviors */}
-          <div className="bg-intel-card border border-intel-border rounded-xl">
-            <div className="flex items-center gap-2 p-4 border-b border-intel-border">
-              <Eye className="w-4 h-4 text-purple-400" />
-              <h3 className="text-sm font-semibold text-white">Behavior Patterns</h3>
+          <div className="bg-intel-panel border border-intel-border/60 rounded">
+            <div className="flex items-center gap-1.5 px-3 py-2 border-b border-intel-border/60">
+              <Eye className="w-3 h-3 text-gray-400" />
+              <span className="text-2xs font-semibold text-gray-300 uppercase tracking-wider">Behaviors</span>
             </div>
-            <div className="max-h-[250px] overflow-y-auto">
+            <div className="max-h-[200px] overflow-y-auto">
               {profile.behaviors.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-6">No behaviors detected</p>
+                <p className="text-2xs text-gray-600 text-center py-4">None</p>
               ) : (
-                <div className="divide-y divide-intel-border/50">
-                  {profile.behaviors.map((behavior, i) => (
-                    <div key={i} className="p-3">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${severityColor(behavior.severity)}`}>
-                          {behavior.severity}
-                        </span>
-                        <span className="text-xs text-gray-500">{behavior.type}</span>
-                        {behavior.is_active && (
-                          <span className="text-xs text-green-400 font-medium">Active</span>
-                        )}
-                        <span className="text-xs text-gray-600 ml-auto">
-                          {Math.round(behavior.confidence * 100)}% confidence
-                        </span>
-                      </div>
-                      <p className="text-sm text-white">{behavior.description}</p>
+                profile.behaviors.map((behavior, i) => (
+                  <div key={i} className="px-3 py-1.5 border-b border-intel-border/20">
+                    <div className="flex items-center gap-1.5 text-2xs">
+                      <span className={`font-bold uppercase ${sevColor(behavior.severity)}`}>{behavior.severity}</span>
+                      <span className="text-gray-600">{behavior.type}</span>
+                      {behavior.is_active && <span className="text-intel-accent">active</span>}
+                      <span className="text-gray-700 ml-auto tabular-nums">{Math.round(behavior.confidence * 100)}%</span>
                     </div>
-                  ))}
-                </div>
+                    <p className="text-xs text-gray-200 mt-0.5">{behavior.description}</p>
+                  </div>
+                ))
               )}
             </div>
           </div>
 
           {/* Predictions */}
-          <div className="bg-intel-card border border-intel-border rounded-xl">
-            <div className="flex items-center gap-2 p-4 border-b border-intel-border">
-              <TrendingUp className="w-4 h-4 text-cyan-400" />
-              <h3 className="text-sm font-semibold text-white">Predictions</h3>
+          <div className="bg-intel-panel border border-intel-border/60 rounded">
+            <div className="flex items-center gap-1.5 px-3 py-2 border-b border-intel-border/60">
+              <TrendingUp className="w-3 h-3 text-gray-400" />
+              <span className="text-2xs font-semibold text-gray-300 uppercase tracking-wider">Predictions</span>
             </div>
-            <div className="p-4 space-y-4">
+            <div className="px-3 py-2 space-y-2">
               {profile.temporal_pattern ? (
-                <div className="bg-intel-bg/50 rounded-lg p-3">
-                  <div className="text-xs text-gray-500 mb-1">Temporal Pattern</div>
-                  <p className="text-sm text-white">
+                <div>
+                  <div className="text-2xs text-gray-600">Temporal pattern</div>
+                  <p className="text-xs text-gray-200">
                     {typeof profile.temporal_pattern === 'object'
-                      ? JSON.stringify(profile.temporal_pattern).slice(0, 100)
+                      ? JSON.stringify(profile.temporal_pattern).slice(0, 80)
                       : String(profile.temporal_pattern)}
                   </p>
                 </div>
               ) : (
-                <p className="text-xs text-gray-500">No temporal pattern detected</p>
+                <p className="text-2xs text-gray-700">No temporal pattern</p>
               )}
 
               {profile.predicted_next_time ? (
-                <div className="bg-intel-bg/50 rounded-lg p-3">
-                  <div className="text-xs text-gray-500 mb-1">Predicted Next Appearance</div>
-                  <p className="text-sm text-white">
+                <div>
+                  <div className="text-2xs text-gray-600">Next appearance</div>
+                  <p className="text-xs text-gray-200">
                     {typeof profile.predicted_next_time === 'object'
-                      ? JSON.stringify(profile.predicted_next_time).slice(0, 100)
+                      ? JSON.stringify(profile.predicted_next_time).slice(0, 80)
                       : String(profile.predicted_next_time)}
                   </p>
                 </div>
               ) : (
-                <p className="text-xs text-gray-500">No time prediction available</p>
+                <p className="text-2xs text-gray-700">No time prediction</p>
               )}
 
               {profile.predicted_next_location ? (
-                <div className="bg-intel-bg/50 rounded-lg p-3">
-                  <div className="text-xs text-gray-500 mb-1">Predicted Next Location</div>
-                  <p className="text-sm text-white">
+                <div>
+                  <div className="text-2xs text-gray-600">Next location</div>
+                  <p className="text-xs text-gray-200">
                     {typeof profile.predicted_next_location === 'object'
-                      ? JSON.stringify(profile.predicted_next_location).slice(0, 100)
+                      ? JSON.stringify(profile.predicted_next_location).slice(0, 80)
                       : String(profile.predicted_next_location)}
                   </p>
                 </div>
               ) : (
-                <p className="text-xs text-gray-500">No location prediction available</p>
+                <p className="text-2xs text-gray-700">No location prediction</p>
               )}
             </div>
           </div>
@@ -369,90 +321,67 @@ export default function EntityProfileView({ entityId, onViewChange, onEntitySele
       )}
 
       {activeTab === 'events' && (
-        <div className="bg-intel-card border border-intel-border rounded-xl">
-          <div className="max-h-[500px] overflow-y-auto">
+        <div className="bg-intel-panel border border-intel-border/60 rounded">
+          <div className="max-h-[400px] overflow-y-auto">
             {profile.recent_events.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-12">No recent events</p>
+              <p className="text-2xs text-gray-600 text-center py-8">No events</p>
             ) : (
-              <div className="relative">
-                <div className="absolute left-6 top-0 bottom-0 w-px bg-intel-border" />
-                {profile.recent_events.map((event) => (
-                  <div key={event.id} className="relative pl-12 pr-4 py-3 hover:bg-white/[0.02] transition-colors">
-                    <div className="absolute left-[19px] w-3 h-3 rounded-full bg-intel-accent border-2 border-intel-accent/70" />
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-intel-accent font-medium">{event.event_type}</span>
-                          {event.location_name && (
-                            <span className="text-xs text-gray-500">
-                              <MapPin className="w-3 h-3 inline" /> {event.location_name}
-                            </span>
-                          )}
-                        </div>
-                        {event.confidence !== undefined && (
-                          <span className="text-xs text-gray-600">Confidence: {Math.round(event.confidence * 100)}%</span>
-                        )}
-                      </div>
-                      <span className="text-xs text-gray-600">{formatRelativeTime(event.timestamp)}</span>
+              profile.recent_events.map((event) => (
+                <div key={event.id} className="flex items-center gap-2 px-3 py-1.5 border-b border-intel-border/20 hover:bg-intel-card/40 transition-all duration-150">
+                  <div className="w-1.5 h-1.5 rounded-full bg-intel-accent flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 text-2xs">
+                      <span className="text-intel-accent font-medium">{event.event_type}</span>
+                      {event.location_name && <span className="text-gray-600"><MapPin className="w-3 h-3 inline" /> {event.location_name}</span>}
+                      {event.confidence !== undefined && <span className="text-gray-700 tabular-nums">{Math.round(event.confidence * 100)}%</span>}
                     </div>
                   </div>
-                ))}
-              </div>
+                  <span className="text-2xs text-gray-400 flex-shrink-0 font-medium">{formatRelativeTime(event.timestamp)}</span>
+                </div>
+              ))
             )}
           </div>
         </div>
       )}
 
       {activeTab === 'alerts' && (
-        <div className="bg-intel-card border border-intel-border rounded-xl">
-          <div className="max-h-[500px] overflow-y-auto">
+        <div className="bg-intel-panel border border-intel-border/60 rounded">
+          <div className="max-h-[400px] overflow-y-auto">
             {profile.alerts.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-12">No alerts for this entity</p>
+              <p className="text-2xs text-gray-600 text-center py-8">No alerts</p>
             ) : (
-              <div className="divide-y divide-intel-border/50">
-                {profile.alerts.map((alert) => (
-                  <div key={alert.id} className="p-4 hover:bg-white/[0.02]">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${severityColor(alert.severity)}`}>
-                        {alert.severity}
-                      </span>
-                      <span className="text-xs text-gray-500">{alert.alert_type}</span>
-                      <span className="text-xs text-gray-600 ml-auto">
-                        {formatRelativeTime(alert.created_at)}
-                      </span>
-                    </div>
-                    <p className="text-sm text-white">{alert.title}</p>
+              profile.alerts.map((alert) => (
+                <div key={alert.id} className="px-3 py-1.5 border-b border-intel-border/20 hover:bg-intel-card/40 transition-all duration-150">
+                  <div className="flex items-center gap-1.5 text-2xs">
+                    <span className={`font-bold uppercase ${sevColor(alert.severity)}`}>{alert.severity}</span>
+                    <span className="text-gray-600">{alert.alert_type}</span>
+                    <span className="text-gray-700 ml-auto">{formatRelativeTime(alert.created_at)}</span>
                   </div>
-                ))}
-              </div>
+                  <p className="text-xs text-gray-200 mt-0.5">{alert.title}</p>
+                </div>
+              ))
             )}
           </div>
         </div>
       )}
 
       {activeTab === 'insights' && (
-        <div className="bg-intel-card border border-intel-border rounded-xl">
-          <div className="max-h-[500px] overflow-y-auto">
+        <div className="bg-intel-panel border border-intel-border/60 rounded">
+          <div className="max-h-[400px] overflow-y-auto">
             {profile.insights.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-12">No intelligence insights</p>
+              <p className="text-2xs text-gray-600 text-center py-8">No insights</p>
             ) : (
-              <div className="divide-y divide-intel-border/50">
-                {profile.insights.map((insight) => (
-                  <div key={insight.id} className="p-4 hover:bg-white/[0.02]">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${severityColor(insight.severity)}`}>
-                        {insight.severity}
-                      </span>
-                      <span className="text-xs text-gray-500">{insight.type}</span>
-                      <span className="text-xs text-gray-600 ml-auto">
-                        {Math.round(insight.confidence * 100)}% confidence
-                      </span>
-                    </div>
-                    <p className="text-sm font-medium text-white">{insight.title}</p>
-                    <p className="text-xs text-gray-400 mt-1">{insight.description}</p>
+              profile.insights.map((insight) => (
+                <div key={insight.id} className="px-3 py-1.5 border-b border-intel-border/20 hover:bg-intel-card/40 transition-all duration-150">
+                  <div className="flex items-center gap-1.5 text-2xs">
+                    <span className={`font-bold uppercase ${sevColor(insight.severity)}`}>{insight.severity}</span>
+                    <span className="text-gray-600">{insight.type}</span>
+                    <span className="text-gray-700 ml-auto tabular-nums">{Math.round(insight.confidence * 100)}%</span>
                   </div>
-                ))}
-              </div>
+                  <p className="text-xs text-gray-200 mt-0.5">{insight.title}</p>
+                  <p className="text-2xs text-gray-500 mt-0.5 line-clamp-1">{insight.description}</p>
+                </div>
+              ))
             )}
           </div>
         </div>

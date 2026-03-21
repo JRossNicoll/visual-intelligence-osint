@@ -8,41 +8,52 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+      },
+      fontSize: {
+        '2xs': ['10px', '14px'],
+      },
       colors: {
-        'viosint': {
-          50: '#f0fdf4',
-          100: '#dcfce7',
-          200: '#bbf7d0',
-          300: '#86efac',
-          400: '#4ade80',
-          500: '#22c55e',
-          600: '#16a34a',
-          700: '#15803d',
-          800: '#166534',
-          900: '#14532d',
-          950: '#052e16',
-        },
         'intel': {
-          bg: '#0a0f1a',
-          surface: '#111827',
-          card: '#1a2332',
-          border: '#2a3a4e',
-          accent: '#00ff88',
-          warning: '#ff6b35',
-          danger: '#ef4444',
-          info: '#3b82f6',
-        }
+          bg: '#121416',
+          surface: '#1b1d21',
+          panel: '#222428',
+          card: '#292b30',
+          border: '#32353b',
+          'border-light': '#3e4148',
+          accent: '#d4956a',
+          'accent-dim': '#b37a55',
+          muted: '#7d8189',
+          danger: '#c75050',
+          warning: '#d97736',
+          caution: '#c9a74e',
+          info: '#6b7280',
+        },
+        sev: {
+          critical: '#c75050',
+          high: '#d97736',
+          medium: '#c9a74e',
+          low: '#6b7280',
+        },
+        evt: {
+          alert: '#c75050',
+          movement: '#4a9e7a',
+          transaction: '#5b8ec9',
+          detection: '#5aa0a0',
+          appearance: '#8b6db5',
+          system: '#7d8189',
+        },
+      },
+      borderRadius: {
+        'sm': '3px',
+        'DEFAULT': '4px',
+        'md': '6px',
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'scan': 'scan 2s linear infinite',
       },
-      keyframes: {
-        scan: {
-          '0%': { transform: 'translateY(-100%)' },
-          '100%': { transform: 'translateY(100%)' },
-        }
-      }
     },
   },
   plugins: [],
