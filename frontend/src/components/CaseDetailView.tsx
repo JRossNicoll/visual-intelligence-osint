@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import {
-  ArrowLeft, Briefcase, Clock, Users, FileText,
+  ArrowLeft, Clock, Users, FileText,
   Plus, RefreshCw, ScrollText, Shield, ChevronDown, ChevronUp,
   MessageSquare, BarChart3,
 } from 'lucide-react';
@@ -25,11 +25,6 @@ const PRIORITY_COLORS: Record<string, string> = {
   low: 'text-sev-low',
 };
 
-const STATUS_COLORS: Record<string, string> = {
-  open: 'text-intel-accent',
-  active: 'text-sky-400',
-  closed: 'text-gray-500',
-};
 
 const SEVERITY_DOT: Record<string, string> = {
   critical: 'bg-sev-critical',
@@ -167,82 +162,92 @@ export default function CaseDetailView({ caseId, onViewChange, onEntitySelect }:
   ];
 
   return (
-    <div className="p-3 space-y-3">
+    <div className="p-5 space-y-4">
       {/* Header */}
-      <div className="flex items-center gap-2">
-        <button onClick={() => onViewChange('cases')} className="p-1 text-gray-600 hover:text-gray-300 transition-colors">
-          <ArrowLeft className="w-3.5 h-3.5" />
-        </button>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <Briefcase className="w-3 h-3 text-gray-500" />
-            <h2 className="text-xs font-semibold text-gray-200 truncate">{caseData.title}</h2>
-          </div>
-          {caseData.description && (
-            <p className="text-2xs text-gray-600 truncate mt-0.5">{caseData.description}</p>
-          )}
-        </div>
-      </div>
-
-      {/* Meta strip */}
-      <div className="flex items-center gap-2 flex-wrap text-2xs">
-        <div className="relative">
-          <button
-            onClick={() => setStatusExpanded(!statusExpanded)}
-            className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded border border-intel-border font-bold uppercase ${STATUS_COLORS[caseData.status]}`}
-            disabled={updatingStatus}
-          >
-            {caseData.status}
-            {statusExpanded ? <ChevronUp className="w-2.5 h-2.5" /> : <ChevronDown className="w-2.5 h-2.5" />}
+      <div className="flex items-start justify-between">
+        <div className="flex items-start gap-3">
+          <button onClick={() => onViewChange('cases')} className="p-1 mt-0.5 text-gray-600 hover:text-gray-300 transition-colors">
+            <ArrowLeft className="w-3.5 h-3.5" />
           </button>
-          {statusExpanded && (
-            <div className="absolute top-full mt-0.5 left-0 bg-intel-surface border border-intel-border/60 rounded overflow-hidden z-10">
-              {['open', 'active', 'closed'].map((s) => (
-                <button key={s} onClick={() => handleStatusChange(s)} className="block w-full text-left px-3 py-1 text-2xs text-gray-300 hover:bg-intel-card/60 capitalize transition-colors">{s}</button>
-              ))}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-2xs text-gray-600 font-mono">CS-{caseData.id.slice(0, 4).toUpperCase()}</span>
+              <div className="relative">
+                <button
+                  onClick={() => setStatusExpanded(!statusExpanded)}
+                  className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded text-2xs font-bold uppercase ${
+                    caseData.status === 'open' ? 'bg-intel-accent/20 text-intel-accent' :
+                    caseData.status === 'active' ? 'bg-sky-400/20 text-sky-400' :
+                    'bg-gray-500/20 text-gray-500'
+                  }`}
+                  disabled={updatingStatus}
+                >
+                  {caseData.status}
+                  {statusExpanded ? <ChevronUp className="w-2.5 h-2.5" /> : <ChevronDown className="w-2.5 h-2.5" />}
+                </button>
+                {statusExpanded && (
+                  <div className="absolute top-full mt-0.5 left-0 bg-intel-surface border border-intel-border/60 rounded overflow-hidden z-10 min-w-[80px]">
+                    {['open', 'active', 'closed'].map((s) => (
+                      <button key={s} onClick={() => handleStatusChange(s)} className="block w-full text-left px-3 py-1 text-2xs text-gray-300 hover:bg-intel-card/60 capitalize transition-colors">{s}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <span className={`px-1.5 py-0.5 rounded text-2xs font-bold uppercase ${
+                caseData.priority === 'critical' ? 'bg-sev-critical/20 text-sev-critical' :
+                caseData.priority === 'high' ? 'bg-sev-high/20 text-sev-high' :
+                caseData.priority === 'medium' ? 'bg-sev-medium/20 text-sev-medium' :
+                'bg-sev-low/20 text-sev-low'
+              }`}>{caseData.priority}</span>
             </div>
-          )}
-        </div>
-        <span className={`font-bold uppercase ${PRIORITY_COLORS[caseData.priority]}`}>{caseData.priority}</span>
-        <span className={`font-bold uppercase ${PRIORITY_COLORS[caseData.severity]}`}>{caseData.severity} sev</span>
-        {caseData.assigned_to && <span className="text-gray-500">{caseData.assigned_to}</span>}
-        <span className="text-gray-600 ml-auto">{formatDate(caseData.opened_at)}</span>
-      </div>
-
-      {/* Stat strip */}
-      <div className="flex items-center gap-px bg-intel-border/60 rounded overflow-hidden">
-        {[
-          { label: 'Entities', value: caseData.entity_count },
-          { label: 'Alerts', value: caseData.alert_count },
-          { label: 'Evidence', value: caseData.evidence_count },
-          { label: 'Tags', value: caseData.tags.length },
-        ].map((stat) => (
-          <div key={stat.label} className="flex-1 bg-intel-panel px-2 py-1.5 text-center">
-            <div className="text-xs font-bold text-gray-200 tabular-nums">{stat.value}</div>
-            <div className="text-2xs text-gray-600">{stat.label}</div>
+            <h2 className="text-sm font-semibold text-gray-200">{caseData.title}</h2>
+            {caseData.description && (
+              <p className="text-xs text-gray-500 mt-1 leading-relaxed">{caseData.description}</p>
+            )}
           </div>
-        ))}
+        </div>
+        <div className="text-right text-2xs text-gray-600 ml-4 flex-shrink-0">
+          {caseData.assigned_to && <div className="text-gray-400 font-medium">{caseData.assigned_to}</div>}
+          <div>{formatDate(caseData.opened_at)}</div>
+        </div>
       </div>
 
-      {/* Tags */}
-      {caseData.tags.length > 0 && (
-        <div className="flex items-center gap-1 flex-wrap">
-          {caseData.tags.map((tag) => (
-            <span key={tag} className="px-1.5 py-0.5 text-2xs text-gray-500 bg-intel-bg border border-intel-border/40 rounded">{tag}</span>
-          ))}
+      {/* Stats Row */}
+      <div className="flex items-center gap-6 text-xs text-gray-400">
+        <div className="flex items-center gap-1.5">
+          <Users className="w-3.5 h-3.5 text-intel-accent/60" />
+          <span className="font-bold text-gray-300">{caseData.entity_count}</span>
+          <span className="text-gray-600">entities</span>
         </div>
-      )}
+        <div className="flex items-center gap-1.5">
+          <Shield className="w-3.5 h-3.5 text-sev-high/60" />
+          <span className="font-bold text-gray-300">{caseData.alert_count}</span>
+          <span className="text-gray-600">alerts</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <FileText className="w-3.5 h-3.5 text-gray-500" />
+          <span className="font-bold text-gray-300">{caseData.evidence_count}</span>
+          <span className="text-gray-600">evidence</span>
+        </div>
+        {caseData.tags.length > 0 && (
+          <div className="flex items-center gap-1 ml-auto">
+            {caseData.tags.map((tag) => (
+              <span key={tag} className="px-1.5 py-0.5 text-2xs text-gray-500 bg-intel-bg border border-intel-border/40 rounded">{tag}</span>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Tabs */}
-      <div className="flex items-center border-b border-intel-border/60">
+      <div className="flex items-center gap-0.5 border-b border-intel-border/40">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-3 py-1.5 text-2xs font-medium border-b-2 transition-all duration-200 ${
-                isActive ? 'border-intel-accent text-intel-accent' : 'border-transparent text-gray-600 hover:text-gray-400'
+              className={`px-3 py-2 text-xs font-medium transition-all duration-200 ${
+                isActive ? 'border-b-2 border-intel-accent text-gray-200' : 'text-gray-600 hover:text-gray-400'
               }`}
             >
               {tab.label}
@@ -255,7 +260,7 @@ export default function CaseDetailView({ caseId, onViewChange, onEntitySelect }:
       </div>
 
       {/* Tab Content */}
-      <div className="min-h-48">
+      <div className="min-h-[300px]">
         {activeTab === 'timeline' && (
           <TimelineTab timeline={timeline} formatDate={formatDate} />
         )}
