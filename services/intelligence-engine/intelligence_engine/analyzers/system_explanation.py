@@ -421,7 +421,12 @@ class SystemExplainer:
         """Synthesize a unified system-level alert from all analysis modules.
 
         Combines insights from coordination, risk propagation, sequence
-        detection, and group anomaly detection into a single coherent report.
+        detection, and group anomaly detection into a single coherent report
+        with:
+        - Causal chains (A -> B -> C) extracted from sequence + coordination data
+        - Per-entity contribution breakdown with role classification
+        - Statistical significance of each pattern with p-values
+        - Recommended actions based on combined evidence
         """
         alert_id = f"system_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
         findings = []
@@ -429,6 +434,9 @@ class SystemExplainer:
         total_confidence = 0.0
         n_modules = 0
         actions = []
+        causal_chains: list[dict] = []
+        entity_contributions: dict[str, dict] = {}  # entity_id -> role details
+        significance_details: dict = {}
 
         if coordination and coordination.patterns_detected:
             n_patterns = len(coordination.patterns_detected)
@@ -439,8 +447,69 @@ class SystemExplainer:
             )
             for p in coordination.patterns_detected:
                 all_entities.update(p.involved_entities)
+                # Extract entity roles from coordination patterns
+                for eid in p.involved_entities:
+                    if eid not in entity_contributions:
+                        entity_contributions[eid] = {
+                            "entity_id": eid,
+                            "roles": [],
+                            "pattern_count": 0,
+                            "max_confidence": 0.0,
+                        }
+                    entity_contributions[eid]["roles"].append(p.coordination_type)
+                    entity_contributions[eid]["pattern_count"] += 1
+                    entity_contributions[eid]["max_confidence"] = max(
+                        entity_contributions[eid]["max_confidence"], p.confidence
+                    )
+                # Build causal chains from staggered patterns
+                if p.coordination_type == "staggered" and p.evidence:
+                    leader = p.evidence.get("leader_entity", p.involved_entities[0])
+                    follower = p.evidence.get("follower_entity", p.involved_entities[-1])
+                    causal_chains.append({
+                        "chain": [leader, follower],
+                        "type": "staggered_coordination",
+                        "confidence": p.confidence,
+                        "mean_lag_seconds": p.mean_time_gap_seconds,
+                        "evidence": {
+                            "p_value": p.evidence.get("binomial_p_value"),
+                            "frequency": p.frequency,
+                        },
+                    })
+
+            # Statistical significance for coordination
+            significance_details["coordination"] = {
+                "total_patterns": n_patterns,
+                "high_confidence": sum(1 for p in coordination.patterns_detected if p.confidence > 0.8),
+                "chi_squared_p_values": [
+                    p.evidence.get("p_value")
+                    for p in coordination.patterns_detected
+                    if p.evidence.get("p_value") is not None
+                ],
+                "binomial_p_values": [
+                    p.evidence.get("binomial_p_value")
+                    for p in coordination.patterns_detected
+                    if p.evidence.get("binomial_p_value") is not None
+                ],
+            }
+
             total_confidence += top.confidence
             n_modules += 1
+
+            # Actions from coordination
+            staggered = [p for p in coordination.patterns_detected if p.coordination_type == "staggered"]
+            if staggered:
+                top_s = staggered[0]
+                actions.append(
+                    f"Monitor staggered pair: {top_s.involved_entities[0]} -> "
+                    f"{top_s.involved_entities[1]} (lag={top_s.mean_time_gap_seconds:.0f}s, "
+                    f"p={top_s.evidence.get('binomial_p_value', 'N/A')})."
+                )
+            convoy = [p for p in coordination.patterns_detected if p.coordination_type == "convoy"]
+            if convoy:
+                actions.append(
+                    f"Track convoy group across locations: "
+                    f"{', '.join(convoy[0].involved_entities)}."
+                )
 
         if propagated_risks:
             significant = [r for r in propagated_risks if r.final_risk > r.original_risk + 0.05]
@@ -450,10 +519,58 @@ class SystemExplainer:
                     f"RISK PROPAGATION: {len(significant)} entities with increased risk, "
                     f"{len(high_risk)} high/critical"
                 )
-                for r in high_risk:
+                for r in propagated_risks:
                     all_entities.add(r.entity_id)
-                total_confidence += 0.8  # Graph-based propagation is inherently reliable
+                    if r.entity_id not in entity_contributions:
+                        entity_contributions[r.entity_id] = {
+                            "entity_id": r.entity_id,
+                            "roles": [],
+                            "pattern_count": 0,
+                            "max_confidence": 0.0,
+                        }
+                    entity_contributions[r.entity_id]["original_risk"] = r.original_risk
+                    entity_contributions[r.entity_id]["final_risk"] = r.final_risk
+                    entity_contributions[r.entity_id]["risk_delta"] = round(
+                        r.final_risk - r.original_risk, 4
+                    )
+                    if r.neighbor_contributions:
+                        entity_contributions[r.entity_id]["top_risk_source"] = (
+                            r.neighbor_contributions[0].source_entity_id
+                        )
+
+                # Build risk propagation chains
+                for r in significant:
+                    if r.neighbor_contributions:
+                        chain_entities = [c.source_entity_id for c in r.neighbor_contributions[:3]]
+                        chain_entities.append(r.entity_id)
+                        causal_chains.append({
+                            "chain": chain_entities,
+                            "type": "risk_propagation",
+                            "confidence": min(
+                                sum(c.contribution for c in r.neighbor_contributions[:3]), 0.99
+                            ),
+                            "risk_increase": round(r.final_risk - r.original_risk, 4),
+                        })
+
+                significance_details["risk_propagation"] = {
+                    "entities_analyzed": len(propagated_risks),
+                    "significant_increases": len(significant),
+                    "high_risk_count": len(high_risk),
+                    "max_risk_increase": round(
+                        max(r.final_risk - r.original_risk for r in significant), 4
+                    ),
+                }
+
+                total_confidence += 0.8
                 n_modules += 1
+
+                # Actions from risk propagation
+                if high_risk:
+                    top_hr = max(high_risk, key=lambda r: r.final_risk)
+                    actions.append(
+                        f"Priority: {top_hr.entity_id} at risk={top_hr.final_risk:.3f} "
+                        f"(was {top_hr.original_risk:.3f}, propagated via graph)."
+                    )
 
         if sequences and (sequences.frequent_sequences or sequences.causal_relationships):
             findings.append(
@@ -463,9 +580,72 @@ class SystemExplainer:
             for cr in sequences.causal_relationships:
                 all_entities.add(cr.leader_entity)
                 all_entities.add(cr.follower_entity)
+                # Update entity contributions with causal roles
+                for eid, role in [(cr.leader_entity, "causal_leader"), (cr.follower_entity, "causal_follower")]:
+                    if eid not in entity_contributions:
+                        entity_contributions[eid] = {
+                            "entity_id": eid,
+                            "roles": [],
+                            "pattern_count": 0,
+                            "max_confidence": 0.0,
+                        }
+                    entity_contributions[eid]["roles"].append(role)
+                    entity_contributions[eid]["max_confidence"] = max(
+                        entity_contributions[eid]["max_confidence"], cr.confidence
+                    )
+
+            # Build causal chains from sequence data
+            for seq in sequences.frequent_sequences:
+                if len(seq.sequence) >= 2:
+                    causal_chains.append({
+                        "chain": seq.sequence,
+                        "type": "temporal_sequence",
+                        "confidence": seq.confidence,
+                        "support": seq.support,
+                        "mean_delays": seq.mean_delay_seconds,
+                    })
+
+            # Merge sequential causal links into longer chains
+            # e.g., A->B and B->C become A->B->C
+            if sequences.causal_relationships:
+                leader_map: dict[str, list] = {}
+                for cr in sequences.causal_relationships:
+                    leader_map.setdefault(cr.leader_entity, []).append(cr)
+
+                for cr in sequences.causal_relationships:
+                    if cr.follower_entity in leader_map:
+                        for cr2 in leader_map[cr.follower_entity]:
+                            causal_chains.append({
+                                "chain": [cr.leader_entity, cr.follower_entity, cr2.follower_entity],
+                                "type": "causal_chain",
+                                "confidence": round(cr.confidence * cr2.confidence, 4),
+                                "lifts": [cr.lift, cr2.lift],
+                                "total_lag_seconds": round(cr.mean_lag_seconds + cr2.mean_lag_seconds, 1),
+                            })
+
+            significance_details["sequences"] = {
+                "frequent_sequences": len(sequences.frequent_sequences),
+                "causal_relationships": len(sequences.causal_relationships),
+                "max_lift": round(
+                    max((c.lift for c in sequences.causal_relationships), default=0), 4
+                ),
+                "max_conditional_prob": round(
+                    max((c.conditional_probability for c in sequences.causal_relationships), default=0), 4
+                ),
+            }
+
             if sequences.causal_relationships:
                 total_confidence += max(c.confidence for c in sequences.causal_relationships)
                 n_modules += 1
+
+            # Actions from sequences
+            for cr in sequences.causal_relationships[:2]:
+                if cr.lift > 2.0:
+                    actions.append(
+                        f"Causal link: {cr.leader_entity} -> {cr.follower_entity} "
+                        f"(lift={cr.lift:.1f}x, lag={cr.mean_lag_seconds:.0f}s). "
+                        f"Monitor {cr.leader_entity} to predict {cr.follower_entity}."
+                    )
 
         if group_anomalies and group_anomalies.anomalies:
             findings.append(
@@ -473,8 +653,48 @@ class SystemExplainer:
             )
             for a in group_anomalies.anomalies:
                 all_entities.update(a.involved_entities)
+                for eid in a.involved_entities:
+                    if eid not in entity_contributions:
+                        entity_contributions[eid] = {
+                            "entity_id": eid,
+                            "roles": [],
+                            "pattern_count": 0,
+                            "max_confidence": 0.0,
+                        }
+                    entity_contributions[eid]["roles"].append(f"group_{a.anomaly_type}")
+                    entity_contributions[eid]["pattern_count"] += 1
+
+            significance_details["group_anomalies"] = {
+                "total_anomalies": len(group_anomalies.anomalies),
+                "by_type": {},
+                "max_z_score": round(
+                    max((a.z_score for a in group_anomalies.anomalies), default=0), 4
+                ),
+                "max_anomaly_score": round(
+                    max((a.anomaly_score for a in group_anomalies.anomalies), default=0), 4
+                ),
+            }
+            for a in group_anomalies.anomalies:
+                atype = a.anomaly_type
+                significance_details["group_anomalies"]["by_type"][atype] = (
+                    significance_details["group_anomalies"]["by_type"].get(atype, 0) + 1
+                )
+
             total_confidence += max(a.confidence for a in group_anomalies.anomalies)
             n_modules += 1
+
+            # Actions from group anomalies
+            for a in group_anomalies.anomalies[:2]:
+                if a.anomaly_type == "unusual_gathering":
+                    actions.append(
+                        f"Investigate gathering at {a.location}: "
+                        f"{len(a.involved_entities)} entities (z={a.z_score:.1f})."
+                    )
+                elif a.anomaly_type == "interaction_surge":
+                    actions.append(
+                        f"Interaction surge: {a.observed_metric:.1f}/h vs "
+                        f"baseline {a.baseline_metric:.1f}/h."
+                    )
 
         if not findings:
             return SystemExplanation(
@@ -486,10 +706,45 @@ class SystemExplainer:
 
         avg_confidence = total_confidence / max(n_modules, 1)
 
-        contributing = [
-            {"entity_id": eid, "role": "involved"}
-            for eid in sorted(all_entities)
-        ]
+        # Build contributing entities list with enriched role info
+        contributing = []
+        for eid in sorted(all_entities):
+            entry = entity_contributions.get(eid, {"entity_id": eid, "roles": []})
+            # Classify primary role
+            roles = entry.get("roles", [])
+            if "causal_leader" in roles:
+                primary_role = "causal_leader"
+            elif "causal_follower" in roles:
+                primary_role = "causal_follower"
+            elif entry.get("pattern_count", 0) >= 3:
+                primary_role = "hub"
+            elif entry.get("risk_delta", 0) > 0.1:
+                primary_role = "risk_elevated"
+            else:
+                primary_role = "participant"
+
+            contrib_entry = {
+                "entity_id": eid,
+                "role": primary_role,
+                "pattern_count": entry.get("pattern_count", 0),
+                "max_confidence": round(entry.get("max_confidence", 0), 4),
+            }
+            if "original_risk" in entry:
+                contrib_entry["original_risk"] = entry["original_risk"]
+                contrib_entry["final_risk"] = entry.get("final_risk", 0)
+                contrib_entry["risk_delta"] = entry.get("risk_delta", 0)
+            if "top_risk_source" in entry:
+                contrib_entry["top_risk_source"] = entry["top_risk_source"]
+            contributing.append(contrib_entry)
+
+        # Deduplicate causal chains
+        seen_chains: set[str] = set()
+        unique_chains = []
+        for chain in causal_chains:
+            key = "|".join(chain["chain"]) + "|" + chain["type"]
+            if key not in seen_chains:
+                seen_chains.add(key)
+                unique_chains.append(chain)
 
         return SystemExplanation(
             alert_id=alert_id,
@@ -497,19 +752,19 @@ class SystemExplainer:
             summary=f"System-level analysis: {'; '.join(findings)}.",
             pattern_description=(
                 f"Multi-module synthesis across {n_modules} analysis modules "
-                f"involving {len(all_entities)} entities."
+                f"involving {len(all_entities)} entities. "
+                f"{len(unique_chains)} causal chain(s) identified."
             ),
             contributing_entities=contributing,
-            statistical_significance={
-                "modules_with_findings": n_modules,
-                "total_entities_involved": len(all_entities),
-            },
+            risk_propagation_chain=unique_chains,
+            statistical_significance=significance_details,
             confidence=round(min(avg_confidence, 0.99), 4),
             recommended_actions=actions,
             explanation=(
                 f"Unified system analysis produced {len(findings)} findings "
                 f"across {n_modules} modules. "
                 f"{len(all_entities)} entities involved. "
+                f"{len(unique_chains)} causal chains traced. "
                 f"Average confidence: {avg_confidence:.3f}."
             ),
         )

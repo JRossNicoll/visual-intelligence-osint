@@ -213,16 +213,22 @@ class RiskPropagationEngine:
         entity_risks: dict[str, float],
         adjacency: dict[str, list[dict]],
         max_iterations: int = MAX_ITERATIONS,
+        convergence_threshold: float = CONVERGENCE_THRESHOLD,
     ) -> tuple[dict[str, float], StabilityMetrics]:
         """Run iterative risk propagation until convergence.
 
         Similar to PageRank-style iteration: update all risks simultaneously,
         repeat until convergence or max iterations.
 
+        Uses momentum-based damping to prevent oscillation: when oscillation
+        is detected mid-iteration, the update is averaged with the previous
+        value (momentum=0.5) to stabilize.
+
         Args:
             entity_risks: Initial risk scores.
             adjacency: Graph adjacency.
             max_iterations: Maximum iterations.
+            convergence_threshold: Stop when max per-entity change < this.
 
         Returns:
             (updated_risks, stability_metrics)
@@ -231,6 +237,7 @@ class RiskPropagationEngine:
         original_risks = dict(entity_risks)
         converged = False
         risk_history: list[dict[str, float]] = [dict(current_risks)]
+        momentum = 0.0  # Increases when oscillation detected
 
         for iteration in range(max_iterations):
             new_risks: dict[str, float] = {}
@@ -245,11 +252,17 @@ class RiskPropagationEngine:
                     propagated += current_risks.get(nid, 0.0) * w * self.damping
 
                 propagated = min(propagated, 1.0)
-                new_risks[entity_id] = (
+                raw_new = (
                     self.blend_alpha * original_risks[entity_id]
                     + (1 - self.blend_alpha) * propagated
                 )
-                new_risks[entity_id] = min(max(new_risks[entity_id], 0.0), 1.0)
+                raw_new = min(max(raw_new, 0.0), 1.0)
+
+                # Apply momentum damping to suppress oscillation
+                if momentum > 0:
+                    raw_new = (1 - momentum) * raw_new + momentum * current_risks[entity_id]
+
+                new_risks[entity_id] = raw_new
 
             # Check convergence
             max_change = max(
@@ -257,22 +270,35 @@ class RiskPropagationEngine:
                 for e in current_risks
             ) if current_risks else 0.0
 
+            # Detect oscillation within this iteration by checking last 3 history entries
+            if len(risk_history) >= 2:
+                for entity_id in current_risks:
+                    prev_prev = risk_history[-2].get(entity_id, 0) if len(risk_history) >= 2 else None
+                    prev = risk_history[-1].get(entity_id, 0)
+                    curr = new_risks[entity_id]
+                    if prev_prev is not None:
+                        if (prev_prev > prev and prev < curr) or \
+                           (prev_prev < prev and prev > curr):
+                            # Increase momentum to damp future oscillation
+                            momentum = min(momentum + 0.15, 0.7)
+                            break
+
             current_risks = new_risks
             risk_history.append(dict(current_risks))
 
-            if max_change < CONVERGENCE_THRESHOLD:
+            if max_change < convergence_threshold:
                 converged = True
                 break
 
-        # Check for oscillation
-        oscillation = False
+        # Final oscillation check on last 3 iterations
+        final_oscillation = False
         if len(risk_history) >= 3:
             for entity_id in current_risks:
                 vals = [h.get(entity_id, 0) for h in risk_history[-3:]]
                 if len(vals) == 3:
                     if (vals[0] > vals[1] and vals[1] < vals[2]) or \
                        (vals[0] < vals[1] and vals[1] > vals[2]):
-                        oscillation = True
+                        final_oscillation = True
                         break
 
         # Compute metrics
@@ -286,12 +312,13 @@ class RiskPropagationEngine:
             iterations_to_converge=len(risk_history) - 1,
             max_risk_change=round(max(changes) if changes else 0.0, 6),
             mean_risk_change=round(float(np.mean(changes)) if changes else 0.0, 6),
-            oscillation_detected=oscillation,
+            oscillation_detected=final_oscillation,
             explanation=(
                 f"{'Converged' if converged else 'Did not converge'} "
                 f"after {len(risk_history)-1} iterations. "
                 f"Max risk change: {max(changes) if changes else 0:.6f}. "
-                f"Oscillation: {'yes' if oscillation else 'no'}."
+                f"Oscillation: {'yes' if final_oscillation else 'no'}. "
+                f"Momentum damping applied: {momentum > 0}."
             ),
         )
 
