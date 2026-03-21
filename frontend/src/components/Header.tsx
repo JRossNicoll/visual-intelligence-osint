@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Activity, Bell, BookOpen, Briefcase, Brain, Clock, Eye, GitBranch, MessageSquare, Radio, Search, Shield, Wifi, WifiOff } from 'lucide-react';
+import { Activity, Bell, BookOpen, Briefcase, Brain, Clock, Eye, GitBranch, MessageSquare, Radio, Search, Shield, WifiOff } from 'lucide-react';
 import { alertsApi } from '@/lib/api';
 
 interface HeaderProps {
@@ -28,37 +28,40 @@ export default function Header({ activeView, onViewChange, wsConnected }: Header
   }, []);
 
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: Activity },
-    { id: 'operator', label: 'Operator', icon: Radio },
-    { id: 'cases', label: 'Cases', icon: Briefcase },
-    { id: 'investigation', label: 'Investigation', icon: Search },
-    { id: 'intel-summary', label: 'Intel', icon: Brain },
-    { id: 'intelligence', label: 'Analysis', icon: Shield },
-    { id: 'timeline', label: 'Timeline', icon: Clock },
-    { id: 'story', label: 'Story Mode', icon: BookOpen },
-    { id: 'graph', label: 'Graph', icon: GitBranch },
-    { id: 'query', label: 'Query', icon: MessageSquare },
-    { id: 'streams', label: 'Streams', icon: Eye },
-    { id: 'entities', label: 'Entities', icon: Eye },
-    { id: 'alerts', label: 'Alerts', icon: Bell },
+    { id: 'dashboard', label: 'DASH', icon: Activity },
+    { id: 'operator', label: 'OPS', icon: Radio },
+    { id: 'cases', label: 'CASES', icon: Briefcase },
+    { id: 'investigation', label: 'INVEST', icon: Search },
+    { id: 'intel-summary', label: 'INTEL', icon: Brain },
+    { id: 'intelligence', label: 'ANALYSIS', icon: Shield },
+    { id: 'timeline', label: 'TIMELINE', icon: Clock },
+    { id: 'story', label: 'STORY', icon: BookOpen },
+    { id: 'graph', label: 'GRAPH', icon: GitBranch },
+    { id: 'query', label: 'QUERY', icon: MessageSquare },
+    { id: 'streams', label: 'STREAMS', icon: Eye },
+    { id: 'entities', label: 'ENTITIES', icon: Eye },
+    { id: 'alerts', label: 'ALERTS', icon: Bell },
   ];
 
   return (
-    <header className="bg-intel-surface border-b border-intel-border">
-      <div className="flex items-center justify-between px-6 py-3">
-        {/* Logo */}
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded bg-intel-accent/20 flex items-center justify-center">
-            <Eye className="w-5 h-5 text-intel-accent" />
+    <header className="bg-intel-surface border-b border-intel-border select-none">
+      <div className="flex items-center h-10 px-3">
+        {/* Logo — compact */}
+        <button
+          onClick={() => onViewChange('dashboard')}
+          className="flex items-center gap-2 mr-4 flex-shrink-0"
+        >
+          <div className="w-5 h-5 rounded-sm bg-intel-accent/20 flex items-center justify-center">
+            <Eye className="w-3 h-3 text-intel-accent" />
           </div>
-          <div>
-            <h1 className="text-lg font-bold tracking-wide text-white">VIOSINT</h1>
-            <p className="text-xs text-gray-500 -mt-0.5">Visual Intelligence OSINT</p>
-          </div>
-        </div>
+          <span className="text-xs font-bold tracking-[0.2em] text-gray-200">VIOSINT</span>
+        </button>
 
-        {/* Navigation */}
-        <nav className="flex items-center gap-1">
+        {/* Separator */}
+        <div className="w-px h-5 bg-intel-border mr-3" />
+
+        {/* Navigation — tight horizontal tabs */}
+        <nav className="flex items-center gap-0 flex-1 overflow-x-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeView === item.id;
@@ -66,36 +69,39 @@ export default function Header({ activeView, onViewChange, wsConnected }: Header
               <button
                 key={item.id}
                 onClick={() => onViewChange(item.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`relative flex items-center gap-1.5 px-2.5 h-10 text-2xs font-semibold tracking-wide whitespace-nowrap transition-colors ${
                   isActive
-                    ? 'bg-intel-accent/10 text-intel-accent border border-intel-accent/30'
-                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    ? 'text-intel-accent'
+                    : 'text-gray-500 hover:text-gray-300'
                 }`}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="w-3 h-3" />
                 {item.label}
                 {item.id === 'alerts' && unreadCount > 0 && (
-                  <span className="ml-1 px-1.5 py-0.5 text-xs bg-red-500 text-white rounded-full">
+                  <span className="ml-0.5 px-1 py-px text-2xs font-bold bg-sev-critical text-white rounded-sm leading-none">
                     {unreadCount}
                   </span>
+                )}
+                {isActive && (
+                  <div className="absolute bottom-0 left-1 right-1 h-px bg-intel-accent" />
                 )}
               </button>
             );
           })}
         </nav>
 
-        {/* Status */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-sm">
+        {/* Status — right side */}
+        <div className="flex items-center gap-3 ml-3 flex-shrink-0">
+          <div className="flex items-center gap-1.5 text-2xs">
             {wsConnected ? (
               <>
-                <Wifi className="w-4 h-4 text-intel-accent" />
-                <span className="text-intel-accent">Live</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-intel-accent" />
+                <span className="text-intel-accent font-medium">LIVE</span>
               </>
             ) : (
               <>
-                <WifiOff className="w-4 h-4 text-gray-500" />
-                <span className="text-gray-500">Offline</span>
+                <WifiOff className="w-3 h-3 text-gray-600" />
+                <span className="text-gray-600 font-medium">OFFLINE</span>
               </>
             )}
           </div>

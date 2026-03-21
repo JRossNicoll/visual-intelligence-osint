@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import {
-  ArrowLeft, Briefcase, Clock, Users, AlertTriangle, FileText,
+  ArrowLeft, Briefcase, Clock, Users, FileText,
   Plus, RefreshCw, ScrollText, Shield, ChevronDown, ChevronUp,
-  MessageSquare, Layers, BarChart3,
+  MessageSquare, BarChart3,
 } from 'lucide-react';
 import { casesApi } from '@/lib/api';
 import type {
@@ -19,23 +19,23 @@ interface CaseDetailViewProps {
 }
 
 const PRIORITY_COLORS: Record<string, string> = {
-  critical: 'text-red-400 bg-red-500/10 border-red-500/30',
-  high: 'text-orange-400 bg-orange-500/10 border-orange-500/30',
-  medium: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30',
-  low: 'text-blue-400 bg-blue-500/10 border-blue-500/30',
+  critical: 'text-sev-critical',
+  high: 'text-sev-high',
+  medium: 'text-sev-medium',
+  low: 'text-sev-low',
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  open: 'text-green-400 bg-green-500/10 border-green-500/30',
-  active: 'text-blue-400 bg-blue-500/10 border-blue-500/30',
-  closed: 'text-gray-400 bg-gray-500/10 border-gray-500/30',
+  open: 'text-intel-accent',
+  active: 'text-blue-400',
+  closed: 'text-gray-500',
 };
 
-const SEVERITY_COLORS: Record<string, string> = {
-  critical: 'bg-red-500',
-  high: 'bg-orange-500',
-  medium: 'bg-yellow-500',
-  low: 'bg-blue-500',
+const SEVERITY_DOT: Record<string, string> = {
+  critical: 'bg-sev-critical',
+  high: 'bg-sev-high',
+  medium: 'bg-sev-medium',
+  low: 'bg-sev-low',
 };
 
 type TabId = 'timeline' | 'evidence' | 'entities' | 'notes' | 'summary' | 'audit';
@@ -154,7 +154,7 @@ export default function CaseDetailView({ caseId, onViewChange, onEntitySelect }:
   };
 
   if (loading || !caseData) {
-    return <div className="p-6 text-center text-gray-500">Loading case...</div>;
+    return <div className="flex items-center justify-center h-64"><RefreshCw className="w-4 h-4 animate-spin text-gray-600" /></div>;
   }
 
   const tabs: { id: TabId; label: string; icon: typeof Clock; count?: number }[] = [
@@ -167,119 +167,87 @@ export default function CaseDetailView({ caseId, onViewChange, onEntitySelect }:
   ];
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Back button + Header */}
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => onViewChange('cases')}
-          className="p-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
+    <div className="p-3 space-y-3">
+      {/* Header */}
+      <div className="flex items-center gap-2">
+        <button onClick={() => onViewChange('cases')} className="p-1 text-gray-600 hover:text-gray-300 transition-colors">
+          <ArrowLeft className="w-3.5 h-3.5" />
         </button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <Briefcase className="w-5 h-5 text-purple-400" />
-            <h2 className="text-xl font-bold text-white">{caseData.title}</h2>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <Briefcase className="w-3 h-3 text-gray-500" />
+            <h2 className="text-xs font-semibold text-gray-200 truncate">{caseData.title}</h2>
           </div>
           {caseData.description && (
-            <p className="text-sm text-gray-400">{caseData.description}</p>
+            <p className="text-2xs text-gray-600 truncate mt-0.5">{caseData.description}</p>
           )}
         </div>
       </div>
 
-      {/* Case Meta */}
-      <div className="flex items-center gap-3 flex-wrap">
-        {/* Status dropdown */}
+      {/* Meta strip */}
+      <div className="flex items-center gap-2 flex-wrap text-2xs">
         <div className="relative">
           <button
             onClick={() => setStatusExpanded(!statusExpanded)}
-            className={`px-3 py-1.5 text-sm rounded-lg border capitalize flex items-center gap-1 ${STATUS_COLORS[caseData.status]}`}
+            className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-sm border border-intel-border font-bold uppercase ${STATUS_COLORS[caseData.status]}`}
             disabled={updatingStatus}
           >
             {caseData.status}
-            {statusExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            {statusExpanded ? <ChevronUp className="w-2.5 h-2.5" /> : <ChevronDown className="w-2.5 h-2.5" />}
           </button>
           {statusExpanded && (
-            <div className="absolute top-full mt-1 left-0 bg-intel-surface border border-intel-border rounded-lg overflow-hidden z-10 shadow-xl">
+            <div className="absolute top-full mt-0.5 left-0 bg-intel-surface border border-intel-border rounded-sm overflow-hidden z-10">
               {['open', 'active', 'closed'].map((s) => (
-                <button
-                  key={s}
-                  onClick={() => handleStatusChange(s)}
-                  className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-white/5 capitalize"
-                >
-                  {s}
-                </button>
+                <button key={s} onClick={() => handleStatusChange(s)} className="block w-full text-left px-3 py-1 text-2xs text-gray-300 hover:bg-white/[0.03] capitalize">{s}</button>
               ))}
             </div>
           )}
         </div>
-
-        <span className={`px-3 py-1.5 text-sm rounded-lg border capitalize ${PRIORITY_COLORS[caseData.priority]}`}>
-          {caseData.priority} priority
-        </span>
-        <span className={`px-3 py-1.5 text-sm rounded-lg border capitalize ${PRIORITY_COLORS[caseData.severity]}`}>
-          {caseData.severity} severity
-        </span>
-
-        {caseData.assigned_to && (
-          <span className="px-3 py-1.5 text-sm rounded-lg bg-gray-700/30 text-gray-300 border border-gray-600/30">
-            Assigned: {caseData.assigned_to}
-          </span>
-        )}
-
-        <span className="text-xs text-gray-500 ml-auto">
-          Opened: {formatDate(caseData.opened_at)}
-        </span>
+        <span className={`font-bold uppercase ${PRIORITY_COLORS[caseData.priority]}`}>{caseData.priority}</span>
+        <span className={`font-bold uppercase ${PRIORITY_COLORS[caseData.severity]}`}>{caseData.severity} sev</span>
+        {caseData.assigned_to && <span className="text-gray-500">{caseData.assigned_to}</span>}
+        <span className="text-gray-600 ml-auto">{formatDate(caseData.opened_at)}</span>
       </div>
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-4 gap-4">
+      {/* Stat strip */}
+      <div className="flex items-center gap-px bg-intel-border rounded-sm overflow-hidden">
         {[
-          { icon: Users, label: 'Entities', value: caseData.entity_count, color: 'text-cyan-400' },
-          { icon: AlertTriangle, label: 'Alerts', value: caseData.alert_count, color: 'text-orange-400' },
-          { icon: FileText, label: 'Evidence', value: caseData.evidence_count, color: 'text-green-400' },
-          { icon: Layers, label: 'Tags', value: caseData.tags.length, color: 'text-purple-400' },
+          { label: 'Entities', value: caseData.entity_count },
+          { label: 'Alerts', value: caseData.alert_count },
+          { label: 'Evidence', value: caseData.evidence_count },
+          { label: 'Tags', value: caseData.tags.length },
         ].map((stat) => (
-          <div key={stat.label} className="p-3 rounded-xl bg-intel-surface border border-intel-border">
-            <div className="flex items-center gap-2">
-              <stat.icon className={`w-4 h-4 ${stat.color}`} />
-              <span className="text-lg font-bold text-white">{stat.value}</span>
-            </div>
-            <p className="text-xs text-gray-500">{stat.label}</p>
+          <div key={stat.label} className="flex-1 bg-intel-panel px-2 py-1.5 text-center">
+            <div className="text-xs font-bold text-gray-200 tabular-nums">{stat.value}</div>
+            <div className="text-2xs text-gray-600">{stat.label}</div>
           </div>
         ))}
       </div>
 
       {/* Tags */}
       {caseData.tags.length > 0 && (
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-1 flex-wrap">
           {caseData.tags.map((tag) => (
-            <span key={tag} className="px-2 py-1 text-xs rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/30">
-              {tag}
-            </span>
+            <span key={tag} className="px-1.5 py-0.5 text-2xs text-gray-500 bg-intel-bg border border-intel-border rounded-sm">{tag}</span>
           ))}
         </div>
       )}
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 border-b border-intel-border pb-0">
+      <div className="flex items-center border-b border-intel-border">
         {tabs.map((tab) => {
-          const Icon = tab.icon;
           const isActive = activeTab === tab.id;
           return (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-                isActive
-                  ? 'border-purple-400 text-purple-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-300'
+              className={`px-3 py-1.5 text-2xs font-medium border-b transition-colors ${
+                isActive ? 'border-intel-accent text-intel-accent' : 'border-transparent text-gray-600 hover:text-gray-400'
               }`}
             >
-              <Icon className="w-4 h-4" />
               {tab.label}
               {tab.count !== undefined && tab.count > 0 && (
-                <span className="ml-1 px-1.5 py-0.5 text-xs bg-gray-700 rounded-full">{tab.count}</span>
+                <span className="ml-1 text-gray-700">{tab.count}</span>
               )}
             </button>
           );
@@ -287,7 +255,7 @@ export default function CaseDetailView({ caseId, onViewChange, onEntitySelect }:
       </div>
 
       {/* Tab Content */}
-      <div className="min-h-64">
+      <div className="min-h-48">
         {activeTab === 'timeline' && (
           <TimelineTab timeline={timeline} formatDate={formatDate} />
         )}
@@ -334,48 +302,34 @@ export default function CaseDetailView({ caseId, onViewChange, onEntitySelect }:
 
 function TimelineTab({ timeline, formatDate }: { timeline: CaseTimeline | null; formatDate: (s: string) => string }) {
   if (!timeline || timeline.items.length === 0) {
-    return <EmptyState icon={Clock} message="No timeline items yet" />;
+    return <EmptyState icon={Clock} message="No timeline items" />;
   }
 
-  const typeIcons: Record<string, string> = {
-    event: 'bg-cyan-500',
-    alert: 'bg-orange-500',
-    evidence: 'bg-green-500',
-    note: 'bg-purple-500',
+  const typeDot: Record<string, string> = {
+    event: 'bg-intel-accent',
+    alert: 'bg-sev-high',
+    evidence: 'bg-sev-medium',
+    note: 'bg-gray-500',
   };
 
   return (
-    <div className="space-y-0">
-      {timeline.items.map((item: CaseTimelineItem, idx: number) => (
-        <div key={item.id} className="flex gap-4 group">
-          {/* Timeline line */}
-          <div className="flex flex-col items-center">
-            <div className={`w-3 h-3 rounded-full ${typeIcons[item.type] || 'bg-gray-500'} mt-1.5`} />
-            {idx < timeline.items.length - 1 && (
-              <div className="w-px flex-1 bg-intel-border" />
-            )}
-          </div>
-
-          {/* Content */}
-          <div className="pb-6 flex-1 min-w-0">
-            <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
-              <span className="capitalize font-medium">{item.type}</span>
-              <span>{formatDate(item.timestamp)}</span>
+    <div className="bg-intel-panel border border-intel-border rounded-sm">
+      {timeline.items.map((item: CaseTimelineItem) => (
+        <div key={item.id} className="flex items-start gap-2 px-3 py-1.5 border-b border-intel-border/30 hover:bg-white/[0.015]">
+          <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${typeDot[item.type] || 'bg-gray-600'}`} />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 text-2xs">
+              <span className="text-gray-400 capitalize font-medium">{item.type}</span>
+              <span className="text-gray-600">{formatDate(item.timestamp)}</span>
               {item.severity && (
-                <span className={`px-1.5 py-0.5 rounded text-xs capitalize ${
-                  SEVERITY_COLORS[item.severity] ? `${SEVERITY_COLORS[item.severity]} text-white` : 'bg-gray-600 text-gray-300'
-                }`}>
-                  {item.severity}
-                </span>
+                <span className={`font-bold uppercase ${PRIORITY_COLORS[item.severity] || 'text-gray-500'}`}>{item.severity}</span>
               )}
               {item.confidence !== null && item.confidence !== undefined && (
-                <span className="text-gray-600">{(item.confidence * 100).toFixed(0)}% conf</span>
+                <span className="text-gray-700 tabular-nums">{(item.confidence * 100).toFixed(0)}%</span>
               )}
             </div>
-            <p className="text-sm text-white">{item.title}</p>
-            {item.description && (
-              <p className="text-xs text-gray-500 mt-0.5">{item.description}</p>
-            )}
+            <p className="text-xs text-gray-200">{item.title}</p>
+            {item.description && <p className="text-2xs text-gray-600 mt-0.5 line-clamp-1">{item.description}</p>}
           </div>
         </div>
       ))}
@@ -385,33 +339,26 @@ function TimelineTab({ timeline, formatDate }: { timeline: CaseTimeline | null; 
 
 function EvidenceTab({ evidence, formatDate }: { evidence: CaseEvidence[]; formatDate: (s: string) => string }) {
   if (evidence.length === 0) {
-    return <EmptyState icon={FileText} message="No evidence attached" />;
+    return <EmptyState icon={FileText} message="No evidence" />;
   }
 
   return (
-    <div className="space-y-3">
+    <div className="bg-intel-panel border border-intel-border rounded-sm">
       {evidence.map((ev) => (
-        <div key={ev.id} className="p-4 rounded-xl bg-intel-surface border border-intel-border">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="px-2 py-0.5 text-xs rounded bg-green-500/10 text-green-400 border border-green-500/30 capitalize">
-              {ev.evidence_type}
-            </span>
-            <span className="text-xs text-gray-500">{formatDate(ev.created_at)}</span>
+        <div key={ev.id} className="px-3 py-2 border-b border-intel-border/30 hover:bg-white/[0.015]">
+          <div className="flex items-center gap-1.5 text-2xs">
+            <span className="text-intel-accent font-medium capitalize">{ev.evidence_type}</span>
+            <span className="text-gray-600">{formatDate(ev.created_at)}</span>
             {ev.confidence !== null && ev.confidence !== undefined && (
-              <span className="text-xs text-gray-600">{(ev.confidence * 100).toFixed(0)}% confidence</span>
+              <span className="text-gray-700 tabular-nums">{(ev.confidence * 100).toFixed(0)}%</span>
             )}
           </div>
-          <h4 className="text-sm font-medium text-white">{ev.title}</h4>
-          {ev.description && <p className="text-xs text-gray-400 mt-1">{ev.description}</p>}
-          {ev.relevance_note && (
-            <p className="text-xs text-purple-400 mt-1 italic">Note: {ev.relevance_note}</p>
-          )}
-          <div className="flex items-center gap-3 mt-2 text-xs text-gray-600">
-            <span>Source: {ev.source_table}</span>
-            <span>Added by: {ev.added_by}</span>
-            {ev.computation_params && (
-              <span className="text-cyan-600">Reproducible</span>
-            )}
+          <p className="text-xs text-gray-200 mt-0.5">{ev.title}</p>
+          {ev.description && <p className="text-2xs text-gray-500 mt-0.5 line-clamp-1">{ev.description}</p>}
+          <div className="flex items-center gap-2 mt-0.5 text-2xs text-gray-700">
+            <span>{ev.source_table}</span>
+            <span>{ev.added_by}</span>
+            {ev.computation_params && <span className="text-intel-accent">reproducible</span>}
           </div>
         </div>
       ))}
@@ -425,23 +372,16 @@ function EntitiesTab({ entityIds, onEntitySelect }: { entityIds: string[]; onEnt
   }
 
   return (
-    <div className="space-y-2">
+    <div className="bg-intel-panel border border-intel-border rounded-sm">
       {entityIds.map((eid) => (
         <button
           key={eid}
           onClick={() => onEntitySelect(eid)}
-          className="w-full text-left p-3 rounded-xl bg-intel-surface border border-intel-border hover:border-cyan-500/30 transition-colors flex items-center justify-between group"
+          className="w-full text-left flex items-center gap-2 px-3 py-1.5 border-b border-intel-border/30 hover:bg-white/[0.015] transition-colors"
         >
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-cyan-500/10 flex items-center justify-center">
-              <Shield className="w-4 h-4 text-cyan-400" />
-            </div>
-            <div>
-              <p className="text-sm text-white font-mono">{eid.substring(0, 12)}...</p>
-              <p className="text-xs text-gray-500">Click to view profile</p>
-            </div>
-          </div>
-          <ArrowLeft className="w-4 h-4 text-gray-600 group-hover:text-cyan-400 rotate-180 transition-colors" />
+          <Shield className="w-3 h-3 text-gray-500" />
+          <span className="text-xs text-gray-200 font-mono flex-1">{eid.substring(0, 16)}</span>
+          <ArrowLeft className="w-3 h-3 text-gray-700 rotate-180" />
         </button>
       ))}
     </div>
@@ -461,28 +401,28 @@ function NotesTab({
   addingNote: boolean;
 }) {
   const noteTypeColors: Record<string, string> = {
-    general: 'text-gray-400 bg-gray-500/10',
-    finding: 'text-green-400 bg-green-500/10',
-    action: 'text-orange-400 bg-orange-500/10',
-    decision: 'text-purple-400 bg-purple-500/10',
+    general: 'text-gray-500',
+    finding: 'text-intel-accent',
+    action: 'text-sev-high',
+    decision: 'text-blue-400',
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Add note form */}
-      <div className="p-4 rounded-xl bg-intel-surface border border-intel-border space-y-3">
+      <div className="bg-intel-panel border border-intel-border rounded-sm p-3 space-y-2">
         <textarea
           value={newNote}
           onChange={(e) => setNewNote(e.target.value)}
-          rows={3}
-          className="w-full px-3 py-2 rounded-lg bg-intel-bg border border-intel-border text-white text-sm focus:border-purple-500 focus:outline-none resize-none"
+          rows={2}
+          className="w-full px-2 py-1.5 rounded-sm bg-intel-bg border border-intel-border text-xs text-gray-200 focus:border-intel-border-light focus:outline-none resize-none"
           placeholder="Add a note..."
         />
         <div className="flex items-center justify-between">
           <select
             value={noteType}
             onChange={(e) => setNoteType(e.target.value)}
-            className="px-3 py-1.5 rounded-lg bg-intel-bg border border-intel-border text-gray-300 text-sm focus:border-purple-500 focus:outline-none"
+            className="px-2 py-1 rounded-sm bg-intel-bg border border-intel-border text-2xs text-gray-400 focus:outline-none"
           >
             <option value="general">General</option>
             <option value="finding">Finding</option>
@@ -492,29 +432,26 @@ function NotesTab({
           <button
             onClick={onAddNote}
             disabled={addingNote || !newNote.trim()}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-purple-500/20 text-purple-400 border border-purple-500/30 hover:bg-purple-500/30 text-sm disabled:opacity-50 transition-colors"
+            className="flex items-center gap-1 px-2 py-1 text-2xs text-intel-accent border border-intel-accent/30 rounded-sm hover:bg-intel-accent/10 disabled:opacity-40 transition-colors"
           >
             <Plus className="w-3 h-3" />
-            {addingNote ? 'Adding...' : 'Add Note'}
+            {addingNote ? 'Adding...' : 'ADD'}
           </button>
         </div>
       </div>
 
-      {/* Notes list */}
       {notes.length === 0 ? (
-        <EmptyState icon={MessageSquare} message="No notes yet" />
+        <EmptyState icon={MessageSquare} message="No notes" />
       ) : (
-        <div className="space-y-3">
+        <div className="bg-intel-panel border border-intel-border rounded-sm">
           {notes.map((note) => (
-            <div key={note.id} className="p-4 rounded-xl bg-intel-surface border border-intel-border">
-              <div className="flex items-center gap-2 mb-2">
-                <span className={`px-2 py-0.5 text-xs rounded capitalize ${noteTypeColors[note.note_type] || noteTypeColors.general}`}>
-                  {note.note_type}
-                </span>
-                <span className="text-xs text-gray-500">{note.author}</span>
-                <span className="text-xs text-gray-600">{formatDate(note.created_at)}</span>
+            <div key={note.id} className="px-3 py-2 border-b border-intel-border/30">
+              <div className="flex items-center gap-1.5 text-2xs">
+                <span className={`font-medium capitalize ${noteTypeColors[note.note_type] || noteTypeColors.general}`}>{note.note_type}</span>
+                <span className="text-gray-600">{note.author}</span>
+                <span className="text-gray-700">{formatDate(note.created_at)}</span>
               </div>
-              <p className="text-sm text-gray-300 whitespace-pre-wrap">{note.content}</p>
+              <p className="text-xs text-gray-300 whitespace-pre-wrap mt-0.5">{note.content}</p>
             </div>
           ))}
         </div>
@@ -527,144 +464,99 @@ function SummaryTab({ summary, onRegenerate }: { summary: CaseIntelSummary | nul
   if (!summary) {
     return (
       <div className="text-center py-8">
-        <BarChart3 className="w-10 h-10 text-gray-600 mx-auto mb-3" />
-        <p className="text-gray-400 mb-3">Generate intelligence summary</p>
-        <button
-          onClick={onRegenerate}
-          className="px-4 py-2 rounded-lg bg-purple-500/20 text-purple-400 border border-purple-500/30 hover:bg-purple-500/30 transition-colors"
-        >
-          Generate Summary
-        </button>
+        <BarChart3 className="w-5 h-5 text-gray-700 mx-auto mb-2" />
+        <p className="text-xs text-gray-500 mb-2">No summary generated</p>
+        <button onClick={onRegenerate} className="px-3 py-1 text-2xs text-intel-accent border border-intel-accent/30 rounded-sm hover:bg-intel-accent/10 transition-colors">GENERATE</button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-bold text-white">Intelligence Summary</h3>
-        <button
-          onClick={onRegenerate}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 text-sm transition-colors"
-        >
-          <RefreshCw className="w-3 h-3" />
-          Regenerate
+        <span className="text-2xs font-semibold text-gray-400 uppercase tracking-wider">Intelligence Summary</span>
+        <button onClick={onRegenerate} className="flex items-center gap-1 text-2xs text-gray-600 hover:text-gray-400 transition-colors">
+          <RefreshCw className="w-3 h-3" /> Regenerate
         </button>
       </div>
 
       {/* Key Entities */}
       {summary.key_entities.length > 0 && (
-        <div>
-          <h4 className="text-sm font-medium text-gray-300 mb-2">Key Entities</h4>
-          <div className="grid grid-cols-2 gap-3">
-            {summary.key_entities.map((entity) => (
-              <div key={entity.entity_id} className="p-3 rounded-lg bg-intel-surface border border-intel-border">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm text-white font-mono">{entity.entity_id.substring(0, 10)}...</span>
-                  <span className={`px-2 py-0.5 text-xs rounded capitalize ${PRIORITY_COLORS[entity.risk_level] || 'text-gray-400'}`}>
-                    {entity.risk_level}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-500 capitalize">{entity.entity_type} - {entity.visit_count} visits</p>
-                {entity.behavior_tags.length > 0 && (
-                  <div className="flex gap-1 mt-1 flex-wrap">
-                    {entity.behavior_tags.slice(0, 3).map((tag) => (
-                      <span key={tag} className="px-1.5 py-0.5 text-xs bg-gray-700/50 text-gray-400 rounded">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+        <div className="bg-intel-panel border border-intel-border rounded-sm">
+          <div className="px-3 py-1.5 border-b border-intel-border text-2xs text-gray-500 font-medium">Key Entities</div>
+          {summary.key_entities.map((entity) => (
+            <div key={entity.entity_id} className="flex items-center gap-2 px-3 py-1.5 border-b border-intel-border/30">
+              <span className="text-xs text-gray-200 font-mono">{entity.entity_id.substring(0, 12)}</span>
+              <span className={`text-2xs font-bold uppercase ${PRIORITY_COLORS[entity.risk_level] || 'text-gray-500'}`}>{entity.risk_level}</span>
+              <span className="text-2xs text-gray-600">{entity.entity_type} &middot; {entity.visit_count}v</span>
+            </div>
+          ))}
         </div>
       )}
 
       {/* Findings */}
       {summary.findings.length > 0 && (
-        <div>
-          <h4 className="text-sm font-medium text-gray-300 mb-2">Findings</h4>
-          <div className="space-y-2">
-            {summary.findings.map((finding, idx) => (
-              <div key={idx} className="p-3 rounded-lg bg-intel-surface border border-intel-border">
-                <p className="text-sm text-gray-300">{finding}</p>
-              </div>
-            ))}
-          </div>
+        <div className="bg-intel-panel border border-intel-border rounded-sm">
+          <div className="px-3 py-1.5 border-b border-intel-border text-2xs text-gray-500 font-medium">Findings</div>
+          {summary.findings.map((finding, idx) => (
+            <div key={idx} className="px-3 py-1.5 border-b border-intel-border/30 text-xs text-gray-300">{finding}</div>
+          ))}
         </div>
       )}
 
       {/* Risk Distribution */}
       {Object.keys(summary.risk_levels).length > 0 && (
-        <div>
-          <h4 className="text-sm font-medium text-gray-300 mb-2">Risk Distribution</h4>
-          <div className="flex gap-4">
-            {Object.entries(summary.risk_levels).map(([level, count]) => (
-              <div key={level} className="flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-full ${SEVERITY_COLORS[level] || 'bg-gray-500'}`} />
-                <span className="text-sm text-gray-400 capitalize">{level}: {count}</span>
-              </div>
-            ))}
-          </div>
+        <div className="flex items-center gap-3 text-2xs">
+          <span className="text-gray-500">Risk:</span>
+          {Object.entries(summary.risk_levels).map(([level, count]) => (
+            <div key={level} className="flex items-center gap-1">
+              <div className={`w-2 h-2 rounded-full ${SEVERITY_DOT[level] || 'bg-gray-600'}`} />
+              <span className="text-gray-400 capitalize">{level}: {count}</span>
+            </div>
+          ))}
         </div>
       )}
 
       {/* Confidence */}
       {summary.confidence_levels && Object.keys(summary.confidence_levels).length > 0 && (
-        <div>
-          <h4 className="text-sm font-medium text-gray-300 mb-2">Evidence Confidence</h4>
-          <div className="flex gap-6 text-sm text-gray-400">
-            {summary.confidence_levels.mean !== undefined && (
-              <span>Mean: {((summary.confidence_levels.mean as number) * 100).toFixed(1)}%</span>
-            )}
-            {summary.confidence_levels.min !== undefined && (
-              <span>Min: {((summary.confidence_levels.min as number) * 100).toFixed(1)}%</span>
-            )}
-            {summary.confidence_levels.max !== undefined && (
-              <span>Max: {((summary.confidence_levels.max as number) * 100).toFixed(1)}%</span>
-            )}
-          </div>
+        <div className="flex items-center gap-3 text-2xs text-gray-500">
+          <span>Confidence:</span>
+          {summary.confidence_levels.mean !== undefined && <span>mean {((summary.confidence_levels.mean as number) * 100).toFixed(0)}%</span>}
+          {summary.confidence_levels.min !== undefined && <span>min {((summary.confidence_levels.min as number) * 100).toFixed(0)}%</span>}
+          {summary.confidence_levels.max !== undefined && <span>max {((summary.confidence_levels.max as number) * 100).toFixed(0)}%</span>}
         </div>
       )}
 
       {/* Detected Patterns */}
       {summary.detected_patterns.length > 0 && (
-        <div>
-          <h4 className="text-sm font-medium text-gray-300 mb-2">Detected Patterns</h4>
-          <div className="space-y-2">
-            {summary.detected_patterns.map((pattern, idx) => (
-              <div key={idx} className="p-3 rounded-lg bg-intel-surface border border-intel-border">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs text-cyan-400 capitalize">{pattern.type}</span>
-                  {pattern.confidence !== undefined && (
-                    <span className="text-xs text-gray-600">{(pattern.confidence * 100).toFixed(0)}%</span>
-                  )}
-                </div>
-                <p className="text-sm text-white">{pattern.title}</p>
-                {pattern.description && <p className="text-xs text-gray-500 mt-0.5">{pattern.description}</p>}
+        <div className="bg-intel-panel border border-intel-border rounded-sm">
+          <div className="px-3 py-1.5 border-b border-intel-border text-2xs text-gray-500 font-medium">Patterns</div>
+          {summary.detected_patterns.map((pattern, idx) => (
+            <div key={idx} className="px-3 py-1.5 border-b border-intel-border/30">
+              <div className="flex items-center gap-1.5 text-2xs">
+                <span className="text-intel-accent capitalize">{pattern.type}</span>
+                {pattern.confidence !== undefined && <span className="text-gray-700 tabular-nums">{(pattern.confidence * 100).toFixed(0)}%</span>}
               </div>
-            ))}
-          </div>
+              <p className="text-xs text-gray-200">{pattern.title}</p>
+              {pattern.description && <p className="text-2xs text-gray-600 mt-0.5">{pattern.description}</p>}
+            </div>
+          ))}
         </div>
       )}
 
       {/* Limitations */}
       {summary.limitations.length > 0 && (
-        <div>
-          <h4 className="text-sm font-medium text-gray-300 mb-2">Limitations</h4>
-          <ul className="space-y-1">
-            {summary.limitations.map((lim, idx) => (
-              <li key={idx} className="text-sm text-gray-500 flex items-start gap-2">
-                <span className="text-yellow-500 mt-0.5">!</span>
-                {lim}
-              </li>
-            ))}
-          </ul>
+        <div className="bg-intel-panel border border-intel-border rounded-sm">
+          <div className="px-3 py-1.5 border-b border-intel-border text-2xs text-gray-500 font-medium">Limitations</div>
+          {summary.limitations.map((lim, idx) => (
+            <div key={idx} className="px-3 py-1 border-b border-intel-border/30 text-2xs text-gray-500 flex items-start gap-1">
+              <span className="text-sev-medium">!</span> {lim}
+            </div>
+          ))}
         </div>
       )}
 
-      <p className="text-xs text-gray-600">Generated: {summary.generated_at ? new Date(summary.generated_at).toLocaleString() : 'N/A'}</p>
+      <p className="text-2xs text-gray-700">Generated: {summary.generated_at ? new Date(summary.generated_at).toLocaleString() : 'N/A'}</p>
     </div>
   );
 }
@@ -675,22 +567,15 @@ function AuditTab({ audit, formatDate }: { audit: AuditLogEntry[]; formatDate: (
   }
 
   return (
-    <div className="space-y-2">
+    <div className="bg-intel-panel border border-intel-border rounded-sm">
       {audit.map((entry) => (
-        <div key={entry.id} className="flex items-start gap-3 p-3 rounded-lg bg-intel-surface border border-intel-border">
-          <div className="w-8 h-8 rounded-full bg-gray-700/50 flex items-center justify-center flex-shrink-0">
-            <ScrollText className="w-4 h-4 text-gray-400" />
+        <div key={entry.id} className="px-3 py-1.5 border-b border-intel-border/30 hover:bg-white/[0.015]">
+          <div className="flex items-center gap-1.5 text-2xs">
+            <span className="text-gray-300 font-medium">{entry.action.replace(/_/g, ' ')}</span>
+            <span className="text-gray-600">{formatDate(entry.performed_at)}</span>
+            <span className="text-gray-700">{entry.actor} ({entry.role})</span>
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-white font-medium">{entry.action.replace(/_/g, ' ')}</span>
-              <span className="text-xs text-gray-600">{formatDate(entry.performed_at)}</span>
-            </div>
-            <div className="flex items-center gap-2 text-xs text-gray-500">
-              <span>{entry.actor} ({entry.role})</span>
-            </div>
-            {entry.detail && <p className="text-xs text-gray-400 mt-1">{entry.detail}</p>}
-          </div>
+          {entry.detail && <p className="text-2xs text-gray-500 mt-0.5">{entry.detail}</p>}
         </div>
       ))}
     </div>
@@ -699,9 +584,9 @@ function AuditTab({ audit, formatDate }: { audit: AuditLogEntry[]; formatDate: (
 
 function EmptyState({ icon: Icon, message }: { icon: typeof Clock; message: string }) {
   return (
-    <div className="text-center py-12">
-      <Icon className="w-10 h-10 text-gray-600 mx-auto mb-3" />
-      <p className="text-gray-500">{message}</p>
+    <div className="text-center py-8">
+      <Icon className="w-4 h-4 text-gray-700 mx-auto mb-1" />
+      <p className="text-2xs text-gray-600">{message}</p>
     </div>
   );
 }

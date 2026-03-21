@@ -181,30 +181,34 @@ export default function Home() {
         wsConnected={wsConnected}
       />
 
-      {/* Alert Toast Notification */}
+      {/* Alert Toast Notification — compact, sharp */}
       {alertNotification && (
-        <div className="fixed top-20 right-6 z-50 animate-in slide-in-from-right">
+        <div className="fixed top-12 right-3 z-50">
           <div
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl border shadow-2xl backdrop-blur-sm ${
+            className={`flex items-center gap-2 px-3 py-2 border-l-2 bg-intel-panel/95 border-t border-r border-b border-intel-border shadow-lg ${
               alertNotification.severity === 'critical'
-                ? 'bg-red-500/20 border-red-500/40 text-red-300'
+                ? 'border-l-sev-critical'
                 : alertNotification.severity === 'high'
-                ? 'bg-orange-500/20 border-orange-500/40 text-orange-300'
+                ? 'border-l-sev-high'
                 : alertNotification.severity === 'medium'
-                ? 'bg-yellow-500/20 border-yellow-500/40 text-yellow-300'
-                : 'bg-blue-500/20 border-blue-500/40 text-blue-300'
+                ? 'border-l-sev-medium'
+                : 'border-l-sev-low'
             }`}
           >
-            <div className="w-2 h-2 rounded-full bg-current animate-pulse" />
+            <div className={`w-1.5 h-1.5 rounded-full ${
+              alertNotification.severity === 'critical' ? 'bg-sev-critical' :
+              alertNotification.severity === 'high' ? 'bg-sev-high' :
+              alertNotification.severity === 'medium' ? 'bg-sev-medium' : 'bg-sev-low'
+            } animate-pulse`} />
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider opacity-70">
-                {alertNotification.severity} Alert
+              <p className="text-2xs font-semibold uppercase tracking-wider text-gray-500">
+                {alertNotification.severity}
               </p>
-              <p className="text-sm font-medium">{alertNotification.title}</p>
+              <p className="text-xs text-gray-200">{alertNotification.title}</p>
             </div>
             <button
               onClick={() => setAlertNotification(null)}
-              className="ml-2 opacity-50 hover:opacity-100 transition-opacity"
+              className="ml-2 text-gray-600 hover:text-gray-300 text-xs"
             >
               ✕
             </button>
@@ -217,19 +221,19 @@ export default function Home() {
         {renderView()}
       </main>
 
-      {/* Status Bar */}
-      <footer className="bg-intel-surface border-t border-intel-border px-6 py-2 flex items-center justify-between text-xs text-gray-500">
-        <div className="flex items-center gap-4">
-          <span>VIOSINT v0.1.0</span>
-          <span>•</span>
-          <span className={wsConnected ? 'text-intel-accent' : 'text-gray-600'}>
-            {wsConnected ? 'Connected' : 'Disconnected'}
+      {/* Status Bar — minimal */}
+      <footer className="bg-intel-surface border-t border-intel-border px-3 h-6 flex items-center justify-between text-2xs text-gray-600 select-none">
+        <div className="flex items-center gap-3">
+          <span className="font-medium text-gray-500">VIOSINT v0.1.0</span>
+          <span className="text-intel-border">|</span>
+          <span className={wsConnected ? 'text-intel-accent' : 'text-gray-700'}>
+            {wsConnected ? 'CONNECTED' : 'OFFLINE'}
           </span>
         </div>
-        <div className="flex items-center gap-4">
-          <span>{realtimeDetections.length} live detections</span>
-          <span>•</span>
-          <span>Visual Intelligence OSINT Platform</span>
+        <div className="flex items-center gap-3">
+          <span>{realtimeDetections.length} detections</span>
+          <span className="text-intel-border">|</span>
+          <span>Visual Intelligence OSINT</span>
         </div>
       </footer>
     </div>
