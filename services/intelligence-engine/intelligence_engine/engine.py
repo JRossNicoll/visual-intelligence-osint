@@ -18,12 +18,20 @@ import logging
 from datetime import datetime, timezone
 from typing import Optional
 
+from intelligence_engine.analyzers.adaptive_risk import AdaptiveRiskModel
 from intelligence_engine.analyzers.anomaly import AnomalyDetector
 from intelligence_engine.analyzers.behavior import BehaviorModeler
+from intelligence_engine.analyzers.calibration import ConfidenceCalibrator
+from intelligence_engine.analyzers.coordination import CoordinationDetector
+from intelligence_engine.analyzers.evaluation import IntelligenceEvaluator
+from intelligence_engine.analyzers.group_anomaly import GroupAnomalyDetector
 from intelligence_engine.analyzers.nl_query import NLQueryTranslator
 from intelligence_engine.analyzers.predictor import Predictor
 from intelligence_engine.analyzers.relationships import RelationshipEngine
 from intelligence_engine.analyzers.risk import RiskScorer
+from intelligence_engine.analyzers.risk_propagation import RiskPropagationEngine
+from intelligence_engine.analyzers.sequence import SequenceDetector
+from intelligence_engine.analyzers.system_explanation import SystemExplainer
 from intelligence_engine.analyzers.temporal import TemporalPatternAnalyzer
 from intelligence_engine.config import settings
 from intelligence_engine.models.schemas import (
@@ -34,6 +42,16 @@ from intelligence_engine.models.schemas import (
     RelationshipWeight,
     RiskScore,
     TemporalPatternResult,
+)
+from intelligence_engine.models.system_schemas import (
+    AdaptiveWeightState,
+    CalibrationResult,
+    CoordinationResult,
+    GroupAnomalyResult,
+    PropagatedRiskScore,
+    SequenceResult,
+    StabilityMetrics,
+    SystemExplanation,
 )
 
 logger = logging.getLogger(__name__)
@@ -67,6 +85,16 @@ class IntelligenceEngine:
         )
         self.predictor = Predictor()
         self.nl_translator = NLQueryTranslator()
+
+        # --- System-level modules ---
+        self.coordination_detector = CoordinationDetector()
+        self.risk_propagation = RiskPropagationEngine()
+        self.sequence_detector = SequenceDetector()
+        self.adaptive_risk = AdaptiveRiskModel()
+        self.calibrator = ConfidenceCalibrator()
+        self.group_anomaly_detector = GroupAnomalyDetector()
+        self.system_explainer = SystemExplainer()
+        self.evaluator = IntelligenceEvaluator()
 
     def analyze_temporal_patterns(
         self,
@@ -319,3 +347,249 @@ class IntelligenceEngine:
             "prediction": prediction.model_dump(),
             "analysis_timestamp": datetime.now(timezone.utc).isoformat(),
         }
+
+    # =================================================================
+    # System-Level Intelligence Methods
+    # =================================================================
+
+    def detect_coordination(
+        self,
+        events: list[dict],
+        reference_time: Optional[datetime] = None,
+    ) -> CoordinationResult:
+        """Detect multi-entity coordination patterns.
+
+        Analyzes all events across entities to find co-occurrence,
+        staggered, and convoy coordination patterns.
+
+        Args:
+            events: All events from all entities.
+            reference_time: Current time.
+
+        Returns:
+            CoordinationResult with detected patterns and motifs.
+        """
+        return self.coordination_detector.detect(events, reference_time)
+
+    def propagate_risk(
+        self,
+        entity_risks: dict[str, float],
+        adjacency: dict[str, list[dict]],
+    ) -> list[PropagatedRiskScore]:
+        """Propagate risk through the entity relationship graph.
+
+        High-risk entities increase the risk of connected neighbors,
+        weighted by relationship strength and damped per hop.
+
+        Args:
+            entity_risks: Dict of entity_id -> original risk score.
+            adjacency: Dict of entity_id -> list of neighbor dicts.
+
+        Returns:
+            List of PropagatedRiskScore with contribution breakdowns.
+        """
+        return self.risk_propagation.propagate(entity_risks, adjacency)
+
+    def propagate_risk_iterative(
+        self,
+        entity_risks: dict[str, float],
+        adjacency: dict[str, list[dict]],
+    ) -> tuple[dict[str, float], StabilityMetrics]:
+        """Run iterative (PageRank-style) risk propagation.
+
+        Updates all risks simultaneously until convergence.
+
+        Args:
+            entity_risks: Initial risk scores.
+            adjacency: Graph adjacency.
+
+        Returns:
+            (updated_risks, stability_metrics)
+        """
+        return self.risk_propagation.iterative_propagation(
+            entity_risks, adjacency
+        )
+
+    def detect_sequences(
+        self,
+        events: list[dict],
+    ) -> SequenceResult:
+        """Detect temporal sequences and causal relationships.
+
+        Mines frequent ordered sequences (A->B->C) and estimates
+        conditional probabilities P(B|A) with time-lag distributions.
+
+        Args:
+            events: All events from all entities.
+
+        Returns:
+            SequenceResult with frequent sequences and causal links.
+        """
+        return self.sequence_detector.detect(events)
+
+    def update_adaptive_weights(
+        self,
+        feedback_type: str,
+        component_scores: dict[str, float],
+        outcome: bool,
+    ) -> AdaptiveWeightState:
+        """Update risk weights via Bayesian feedback.
+
+        Args:
+            feedback_type: true_positive, false_positive, or false_negative.
+            component_scores: Dict with anomaly, association, behavior scores.
+            outcome: Whether the alert was correct.
+
+        Returns:
+            Updated AdaptiveWeightState.
+        """
+        return self.adaptive_risk.update_from_feedback(
+            feedback_type, component_scores, outcome
+        )
+
+    def get_adaptive_weights(self) -> AdaptiveWeightState:
+        """Get current adaptive risk weight state."""
+        return self.adaptive_risk.get_state()
+
+    def calibrate_confidence(
+        self,
+        predicted: list[float],
+        actual: list[int],
+        method: str = "platt",
+    ) -> CalibrationResult:
+        """Fit confidence calibration from observed outcomes.
+
+        Args:
+            predicted: Raw confidence scores.
+            actual: Binary outcomes.
+            method: platt or isotonic.
+
+        Returns:
+            CalibrationResult with ECE, MCE, Brier score.
+        """
+        if method == "isotonic":
+            return self.calibrator.fit_isotonic(predicted, actual)
+        return self.calibrator.fit_platt(predicted, actual)
+
+    def detect_group_anomalies(
+        self,
+        events: list[dict],
+        historical_events: Optional[list[dict]] = None,
+        reference_time: Optional[datetime] = None,
+    ) -> GroupAnomalyResult:
+        """Detect group-level anomalies.
+
+        Identifies unusual gatherings, new cluster formations,
+        interaction surges, and density changes.
+
+        Args:
+            events: Current events to analyze.
+            historical_events: Historical baseline for comparison.
+            reference_time: Current time.
+
+        Returns:
+            GroupAnomalyResult with detected anomalies.
+        """
+        return self.group_anomaly_detector.detect(
+            events, historical_events, reference_time
+        )
+
+    def explain_system_alert(
+        self,
+        coordination: Optional[CoordinationResult] = None,
+        propagated_risks: Optional[list[PropagatedRiskScore]] = None,
+        sequences: Optional[SequenceResult] = None,
+        group_anomalies: Optional[GroupAnomalyResult] = None,
+    ) -> SystemExplanation:
+        """Generate a unified system-level explanation.
+
+        Synthesizes results from all system-level modules into
+        a coherent intelligence report.
+
+        Args:
+            coordination: Coordination detection results.
+            propagated_risks: Risk propagation results.
+            sequences: Sequence detection results.
+            group_anomalies: Group anomaly results.
+
+        Returns:
+            SystemExplanation with unified narrative.
+        """
+        return self.system_explainer.synthesize_system_alert(
+            coordination, propagated_risks, sequences, group_anomalies
+        )
+
+    def run_evaluation(self) -> dict:
+        """Run full evaluation framework across all modules.
+
+        Returns:
+            Dict with precision/recall, calibration, and stability metrics.
+        """
+        return self.evaluator.run_full_evaluation()
+
+    def full_system_analysis(
+        self,
+        all_events: list[dict],
+        entity_risks: Optional[dict[str, float]] = None,
+        adjacency: Optional[dict[str, list[dict]]] = None,
+        historical_events: Optional[list[dict]] = None,
+    ) -> dict:
+        """Run complete system-level intelligence analysis.
+
+        Orchestrates all system-level modules and produces a
+        comprehensive multi-entity intelligence report.
+
+        Args:
+            all_events: All events across all entities.
+            entity_risks: Pre-computed per-entity risk scores.
+            adjacency: Graph adjacency for risk propagation.
+            historical_events: Historical baseline for group anomaly detection.
+
+        Returns:
+            Dict with all system-level analysis results.
+        """
+        if not all_events:
+            return {
+                "status": "insufficient_data",
+                "explanation": "No events available for system analysis.",
+            }
+
+        # 1. Coordination detection
+        coordination = self.detect_coordination(all_events)
+
+        # 2. Sequence detection
+        sequences = self.detect_sequences(all_events)
+
+        # 3. Risk propagation (if graph data available)
+        propagated = None
+        stability = None
+        if entity_risks and adjacency:
+            propagated = self.propagate_risk(entity_risks, adjacency)
+            _, stability = self.propagate_risk_iterative(
+                entity_risks, adjacency
+            )
+
+        # 4. Group anomaly detection
+        group_anomalies = self.detect_group_anomalies(
+            all_events, historical_events
+        )
+
+        # 5. System-level explanation
+        explanation = self.explain_system_alert(
+            coordination, propagated, sequences, group_anomalies
+        )
+
+        return {
+            "status": "analyzed",
+            "coordination": coordination.model_dump(),
+            "sequences": sequences.model_dump(),
+            "risk_propagation": (
+                [r.model_dump() for r in propagated] if propagated else None
+            ),
+            "risk_stability": stability.model_dump() if stability else None,
+            "group_anomalies": group_anomalies.model_dump(),
+            "system_explanation": explanation.model_dump(),
+            "adaptive_weights": self.get_adaptive_weights().model_dump(),
+            "analysis_timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+

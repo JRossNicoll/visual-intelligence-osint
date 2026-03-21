@@ -559,3 +559,201 @@ class IntelligenceService:
             "weight": weight,
             "strength_label": strength_label,
         })
+
+    # =================================================================
+    # System-Level Intelligence Methods
+    # =================================================================
+
+    @staticmethod
+    async def run_system_analysis(
+        db: AsyncSession,
+        entity_ids: Optional[list[str]] = None,
+        from_time: Optional[datetime] = None,
+        to_time: Optional[datetime] = None,
+    ) -> dict:
+        """Run full system-level intelligence analysis.
+
+        Detects coordination patterns, sequences, group anomalies,
+        and propagates risk through the entity graph.
+        """
+        engine = get_engine()
+
+        # Build query for all events
+        query = select(TemporalEvent).order_by(TemporalEvent.timestamp.asc())
+        if entity_ids:
+            query = query.where(TemporalEvent.entity_id.in_(entity_ids))
+        if from_time:
+            query = query.where(TemporalEvent.timestamp >= from_time)
+        if to_time:
+            query = query.where(TemporalEvent.timestamp <= to_time)
+        query = query.limit(5000)
+
+        result = await db.execute(query)
+        events = list(result.scalars().all())
+
+        if not events:
+            return {"status": "no_data", "explanation": "No events found."}
+
+        event_dicts = [
+            {
+                "entity_id": e.entity_id,
+                "stream_id": e.stream_id,
+                "location_id": e.location_id,
+                "location_name": e.location_name,
+                "event_type": e.event_type,
+                "timestamp": e.timestamp,
+                "duration_seconds": e.duration_seconds,
+                "confidence": e.confidence,
+                "hour_of_day": e.hour_of_day,
+                "day_of_week": e.day_of_week,
+                "co_occurring_entities": e.co_occurring_entities or [],
+            }
+            for e in events
+        ]
+
+        # Build entity risk map and adjacency from profiles
+        entity_risks = {}
+        adjacency: dict[str, list[dict]] = {}
+        unique_ids = {e.entity_id for e in events}
+        for eid in unique_ids:
+            profile = await IntelligenceService.get_entity_profile(db, eid)
+            if profile:
+                entity_risks[eid] = profile.risk_score
+                if profile.associated_entities:
+                    adjacency[eid] = [
+                        {
+                            "entity_id": a.get("entity_id", ""),
+                            "weight": a.get("strength", 0.5),
+                        }
+                        for a in profile.associated_entities
+                    ]
+
+        return engine.full_system_analysis(
+            all_events=event_dicts,
+            entity_risks=entity_risks if entity_risks else None,
+            adjacency=adjacency if adjacency else None,
+            historical_events=event_dicts,
+        )
+
+    @staticmethod
+    async def detect_coordination(
+        db: AsyncSession,
+        entity_ids: Optional[list[str]] = None,
+        from_time: Optional[datetime] = None,
+        to_time: Optional[datetime] = None,
+    ) -> dict:
+        """Detect multi-entity coordination patterns."""
+        engine = get_engine()
+        query = select(TemporalEvent).order_by(TemporalEvent.timestamp.asc())
+        if entity_ids:
+            query = query.where(TemporalEvent.entity_id.in_(entity_ids))
+        if from_time:
+            query = query.where(TemporalEvent.timestamp >= from_time)
+        if to_time:
+            query = query.where(TemporalEvent.timestamp <= to_time)
+        query = query.limit(5000)
+
+        result = await db.execute(query)
+        events = list(result.scalars().all())
+        event_dicts = [
+            {
+                "entity_id": e.entity_id,
+                "location_id": e.location_id,
+                "location_name": e.location_name,
+                "timestamp": e.timestamp,
+                "co_occurring_entities": e.co_occurring_entities or [],
+            }
+            for e in events
+        ]
+        coord = engine.detect_coordination(event_dicts)
+        return coord.model_dump()
+
+    @staticmethod
+    async def detect_sequences(
+        db: AsyncSession,
+        entity_ids: Optional[list[str]] = None,
+        from_time: Optional[datetime] = None,
+        to_time: Optional[datetime] = None,
+    ) -> dict:
+        """Detect temporal sequences and causal relationships."""
+        engine = get_engine()
+        query = select(TemporalEvent).order_by(TemporalEvent.timestamp.asc())
+        if entity_ids:
+            query = query.where(TemporalEvent.entity_id.in_(entity_ids))
+        if from_time:
+            query = query.where(TemporalEvent.timestamp >= from_time)
+        if to_time:
+            query = query.where(TemporalEvent.timestamp <= to_time)
+        query = query.limit(5000)
+
+        result = await db.execute(query)
+        events = list(result.scalars().all())
+        event_dicts = [
+            {
+                "entity_id": e.entity_id,
+                "location_id": e.location_id,
+                "timestamp": e.timestamp,
+            }
+            for e in events
+        ]
+        seq = engine.detect_sequences(event_dicts)
+        return seq.model_dump()
+
+    @staticmethod
+    async def detect_group_anomalies(
+        db: AsyncSession,
+        entity_ids: Optional[list[str]] = None,
+        from_time: Optional[datetime] = None,
+        to_time: Optional[datetime] = None,
+    ) -> dict:
+        """Detect group-level anomalies."""
+        engine = get_engine()
+        query = select(TemporalEvent).order_by(TemporalEvent.timestamp.asc())
+        if entity_ids:
+            query = query.where(TemporalEvent.entity_id.in_(entity_ids))
+        if from_time:
+            query = query.where(TemporalEvent.timestamp >= from_time)
+        if to_time:
+            query = query.where(TemporalEvent.timestamp <= to_time)
+        query = query.limit(5000)
+
+        result = await db.execute(query)
+        events = list(result.scalars().all())
+        event_dicts = [
+            {
+                "entity_id": e.entity_id,
+                "location_id": e.location_id,
+                "location_name": e.location_name,
+                "timestamp": e.timestamp,
+                "co_occurring_entities": e.co_occurring_entities or [],
+            }
+            for e in events
+        ]
+        anomalies = engine.detect_group_anomalies(event_dicts, event_dicts)
+        return anomalies.model_dump()
+
+    @staticmethod
+    async def update_adaptive_weights(
+        feedback_type: str,
+        component_scores: dict,
+        outcome: bool,
+    ) -> dict:
+        """Provide feedback to the adaptive risk model."""
+        engine = get_engine()
+        state = engine.update_adaptive_weights(
+            feedback_type, component_scores, outcome
+        )
+        return state.model_dump()
+
+    @staticmethod
+    async def get_adaptive_weights() -> dict:
+        """Get current adaptive risk weight state."""
+        engine = get_engine()
+        state = engine.get_adaptive_weights()
+        return state.model_dump()
+
+    @staticmethod
+    async def run_evaluation() -> dict:
+        """Run full evaluation framework."""
+        engine = get_engine()
+        return engine.run_evaluation()

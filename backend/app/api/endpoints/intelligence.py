@@ -1,5 +1,11 @@
-"""Intelligence API endpoints - temporal analysis, anomaly detection, risk scoring, predictions."""
+"""Intelligence API endpoints - entity-level and system-level intelligence.
 
+Entity-Level: temporal analysis, anomaly detection, risk scoring, predictions.
+System-Level: coordination detection, risk propagation, sequence mining,
+              adaptive weights, group anomalies, evaluation framework.
+"""
+
+from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -7,16 +13,24 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
 from app.schemas.intelligence import (
+    AdaptiveWeightFeedbackRequest,
+    AdaptiveWeightResponse,
     AnalysisResultResponse,
     AnalyzeBatchRequest,
     AnalyzeEntityRequest,
     BehaviorRecordResponse,
+    CoordinationResponse,
     EntityProfileResponse,
+    EvaluationResponse,
+    GroupAnomalyResponse,
     IntelligenceInsightResponse,
     NLQueryRequest,
     NLQueryResponse,
     PredictionResponse,
     RiskScoreResponse,
+    SequenceResponse,
+    SystemAnalysisRequest,
+    SystemAnalysisResponse,
     TemporalEventCreate,
     TemporalEventResponse,
 )
@@ -291,3 +305,133 @@ async def get_prediction(
             profile.predicted_next_location.get("probability", 0) if profile.predicted_next_location else 0
         ),
     )
+
+
+# =================================================================
+# System-Level Intelligence Endpoints
+# =================================================================
+
+
+@router.post("/system/analyze", response_model=SystemAnalysisResponse)
+async def system_analysis(
+    request: SystemAnalysisRequest,
+    db: AsyncSession = Depends(get_db),
+) -> SystemAnalysisResponse:
+    """Run full system-level intelligence analysis.
+
+    Detects coordinated behavior, propagates risk through the graph,
+    mines temporal sequences, detects group anomalies, and generates
+    a unified system-level explanation.
+
+    This is the primary endpoint for multi-entity reasoning.
+    """
+    result = await IntelligenceService.run_system_analysis(
+        db,
+        entity_ids=request.entity_ids,
+        from_time=request.from_time,
+        to_time=request.to_time,
+    )
+    return SystemAnalysisResponse(**result)
+
+
+@router.post("/system/coordination", response_model=CoordinationResponse)
+async def detect_coordination(
+    entity_ids: Optional[list[str]] = Query(None),
+    from_time: Optional[datetime] = Query(None),
+    to_time: Optional[datetime] = Query(None),
+    db: AsyncSession = Depends(get_db),
+) -> CoordinationResponse:
+    """Detect multi-entity coordination patterns.
+
+    Identifies co-occurrence, staggered coordination, convoy behavior,
+    and graph motifs (triads, chains) using statistical tests
+    (chi-squared, binomial) rather than arbitrary thresholds.
+    """
+    result = await IntelligenceService.detect_coordination(
+        db, entity_ids=entity_ids, from_time=from_time, to_time=to_time,
+    )
+    return CoordinationResponse(**result)
+
+
+@router.post("/system/sequences", response_model=SequenceResponse)
+async def detect_sequences(
+    entity_ids: Optional[list[str]] = Query(None),
+    from_time: Optional[datetime] = Query(None),
+    to_time: Optional[datetime] = Query(None),
+    db: AsyncSession = Depends(get_db),
+) -> SequenceResponse:
+    """Detect temporal sequences and causal relationships.
+
+    Mines frequent ordered sequences (A->B->C) using PrefixSpan-inspired
+    algorithm and estimates conditional probabilities P(B|A) with
+    time-lag distributions and lift computation.
+    """
+    result = await IntelligenceService.detect_sequences(
+        db, entity_ids=entity_ids, from_time=from_time, to_time=to_time,
+    )
+    return SequenceResponse(**result)
+
+
+@router.post("/system/group-anomalies", response_model=GroupAnomalyResponse)
+async def detect_group_anomalies(
+    entity_ids: Optional[list[str]] = Query(None),
+    from_time: Optional[datetime] = Query(None),
+    to_time: Optional[datetime] = Query(None),
+    db: AsyncSession = Depends(get_db),
+) -> GroupAnomalyResponse:
+    """Detect group-level anomalies.
+
+    Identifies unusual gatherings (z-score on entity counts),
+    new cluster formations (connected components + novelty ratio),
+    interaction surges (rate comparison with historical baseline),
+    and density changes.
+    """
+    result = await IntelligenceService.detect_group_anomalies(
+        db, entity_ids=entity_ids, from_time=from_time, to_time=to_time,
+    )
+    return GroupAnomalyResponse(**result)
+
+
+@router.post("/system/adaptive-weights/feedback", response_model=AdaptiveWeightResponse)
+async def submit_adaptive_feedback(
+    request: AdaptiveWeightFeedbackRequest,
+) -> AdaptiveWeightResponse:
+    """Submit feedback to update adaptive risk weights.
+
+    Uses Dirichlet-Multinomial Bayesian updating to adjust the
+    risk weight components (w1, w2, w3) based on alert outcomes.
+
+    feedback_type: true_positive, false_positive, or false_negative.
+    """
+    result = await IntelligenceService.update_adaptive_weights(
+        request.feedback_type, request.component_scores, request.outcome,
+    )
+    return AdaptiveWeightResponse(**result)
+
+
+@router.get("/system/adaptive-weights", response_model=AdaptiveWeightResponse)
+async def get_adaptive_weights() -> AdaptiveWeightResponse:
+    """Get current adaptive risk weight state.
+
+    Returns the current Bayesian-updated weights, update count,
+    and weight evolution history.
+    """
+    result = await IntelligenceService.get_adaptive_weights()
+    return AdaptiveWeightResponse(**result)
+
+
+@router.post("/system/evaluate", response_model=EvaluationResponse)
+async def run_evaluation() -> EvaluationResponse:
+    """Run the full evaluation framework.
+
+    Executes synthetic test scenarios across all system-level modules:
+    - Coordination detection precision/recall
+    - Sequence detection accuracy
+    - Risk propagation stability (convergence, oscillation)
+    - Group anomaly detection metrics
+    - Calibration error (ECE, Brier score)
+
+    Returns measurable metrics for each capability.
+    """
+    result = await IntelligenceService.run_evaluation()
+    return EvaluationResponse(**result)

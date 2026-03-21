@@ -180,3 +180,101 @@ class PredictionResponse(BaseModel):
     method: str = ""
     evidence: Optional[dict] = None
     explanation: str = ""
+
+
+# ============================================================
+# System-Level Intelligence Schemas
+# ============================================================
+
+
+class SystemAnalysisRequest(BaseModel):
+    """Request for system-level multi-entity analysis."""
+    entity_ids: Optional[list[str]] = None
+    from_time: Optional[datetime] = None
+    to_time: Optional[datetime] = None
+    include_risk_propagation: bool = True
+    include_coordination: bool = True
+    include_sequences: bool = True
+    include_group_anomalies: bool = True
+
+
+class SystemAnalysisResponse(BaseModel):
+    """Response from system-level intelligence analysis."""
+    status: str
+    coordination: Optional[dict] = None
+    sequences: Optional[dict] = None
+    risk_propagation: Optional[list[dict]] = None
+    risk_stability: Optional[dict] = None
+    group_anomalies: Optional[dict] = None
+    system_explanation: Optional[dict] = None
+    adaptive_weights: Optional[dict] = None
+    analysis_timestamp: Optional[str] = None
+
+
+class CoordinationResponse(BaseModel):
+    """Response for coordination detection."""
+    total_entities_analyzed: int = 0
+    total_events_analyzed: int = 0
+    patterns_detected: list[dict] = Field(default_factory=list)
+    graph_motifs: list[dict] = Field(default_factory=list)
+    analysis_window_hours: float = 0.0
+    explanation: str = ""
+
+
+class RiskPropagationRequest(BaseModel):
+    """Request for risk propagation analysis."""
+    entity_ids: Optional[list[str]] = None
+    max_depth: int = 2
+    damping_factor: float = 0.5
+
+
+class RiskPropagationResponse(BaseModel):
+    """Response from risk propagation."""
+    propagated_scores: list[dict] = Field(default_factory=list)
+    stability: Optional[dict] = None
+    explanation: str = ""
+
+
+class SequenceResponse(BaseModel):
+    """Response for sequence/causal pattern detection."""
+    frequent_sequences: list[dict] = Field(default_factory=list)
+    causal_relationships: list[dict] = Field(default_factory=list)
+    total_events_analyzed: int = 0
+    explanation: str = ""
+
+
+class AdaptiveWeightFeedbackRequest(BaseModel):
+    """Request to provide feedback for adaptive weight updating."""
+    feedback_type: str  # true_positive, false_positive, false_negative
+    component_scores: dict = Field(default_factory=dict)
+    outcome: bool = True
+
+
+class AdaptiveWeightResponse(BaseModel):
+    """Response showing current adaptive weight state."""
+    current_w1: float = 0.4
+    current_w2: float = 0.3
+    current_w3: float = 0.3
+    update_count: int = 0
+    weight_history: list[dict] = Field(default_factory=list)
+    explanation: str = ""
+
+
+class GroupAnomalyResponse(BaseModel):
+    """Response for group-level anomaly detection."""
+    anomalies: list[dict] = Field(default_factory=list)
+    clusters_detected: int = 0
+    density_change: float = 0.0
+    total_entities: int = 0
+    total_events: int = 0
+    explanation: str = ""
+
+
+class EvaluationResponse(BaseModel):
+    """Response from evaluation framework."""
+    coordination_metrics: Optional[dict] = None
+    sequence_metrics: Optional[dict] = None
+    risk_stability: Optional[dict] = None
+    group_anomaly_metrics: Optional[dict] = None
+    calibration_metrics: Optional[dict] = None
+    explanation: str = ""
