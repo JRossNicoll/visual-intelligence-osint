@@ -45,6 +45,24 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     await neo4j_manager.connect()
     logger.info("Neo4j connected")
 
+    # Demo mode: auto-seed if database is empty
+    if settings.DEMO_MODE:
+        from app.db.session import async_session_factory
+        from app.services.seed_service import SeedService
+
+        async with async_session_factory() as db:
+            try:
+                if not await SeedService.is_seeded(db):
+                    logger.info("DEMO_MODE enabled — seeding demo data...")
+                    summary = await SeedService.seed_demo_data(db, clear_existing=False)
+                    await db.commit()
+                    logger.info("Demo data seeded: %s", summary)
+                else:
+                    logger.info("DEMO_MODE enabled — database already seeded, skipping.")
+            except Exception as e:
+                logger.warning("Demo seeding failed: %s", e)
+                await db.rollback()
+
     yield
 
     # Shutdown

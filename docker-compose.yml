@@ -90,6 +90,7 @@ services:
       DEBUG: ${DEBUG:-true}
       SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
       CORS_ORIGINS: ${CORS_ORIGINS:-["http://localhost:3000","http://localhost:80"]}
+      DEMO_MODE: ${DEMO_MODE:-false}
       # Database
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432

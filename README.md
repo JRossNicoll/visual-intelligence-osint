@@ -151,7 +151,75 @@ curl http://localhost:8000/health
 
 # Detailed health (all dependencies)
 curl http://localhost:8000/health/detailed
+
+# Full platform status (services + data counts)
+curl http://localhost:8000/health/status
 ```
+
+---
+
+## Demo Mode & Data Seeding
+
+The platform ships with a built-in seeding system that generates realistic demo data so you can explore every feature immediately after setup.
+
+### Option A: Auto-Seed on Startup (Recommended)
+
+Set `DEMO_MODE=true` in your `.env` file before starting:
+
+```bash
+cp .env.example .env
+sed -i 's/DEMO_MODE=false/DEMO_MODE=true/' .env
+docker compose up -d
+```
+
+The backend will automatically populate the database on first startup with:
+- **8 camera streams** (named locations with GPS coordinates)
+- **25 entities** (15 people + 10 vehicles with attributes)
+- **625+ temporal events** with realistic periodic and random patterns
+- **30 alerts** (anomalies, coordinated behavior, reappearances, target matches)
+- **5 investigation cases** with linked evidence, analyst notes, and audit trails
+- **25 entity profiles** with risk scores and behavioral analysis
+- **12 intelligence insights** (patterns, predictions, associations)
+- **75+ behavior records** (routines, loitering, convoys, anomalies)
+
+### Option B: Seed via API
+
+```bash
+# Generate demo data (clears existing data first)
+curl -X POST http://localhost:8000/api/v1/seed/demo
+
+# Add demo data without clearing
+curl -X POST "http://localhost:8000/api/v1/seed/demo?clear_existing=false"
+
+# Check if database is seeded
+curl http://localhost:8000/api/v1/seed/status
+
+# Clear all demo data
+curl -X DELETE http://localhost:8000/api/v1/seed/demo
+```
+
+### Option C: Seed via CLI Script
+
+```bash
+# From Docker
+docker compose exec backend python seed_demo_data.py
+
+# Local development
+cd backend && poetry run python seed_demo_data.py
+
+# Add on top of existing data
+poetry run python seed_demo_data.py --no-clear
+```
+
+### Demo Workflow
+
+Once data is seeded, explore the platform:
+
+1. **Operator Dashboard** — View active alerts ranked by severity, live event feed, entity watchlist
+2. **Investigation View** — Search entities by type/risk, view profiles, explore timelines
+3. **Intelligence View** — Review risk distributions, alert trends, top entities, active insights
+4. **Cases** — Open pre-populated investigation cases with linked evidence, notes, and audit logs
+5. **API Explorer** — Visit http://localhost:8000/docs for the full interactive API
 
 ---
 
