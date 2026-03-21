@@ -72,6 +72,23 @@ async def list_cases(
     return [CaseSummary(**c) for c in cases]
 
 
+@router.get("/audit/all", response_model=list[AuditLogEntry])
+async def get_all_audit_logs(
+    resource_type: Optional[str] = Query(None),
+    actor: Optional[str] = Query(None),
+    action: Optional[str] = Query(None),
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+    db: AsyncSession = Depends(get_db),
+) -> list[AuditLogEntry]:
+    """Get all audit log entries with optional filtering."""
+    logs = await AuditService.get_logs(
+        db, resource_type=resource_type, actor=actor, action=action,
+        limit=limit, offset=offset,
+    )
+    return [AuditLogEntry(**log) for log in logs]
+
+
 @router.get("/{case_id}", response_model=CaseDetail)
 async def get_case(
     case_id: str,
@@ -290,22 +307,5 @@ async def get_case_audit(
     """Get audit log entries for a specific case."""
     logs = await AuditService.get_logs(
         db, resource_type="case", resource_id=case_id, limit=limit, offset=offset,
-    )
-    return [AuditLogEntry(**log) for log in logs]
-
-
-@router.get("/audit/all", response_model=list[AuditLogEntry])
-async def get_all_audit_logs(
-    resource_type: Optional[str] = Query(None),
-    actor: Optional[str] = Query(None),
-    action: Optional[str] = Query(None),
-    limit: int = Query(100, ge=1, le=500),
-    offset: int = Query(0, ge=0),
-    db: AsyncSession = Depends(get_db),
-) -> list[AuditLogEntry]:
-    """Get all audit log entries with optional filtering."""
-    logs = await AuditService.get_logs(
-        db, resource_type=resource_type, actor=actor, action=action,
-        limit=limit, offset=offset,
     )
     return [AuditLogEntry(**log) for log in logs]
