@@ -4,6 +4,7 @@ from fastapi import APIRouter
 
 from app.api.endpoints import (
     alerts,
+    cases,
     entities,
     health,
     intelligence,
@@ -24,6 +25,7 @@ api_router.include_router(alerts.router)
 api_router.include_router(pipeline.router)
 api_router.include_router(intelligence.router)
 api_router.include_router(operator.router)
+api_router.include_router(cases.router)
 
 # Health and WebSocket routes are mounted at root level
 health_router = health.router

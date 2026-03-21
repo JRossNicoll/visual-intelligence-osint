@@ -5,6 +5,7 @@ import {
   AlertTriangle,
   ArrowUp,
   Bell,
+  Briefcase,
   CheckCircle,
   ChevronRight,
   Clock,
@@ -17,7 +18,7 @@ import {
   Users,
   XCircle,
 } from 'lucide-react';
-import { operatorApi } from '@/lib/api';
+import { operatorApi, casesApi } from '@/lib/api';
 import type {
   OperatorDashboardData,
   OperatorAlert,
@@ -29,9 +30,10 @@ import { formatRelativeTime, severityColor } from '@/lib/utils';
 interface OperatorDashboardProps {
   onViewChange: (view: string) => void;
   onEntitySelect?: (entityId: string) => void;
+  onCaseCreated?: (caseId: string) => void;
 }
 
-export default function OperatorDashboard({ onViewChange, onEntitySelect }: OperatorDashboardProps) {
+export default function OperatorDashboard({ onViewChange, onEntitySelect, onCaseCreated }: OperatorDashboardProps) {
   const [dashboard, setDashboard] = useState<OperatorDashboardData | null>(null);
   const [alerts, setAlerts] = useState<OperatorAlert[]>([]);
   const [feed, setFeed] = useState<FeedEvent[]>([]);
@@ -89,6 +91,13 @@ export default function OperatorDashboard({ onViewChange, onEntitySelect }: Oper
     try {
       await operatorApi.dismissAlert(alertId);
       setAlerts(prev => prev.map(a => a.id === alertId ? { ...a, is_acknowledged: true } : a));
+    } catch { /* */ }
+  };
+
+  const handleCreateCase = async (alertId: string) => {
+    try {
+      const caseData = await casesApi.createFromAlert(alertId);
+      onCaseCreated?.(caseData.id);
     } catch { /* */ }
   };
 
@@ -318,6 +327,13 @@ export default function OperatorDashboard({ onViewChange, onEntitySelect }: Oper
                             <XCircle className="w-4 h-4" />
                           </button>
                         )}
+                        <button
+                          onClick={() => handleCreateCase(alert.id)}
+                          className="p-1.5 text-gray-400 hover:text-purple-400 hover:bg-purple-500/10 rounded transition-colors"
+                          title="Create Case"
+                        >
+                          <Briefcase className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
                   </div>

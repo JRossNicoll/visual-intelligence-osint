@@ -454,3 +454,111 @@ export interface IntelligenceSummary {
   top_locations: Array<{ location: string; event_count: number }>;
   generated_at: string;
 }
+
+// ===================== Case Management Types =====================
+
+export interface CaseSummary {
+  id: string;
+  title: string;
+  status: 'open' | 'active' | 'closed';
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  entity_count: number;
+  alert_count: number;
+  evidence_count: number;
+  created_by: string;
+  assigned_to?: string;
+  tags: string[];
+  opened_at: string;
+  closed_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CaseDetail extends CaseSummary {
+  description: string;
+  linked_entity_ids: string[];
+  linked_alert_ids: string[];
+  source_type?: string;
+  source_id?: string;
+  summary_json?: CaseIntelSummary;
+}
+
+export interface CaseEvidence {
+  id: string;
+  case_id: string;
+  evidence_type: string;
+  source_table: string;
+  source_id: string;
+  title: string;
+  description: string;
+  data_snapshot?: Record<string, unknown>;
+  confidence?: number;
+  relevance_note: string;
+  added_by: string;
+  computation_params?: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface CaseNote {
+  id: string;
+  case_id: string;
+  author: string;
+  content: string;
+  note_type: string;
+  created_at: string;
+}
+
+export interface CaseTimelineItem {
+  type: 'event' | 'alert' | 'evidence' | 'note';
+  id: string;
+  timestamp: string;
+  title: string;
+  description: string;
+  severity?: string;
+  confidence?: number;
+  entity_id?: string;
+  evidence_type?: string;
+}
+
+export interface CaseTimeline {
+  case_id: string;
+  total_items: number;
+  items: CaseTimelineItem[];
+}
+
+export interface CaseIntelSummary {
+  case_id: string;
+  title: string;
+  key_entities: Array<{
+    entity_id: string;
+    entity_type: string;
+    risk_score: number;
+    risk_level: string;
+    visit_count: number;
+    behavior_tags: string[];
+  }>;
+  detected_patterns: Array<{
+    type: string;
+    title: string;
+    description: string;
+    confidence?: number;
+  }>;
+  risk_levels: Record<string, number>;
+  confidence_levels: Record<string, number>;
+  limitations: string[];
+  findings: string[];
+  generated_at: string;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  actor: string;
+  role: string;
+  action: string;
+  resource_type: string;
+  resource_id?: string;
+  detail?: string;
+  metadata_json?: Record<string, unknown>;
+  performed_at: string;
+}

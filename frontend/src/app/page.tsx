@@ -16,6 +16,8 @@ import OperatorDashboard from '@/components/OperatorDashboard';
 import InvestigationView from '@/components/InvestigationView';
 import IntelligenceView from '@/components/IntelligenceView';
 import EntityProfileView from '@/components/EntityProfileView';
+import CaseManagement from '@/components/CaseManagement';
+import CaseDetailView from '@/components/CaseDetailView';
 import type { Detection } from '@/types';
 import { getGeneralWS, getAlertWS } from '@/lib/websocket';
 
@@ -24,6 +26,7 @@ export default function Home() {
   const [wsConnected, setWsConnected] = useState(false);
   const [realtimeDetections, setRealtimeDetections] = useState<Detection[]>([]);
   const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
+  const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
   const [alertNotification, setAlertNotification] = useState<{
     title: string;
     severity: string;
@@ -103,6 +106,39 @@ export default function Home() {
             onEntitySelect={(id) => {
               setSelectedEntityId(id);
               setActiveView('entity-profile');
+            }}
+            onCaseCreated={(id) => {
+              setSelectedCaseId(id);
+              setActiveView('case-detail');
+            }}
+          />
+        );
+      case 'cases':
+        return (
+          <CaseManagement
+            onViewChange={setActiveView}
+            onCaseSelect={(id) => {
+              setSelectedCaseId(id);
+              setActiveView('case-detail');
+            }}
+          />
+        );
+      case 'case-detail':
+        return selectedCaseId ? (
+          <CaseDetailView
+            caseId={selectedCaseId}
+            onViewChange={setActiveView}
+            onEntitySelect={(id) => {
+              setSelectedEntityId(id);
+              setActiveView('entity-profile');
+            }}
+          />
+        ) : (
+          <CaseManagement
+            onViewChange={setActiveView}
+            onCaseSelect={(id) => {
+              setSelectedCaseId(id);
+              setActiveView('case-detail');
             }}
           />
         );

@@ -10,6 +10,8 @@ import type {
   OperatorDashboardData, OperatorAlert, FeedEvent,
   WatchlistEntry, EntityFullProfile, InvestigationTimeline,
   EntitySearchResult, IntelligenceSummary,
+  CaseSummary, CaseDetail, CaseEvidence, CaseNote,
+  CaseTimeline, CaseIntelSummary, AuditLogEntry,
 } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -377,5 +379,133 @@ export const operatorApi = {
   getIntelligenceSummary: (days?: number) => {
     const query = days ? `?days=${days}` : '';
     return fetchAPI<IntelligenceSummary>(`/operator/intelligence${query}`);
+  },
+};
+
+// Case Management endpoints
+export const casesApi = {
+  // Case CRUD
+  list: (params?: {
+    status?: string;
+    priority?: string;
+    assigned_to?: string;
+    limit?: number;
+    offset?: number;
+  }) => {
+    const query = new URLSearchParams();
+    if (params?.status) query.set('status', params.status);
+    if (params?.priority) query.set('priority', params.priority);
+    if (params?.assigned_to) query.set('assigned_to', params.assigned_to);
+    if (params?.limit) query.set('limit', params.limit.toString());
+    if (params?.offset) query.set('offset', params.offset.toString());
+    const qs = query.toString();
+    return fetchAPI<CaseSummary[]>(`/cases${qs ? `?${qs}` : ''}`);
+  },
+
+  get: (caseId: string) =>
+    fetchAPI<CaseDetail>(`/cases/${caseId}`),
+
+  create: (data: {
+    title: string;
+    description?: string;
+    priority?: string;
+    severity?: string;
+    assigned_to?: string;
+    tags?: string[];
+    source_type?: string;
+    source_id?: string;
+    linked_entity_ids?: string[];
+    linked_alert_ids?: string[];
+  }) => fetchAPI<CaseDetail>('/cases', { method: 'POST', body: JSON.stringify(data) }),
+
+  update: (caseId: string, data: {
+    title?: string;
+    description?: string;
+    status?: string;
+    priority?: string;
+    severity?: string;
+    assigned_to?: string;
+    tags?: string[];
+  }) => fetchAPI<CaseDetail>(`/cases/${caseId}`, { method: 'PATCH', body: JSON.stringify(data) }),
+
+  // Quick-create flows
+  createFromAlert: (alertId: string) =>
+    fetchAPI<CaseDetail>(`/cases/from-alert/${alertId}`, { method: 'POST' }),
+
+  createFromEntity: (entityId: string) =>
+    fetchAPI<CaseDetail>(`/cases/from-entity/${entityId}`, { method: 'POST' }),
+
+  // Linking
+  linkEntities: (caseId: string, entityIds: string[]) =>
+    fetchAPI<{ id: string; status: string; message: string }>(`/cases/${caseId}/entities`, {
+      method: 'POST', body: JSON.stringify({ entity_ids: entityIds }),
+    }),
+
+  linkAlerts: (caseId: string, alertIds: string[]) =>
+    fetchAPI<{ id: string; status: string; message: string }>(`/cases/${caseId}/alerts`, {
+      method: 'POST', body: JSON.stringify({ alert_ids: alertIds }),
+    }),
+
+  // Evidence
+  addEvidence: (caseId: string, data: {
+    evidence_type: string;
+    source_table: string;
+    source_id: string;
+    title: string;
+    description?: string;
+    data_snapshot?: Record<string, unknown>;
+    confidence?: number;
+    relevance_note?: string;
+    computation_params?: Record<string, unknown>;
+  }) => fetchAPI<CaseEvidence>(`/cases/${caseId}/evidence`, {
+    method: 'POST', body: JSON.stringify(data),
+  }),
+
+  getEvidence: (caseId: string, evidenceType?: string) => {
+    const query = evidenceType ? `?evidence_type=${evidenceType}` : '';
+    return fetchAPI<CaseEvidence[]>(`/cases/${caseId}/evidence${query}`);
+  },
+
+  // Notes
+  addNote: (caseId: string, data: {
+    content: string;
+    author?: string;
+    note_type?: string;
+  }) => fetchAPI<CaseNote>(`/cases/${caseId}/notes`, {
+    method: 'POST', body: JSON.stringify(data),
+  }),
+
+  getNotes: (caseId: string) =>
+    fetchAPI<CaseNote[]>(`/cases/${caseId}/notes`),
+
+  // Timeline
+  getTimeline: (caseId: string, limit?: number) => {
+    const query = limit ? `?limit=${limit}` : '';
+    return fetchAPI<CaseTimeline>(`/cases/${caseId}/timeline${query}`);
+  },
+
+  // Summary
+  generateSummary: (caseId: string) =>
+    fetchAPI<CaseIntelSummary>(`/cases/${caseId}/summary`, { method: 'POST' }),
+
+  // Audit
+  getAudit: (caseId: string, limit?: number) => {
+    const query = limit ? `?limit=${limit}` : '';
+    return fetchAPI<AuditLogEntry[]>(`/cases/${caseId}/audit${query}`);
+  },
+
+  getAllAudit: (params?: {
+    resource_type?: string;
+    actor?: string;
+    action?: string;
+    limit?: number;
+  }) => {
+    const query = new URLSearchParams();
+    if (params?.resource_type) query.set('resource_type', params.resource_type);
+    if (params?.actor) query.set('actor', params.actor);
+    if (params?.action) query.set('action', params.action);
+    if (params?.limit) query.set('limit', params.limit.toString());
+    const qs = query.toString();
+    return fetchAPI<AuditLogEntry[]>(`/cases/audit/all${qs ? `?${qs}` : ''}`);
   },
 };
