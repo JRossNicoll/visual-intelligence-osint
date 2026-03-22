@@ -615,6 +615,8 @@ export interface CaseIntelligenceResult {
 export interface AuthToken {
   access_token: string;
   token_type: string;
+  username: string;
+  role: string;
 }
 
 export interface AuthUser {
