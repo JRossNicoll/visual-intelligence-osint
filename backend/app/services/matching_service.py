@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 import numpy as np
-from sqlalchemy import and_, or_, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.entity import Entity

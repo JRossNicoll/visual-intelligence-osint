@@ -5,7 +5,7 @@ import os
 from datetime import datetime, timezone
 from typing import Optional
 
-from sqlalchemy import func, select, update
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings

@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.case_intelligence import CaseIntelligence
 from app.models.entity import Entity
-from app.models.intelligence import EntityProfile, TemporalEvent
+from app.models.intelligence import TemporalEvent
 from app.services.intelligence_service import IntelligenceService
 
 logger = logging.getLogger(__name__)

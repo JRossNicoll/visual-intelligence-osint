@@ -7,7 +7,6 @@ Usage: python -m app.worker
 import asyncio
 import logging
 import os
-import sys
 
 logging.basicConfig(
     level=logging.INFO,
@@ -49,7 +48,7 @@ async def process_video(video_id: str, case_id: str, file_path: str, filename: s
 
             # Try to import CV pipeline components
             try:
-                import cv2
+                import cv2  # noqa: F401
                 has_cv = True
             except ImportError:
                 has_cv = False
@@ -67,13 +66,13 @@ async def process_video(video_id: str, case_id: str, file_path: str, filename: s
             if completion["ready_for_intelligence"]:
                 logger.info("All videos in case %s complete — triggering intelligence analysis", case_id)
                 try:
-                    from app.services.matching_service import MatchingService
                     from app.services.case_intelligence_service import CaseIntelligenceService
+                    from app.services.matching_service import MatchingService
 
                     match_result = await MatchingService.run_matching_for_case(db, case_id)
                     logger.info("Matching result: %s", match_result)
 
-                    intel_result = await CaseIntelligenceService.generate_case_intelligence(db, case_id)
+                    await CaseIntelligenceService.generate_case_intelligence(db, case_id)
                     logger.info("Intelligence generated for case %s", case_id)
                     await db.commit()
                 except Exception as e:
@@ -89,12 +88,13 @@ async def process_video(video_id: str, case_id: str, file_path: str, filename: s
 
 
 async def _process_with_cv(
-    db: "AsyncSession", video_id: str, case_id: str, file_path: str
+    db: "AsyncSession",  # noqa: F821
+    video_id: str, case_id: str, file_path: str,
 ) -> None:
     """Process video with actual CV pipeline (OpenCV + YOLO)."""
+
     import cv2
-    from datetime import datetime, timezone
-    from app.models.entity import Entity, Detection
+
     from app.services.video_service import VideoService
 
     cap = cv2.VideoCapture(file_path)
@@ -107,8 +107,9 @@ async def _process_with_cv(
     duration = total_frames / fps if fps > 0 else 0
 
     # Update video metadata
-    from app.models.video import VideoFile
     from sqlalchemy import select
+
+    from app.models.video import VideoFile
     result = await db.execute(select(VideoFile).where(VideoFile.id == video_id))
     video = result.scalar_one_or_none()
     if video:
@@ -154,7 +155,8 @@ async def _process_with_cv(
 
 
 async def _process_stub(
-    db: "AsyncSession", video_id: str, case_id: str, file_path: str, filename: str
+    db: "AsyncSession",  # noqa: F821
+    video_id: str, case_id: str, file_path: str, filename: str,
 ) -> None:
     """Stub processing when CV libraries aren't available.
 
@@ -162,6 +164,7 @@ async def _process_stub(
     """
     import random
     from datetime import datetime, timedelta, timezone
+
     from app.models.entity import Entity
     from app.services.video_service import VideoService
 
@@ -200,8 +203,9 @@ async def _process_stub(
     )
 
     # Update video metadata
-    from app.models.video import VideoFile
     from sqlalchemy import select
+
+    from app.models.video import VideoFile
     result = await db.execute(select(VideoFile).where(VideoFile.id == video_id))
     video = result.scalar_one_or_none()
     if video:
