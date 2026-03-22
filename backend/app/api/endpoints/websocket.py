@@ -29,7 +29,7 @@ async def websocket_general(websocket: WebSocket) -> None:
                 elif msg_type == "subscribe_stream":
                     stream_id = msg.get("stream_id")
                     if stream_id:
-                        await ws_manager.connect(websocket, f"stream:{stream_id}")
+                        await ws_manager.connect(websocket, f"stream:{stream_id}", accept=False)
                         await websocket.send_text(
                             json.dumps(
                                 {

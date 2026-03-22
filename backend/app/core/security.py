@@ -4,6 +4,7 @@ Bootstrap accounts (admin, analyst) are loaded from environment variables.
 No user management — just two hardcoded accounts for Sprint 1.
 """
 
+import functools
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
@@ -33,8 +34,13 @@ class User(BaseModel):
     hashed_password: str
 
 
+@functools.lru_cache(maxsize=1)
 def _get_bootstrap_users() -> dict[str, User]:
-    """Build the bootstrap user table from environment variables."""
+    """Build the bootstrap user table from environment variables.
+
+    Cached so bcrypt hashing only runs once (not on every login).
+    Password changes via env vars require a server restart.
+    """
     return {
         "admin": User(
             username="admin",

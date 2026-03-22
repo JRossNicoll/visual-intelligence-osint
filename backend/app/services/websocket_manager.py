@@ -20,9 +20,12 @@ class ConnectionManager:
         # Alert connections
         self.alert_connections: list[WebSocket] = []
 
-    async def connect(self, websocket: WebSocket, channel: str = "general") -> None:
+    async def connect(
+        self, websocket: WebSocket, channel: str = "general", accept: bool = True
+    ) -> None:
         """Accept and register a WebSocket connection."""
-        await websocket.accept()
+        if accept:
+            await websocket.accept()
 
         if channel == "general":
             self.active_connections.append(websocket)

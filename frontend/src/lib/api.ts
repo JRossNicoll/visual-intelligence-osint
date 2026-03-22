@@ -110,14 +110,11 @@ async function fetchAPIRaw(path: string, options?: RequestInit): Promise<Respons
 // --- Auth API ---
 export const authApi = {
   login: async (username: string, password: string): Promise<AuthToken> => {
-    const url = `${API_URL}${API_PREFIX}/auth/token`;
-    const body = new URLSearchParams();
-    body.set('username', username);
-    body.set('password', password);
+    const url = `${API_URL}${API_PREFIX}/auth/login`;
     const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: body.toString(),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
     });
     if (!res.ok) {
       const error = await res.text().catch(() => 'Unknown error');
@@ -128,7 +125,10 @@ export const authApi = {
     return data;
   },
 
-  me: () => fetchAPI<AuthUser>('/auth/me'),
+  me: (): AuthUser | null => {
+    // Not a real endpoint — username/role are extracted from login response
+    return null;
+  },
 
   logout: () => {
     _authToken = null;

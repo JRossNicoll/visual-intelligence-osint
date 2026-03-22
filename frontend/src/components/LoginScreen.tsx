@@ -23,9 +23,8 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
     setError('');
     setLoading(true);
     try {
-      await authApi.login(username, password);
-      const user = await authApi.me();
-      onLoginSuccess(user.username, user.role);
+      const tokenData = await authApi.login(username, password);
+      onLoginSuccess(tokenData.username, tokenData.role);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
