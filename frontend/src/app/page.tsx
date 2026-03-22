@@ -18,11 +18,19 @@ import IntelligenceView from '@/components/IntelligenceView';
 import EntityProfileView from '@/components/EntityProfileView';
 import CaseManagement from '@/components/CaseManagement';
 import CaseDetailView from '@/components/CaseDetailView';
+import LoginScreen from '@/components/LoginScreen';
+import Sprint1CaseList from '@/components/Sprint1CaseList';
+import Sprint1CaseDetail from '@/components/Sprint1CaseDetail';
 import type { Detection } from '@/types';
 import { getGeneralWS, getAlertWS } from '@/lib/websocket';
+import { authApi, getAuthToken } from '@/lib/api';
 
 export default function Home() {
-  const [activeView, setActiveView] = useState('dashboard');
+  // Auth state — token kept in memory only
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ username: string; role: string } | null>(null);
+
+  const [activeView, setActiveView] = useState('sprint1-cases');
   const [wsConnected, setWsConnected] = useState(false);
   const [realtimeDetections, setRealtimeDetections] = useState<Detection[]>([]);
   const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
@@ -72,8 +80,52 @@ export default function Home() {
     };
   }, []);
 
+  const handleLoginSuccess = (username: string, role: string) => {
+    setIsAuthenticated(true);
+    setCurrentUser({ username, role });
+    setActiveView('sprint1-cases');
+  };
+
+  const handleLogout = () => {
+    authApi.logout();
+    setIsAuthenticated(false);
+    setCurrentUser(null);
+    setActiveView('sprint1-cases');
+  };
+
+  // --- Login gate ---
+  if (!isAuthenticated || !getAuthToken()) {
+    return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
+  }
+
   const renderView = () => {
     switch (activeView) {
+      // Sprint 1 screens — primary flow
+      case 'sprint1-cases':
+        return (
+          <Sprint1CaseList
+            onCaseSelect={(id) => {
+              setSelectedCaseId(id);
+              setActiveView('sprint1-case-detail');
+            }}
+          />
+        );
+      case 'sprint1-case-detail':
+        return selectedCaseId ? (
+          <Sprint1CaseDetail
+            caseId={selectedCaseId}
+            onBack={() => setActiveView('sprint1-cases')}
+          />
+        ) : (
+          <Sprint1CaseList
+            onCaseSelect={(id) => {
+              setSelectedCaseId(id);
+              setActiveView('sprint1-case-detail');
+            }}
+          />
+        );
+
+      // Legacy views
       case 'dashboard':
         return (
           <Dashboard
@@ -165,9 +217,11 @@ export default function Home() {
         );
       default:
         return (
-          <Dashboard
-            realtimeDetections={realtimeDetections}
-            onViewChange={setActiveView}
+          <Sprint1CaseList
+            onCaseSelect={(id) => {
+              setSelectedCaseId(id);
+              setActiveView('sprint1-case-detail');
+            }}
           />
         );
     }
@@ -213,6 +267,19 @@ export default function Home() {
               ✕
             </button>
           </div>
+        </div>
+      )}
+
+      {/* User bar */}
+      {currentUser && (
+        <div className="bg-intel-surface/50 border-b border-intel-border/30 px-4 h-6 flex items-center justify-end text-2xs text-gray-600">
+          <span className="text-gray-500">{currentUser.username}</span>
+          <span className="text-intel-border mx-2">|</span>
+          <span className="text-gray-600 uppercase">{currentUser.role}</span>
+          <span className="text-intel-border mx-2">|</span>
+          <button onClick={handleLogout} className="text-gray-500 hover:text-intel-accent transition-colors">
+            Sign Out
+          </button>
         </div>
       )}
 

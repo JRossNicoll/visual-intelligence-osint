@@ -12,28 +12,128 @@ import type {
   EntitySearchResult, IntelligenceSummary,
   CaseSummary, CaseDetail, CaseEvidence, CaseNote,
   CaseTimeline, CaseIntelSummary, AuditLogEntry,
+  VideoFile, PendingMatch, CaseIntelligenceResult,
+  AuthToken, AuthUser,
 } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 const API_PREFIX = '/api/v1';
+const REQUEST_TIMEOUT_MS = 10000;
+
+// --- Auth token management (in-memory only, NOT localStorage) ---
+let _authToken: string | null = null;
+
+export function setAuthToken(token: string | null) {
+  _authToken = token;
+}
+
+export function getAuthToken(): string | null {
+  return _authToken;
+}
+
+export function clearAuth() {
+  _authToken = null;
+}
 
 async function fetchAPI<T>(path: string, options?: RequestInit): Promise<T> {
   const url = `${API_URL}${API_PREFIX}${path}`;
-  const res = await fetch(url, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
-  if (!res.ok) {
-    const error = await res.text().catch(() => 'Unknown error');
-    throw new Error(`API Error ${res.status}: ${error}`);
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options?.headers as Record<string, string> || {}),
+  };
+  if (_authToken) {
+    headers['Authorization'] = `Bearer ${_authToken}`;
   }
 
-  return res.json();
+  try {
+    const res = await fetch(url, {
+      ...options,
+      headers,
+      signal: controller.signal,
+    });
+
+    if (res.status === 401) {
+      _authToken = null;
+      throw new Error('Unauthorized — please log in again');
+    }
+
+    if (!res.ok) {
+      const error = await res.text().catch(() => 'Unknown error');
+      throw new Error(`API Error ${res.status}: ${error}`);
+    }
+
+    return res.json();
+  } finally {
+    clearTimeout(timeout);
+  }
 }
+
+// Raw fetch without JSON content-type (for file uploads)
+async function fetchAPIRaw(path: string, options?: RequestInit): Promise<Response> {
+  const url = `${API_URL}${API_PREFIX}${path}`;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 120000); // 2min for uploads
+
+  const headers: Record<string, string> = {
+    ...(options?.headers as Record<string, string> || {}),
+  };
+  if (_authToken) {
+    headers['Authorization'] = `Bearer ${_authToken}`;
+  }
+
+  try {
+    const res = await fetch(url, {
+      ...options,
+      headers,
+      signal: controller.signal,
+    });
+
+    if (res.status === 401) {
+      _authToken = null;
+      throw new Error('Unauthorized — please log in again');
+    }
+
+    if (!res.ok) {
+      const error = await res.text().catch(() => 'Unknown error');
+      throw new Error(`API Error ${res.status}: ${error}`);
+    }
+
+    return res;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+// --- Auth API ---
+export const authApi = {
+  login: async (username: string, password: string): Promise<AuthToken> => {
+    const url = `${API_URL}${API_PREFIX}/auth/token`;
+    const body = new URLSearchParams();
+    body.set('username', username);
+    body.set('password', password);
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString(),
+    });
+    if (!res.ok) {
+      const error = await res.text().catch(() => 'Unknown error');
+      throw new Error(res.status === 401 ? 'Invalid credentials' : `Login failed: ${error}`);
+    }
+    const data: AuthToken = await res.json();
+    _authToken = data.access_token;
+    return data;
+  },
+
+  me: () => fetchAPI<AuthUser>('/auth/me'),
+
+  logout: () => {
+    _authToken = null;
+  },
+};
 
 // Stream endpoints
 export const streamsApi = {
@@ -508,4 +608,62 @@ export const casesApi = {
     const qs = query.toString();
     return fetchAPI<AuditLogEntry[]>(`/cases/audit/all${qs ? `?${qs}` : ''}`);
   },
+};
+
+// Sprint 1: Video Pipeline endpoints
+export const videosApi = {
+  upload: async (caseId: string, file: File): Promise<VideoFile> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetchAPIRaw(`/videos/cases/${caseId}/upload`, {
+      method: 'POST',
+      body: formData,
+    });
+    return res.json();
+  },
+
+  list: (caseId: string) =>
+    fetchAPI<VideoFile[]>(`/videos/cases/${caseId}`),
+
+  get: (videoId: string) =>
+    fetchAPI<VideoFile>(`/videos/${videoId}`),
+
+  checkComplete: (caseId: string) =>
+    fetchAPI<{ all_complete: boolean; total: number; complete: number; processing: number; failed: number; queued: number }>(
+      `/videos/cases/${caseId}/check-complete`
+    ),
+};
+
+// Sprint 1: Matching endpoints
+export const matchingApi = {
+  getPending: (caseId: string) =>
+    fetchAPI<PendingMatch[]>(`/matching/cases/${caseId}/pending`),
+
+  review: (matchId: string, decision: 'accepted' | 'rejected') =>
+    fetchAPI<PendingMatch>(`/matching/${matchId}/review`, {
+      method: 'POST',
+      body: JSON.stringify({ decision }),
+    }),
+
+  run: (caseId: string) =>
+    fetchAPI<{ matches_found: number; auto_merged: number; pending_review: number }>(
+      `/matching/cases/${caseId}/run`,
+      { method: 'POST' },
+    ),
+
+  stats: (caseId: string) =>
+    fetchAPI<{ total_matches: number; auto_merged: number; pending: number; accepted: number; rejected: number }>(
+      `/matching/cases/${caseId}/stats`
+    ),
+};
+
+// Sprint 1: Case Intelligence endpoints
+export const caseIntelligenceApi = {
+  get: (caseId: string) =>
+    fetchAPI<CaseIntelligenceResult>(`/case-intelligence/${caseId}`),
+
+  generate: (caseId: string) =>
+    fetchAPI<CaseIntelligenceResult>(`/case-intelligence/${caseId}/generate`, {
+      method: 'POST',
+    }),
 };

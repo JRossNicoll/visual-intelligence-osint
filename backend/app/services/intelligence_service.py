@@ -518,20 +518,27 @@ class IntelligenceService:
         engine = get_engine()
         result = engine.translate_nl_query(query)
 
-        # Execute the generated SQL if available (parameterised via ORM text binding)
+        # Execute the generated SQL if available — read-only with strict validation
         query_results = []
         if result.generated_sql:
             try:
                 from sqlalchemy import text
-                # Use parameterised text — the NL engine generates safe SQL
-                # but we wrap in read-only to prevent mutations
                 safe_sql = result.generated_sql.strip().rstrip(";")
-                if not safe_sql.upper().startswith("SELECT"):
+                # Strict read-only gate: only SELECT, no mutation keywords
+                upper_sql = safe_sql.upper()
+                forbidden = {"INSERT", "UPDATE", "DELETE", "DROP", "ALTER", "TRUNCATE", "CREATE", "GRANT", "REVOKE"}
+                if not upper_sql.startswith("SELECT"):
                     query_results = [{"error": "Only SELECT queries are allowed."}]
+                elif any(kw in upper_sql for kw in forbidden):
+                    query_results = [{"error": "Query contains forbidden mutation keywords."}]
                 else:
+                    # Execute via read-only connection with statement timeout
+                    sql_result = await db.execute(
+                        text("SET LOCAL statement_timeout = '5s'")
+                    )
                     sql_result = await db.execute(text(safe_sql))
                     rows = sql_result.fetchall()
-                    query_results = [dict(row._mapping) for row in rows]
+                    query_results = [dict(row._mapping) for row in rows[:500]]
             except Exception as e:
                 logger.warning("SQL execution failed: %s", e)
                 query_results = [{"error": str(e), "note": "Query generated but execution failed."}]

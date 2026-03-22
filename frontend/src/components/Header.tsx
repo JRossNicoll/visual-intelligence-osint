@@ -28,9 +28,10 @@ export default function Header({ activeView, onViewChange, wsConnected }: Header
   }, []);
 
   const navItems = [
+    { id: 'sprint1-cases', label: 'CASES', icon: Briefcase },
     { id: 'dashboard', label: 'DASH', icon: Activity },
     { id: 'operator', label: 'OPS', icon: Radio },
-    { id: 'cases', label: 'CASES', icon: Briefcase },
+    { id: 'cases', label: 'LEGACY', icon: Briefcase },
     { id: 'investigation', label: 'INVEST', icon: Search },
     { id: 'intel-summary', label: 'INTEL', icon: Brain },
     { id: 'intelligence', label: 'ANALYSIS', icon: Shield },

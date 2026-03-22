@@ -177,9 +177,10 @@ class Neo4jManager:
         """Get the subgraph around an entity up to a given depth.
 
         Note: Neo4j does not support parameterised variable-length path bounds,
-        so we cap depth to a safe range and interpolate it into the query string.
+        so we sanitise depth to a safe integer in [1, 5] and interpolate it.
+        This is safe because the value is strictly validated to an integer range.
         """
-        depth = max(1, min(depth, 5))
+        depth = int(max(1, min(depth, 5)))
         query = f"""
         MATCH path = (e:Entity {{entity_id: $entity_id}})-[*1..{depth}]-(n)
         UNWIND relationships(path) as r

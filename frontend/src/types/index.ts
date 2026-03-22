@@ -562,3 +562,62 @@ export interface AuditLogEntry {
   metadata_json?: Record<string, unknown>;
   performed_at: string;
 }
+
+// ===================== Sprint 1: Video Pipeline Types =====================
+
+export interface VideoFile {
+  id: string;
+  case_id: string;
+  filename: string;
+  file_path: string;
+  file_size_bytes: number;
+  status: 'queued' | 'processing' | 'complete' | 'failed';
+  duration_seconds?: number;
+  frame_count?: number;
+  processed_frames: number;
+  entity_count_discovered: number;
+  error_message?: string;
+  uploaded_at: string;
+  processing_started_at?: string;
+  processing_completed_at?: string;
+}
+
+// ===================== Sprint 1: Matching Types =====================
+
+export interface PendingMatch {
+  id: string;
+  case_id: string;
+  entity_a_id: string;
+  entity_b_id: string;
+  similarity_score: number;
+  status: 'pending' | 'accepted' | 'rejected';
+  reviewed_by?: string;
+  reviewed_at?: string;
+  created_at: string;
+}
+
+// ===================== Sprint 1: Case Intelligence Types =====================
+
+export interface CaseIntelligenceResult {
+  id: string;
+  case_id: string;
+  coordination_patterns: Record<string, unknown>[];
+  temporal_anomalies: Record<string, unknown>[];
+  risk_scores: Record<string, unknown>[];
+  sequences: Record<string, unknown>[];
+  group_anomalies: Record<string, unknown>[];
+  cross_video_timeline: Record<string, unknown>[];
+  generated_at: string;
+}
+
+// ===================== Sprint 1: Auth Types =====================
+
+export interface AuthToken {
+  access_token: string;
+  token_type: string;
+}
+
+export interface AuthUser {
+  username: string;
+  role: string;
+}
