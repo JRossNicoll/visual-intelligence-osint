@@ -11,6 +11,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.security import TokenData, get_current_user
 from app.db.session import get_db
 from app.schemas.intelligence import (
     AdaptiveWeightFeedbackRequest,
@@ -46,6 +47,7 @@ router = APIRouter(prefix="/intelligence", tags=["intelligence"])
 async def create_temporal_event(
     event: TemporalEventCreate,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> TemporalEventResponse:
     """Record a temporal event for intelligence analysis."""
     result = await IntelligenceService.create_temporal_event(
@@ -74,6 +76,7 @@ async def list_temporal_events(
     event_type: Optional[str] = Query(None),
     limit: int = Query(100, ge=1, le=500),
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> list[TemporalEventResponse]:
     """List temporal events with filtering."""
     events = await IntelligenceService.get_temporal_events(
@@ -94,6 +97,7 @@ async def list_entity_profiles(
     limit: int = Query(50, ge=1, le=500),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> list[EntityProfileResponse]:
     """List entity intelligence profiles."""
     profiles = await IntelligenceService.list_entity_profiles(
@@ -107,6 +111,7 @@ async def list_entity_profiles(
 async def get_entity_profile(
     entity_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> EntityProfileResponse:
     """Get the intelligence profile for an entity."""
     profile = await IntelligenceService.get_entity_profile(db, entity_id)
@@ -125,6 +130,7 @@ async def list_behavior_records(
     is_active: Optional[bool] = Query(None),
     limit: int = Query(50, ge=1, le=500),
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> list[BehaviorRecordResponse]:
     """List behavior records."""
     records = await IntelligenceService.get_behavior_records(
@@ -144,6 +150,7 @@ async def list_insights(
     is_reviewed: Optional[bool] = Query(None),
     limit: int = Query(50, ge=1, le=500),
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> list[IntelligenceInsightResponse]:
     """List intelligence insights."""
     insights = await IntelligenceService.get_insights(
@@ -157,6 +164,7 @@ async def list_insights(
 async def review_insight(
     insight_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> IntelligenceInsightResponse:
     """Mark an insight as reviewed."""
     insight = await IntelligenceService.review_insight(db, insight_id)
@@ -169,6 +177,7 @@ async def review_insight(
 async def dismiss_insight(
     insight_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> IntelligenceInsightResponse:
     """Dismiss an intelligence insight."""
     insight = await IntelligenceService.dismiss_insight(db, insight_id)
@@ -184,6 +193,7 @@ async def dismiss_insight(
 async def analyze_entity(
     request: AnalyzeEntityRequest,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> AnalysisResultResponse:
     """Run full intelligence analysis on an entity.
 
@@ -202,6 +212,7 @@ async def analyze_entity(
 async def analyze_batch(
     request: AnalyzeBatchRequest,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> dict:
     """Run batch analysis on all entities with sufficient data."""
     return await IntelligenceService.analyze_batch(db, request.min_events)
@@ -214,6 +225,7 @@ async def analyze_batch(
 async def natural_language_query(
     request: NLQueryRequest,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> NLQueryResponse:
     """Execute a natural language intelligence query.
 
@@ -239,6 +251,7 @@ async def natural_language_query(
 async def get_risk_score(
     entity_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> RiskScoreResponse:
     """Get the risk score for an entity.
 
@@ -271,6 +284,7 @@ async def get_risk_score(
 async def get_prediction(
     entity_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> PredictionResponse:
     """Get the next-appearance prediction for an entity.
 
@@ -316,6 +330,7 @@ async def get_prediction(
 async def system_analysis(
     request: SystemAnalysisRequest,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> SystemAnalysisResponse:
     """Run full system-level intelligence analysis.
 
@@ -340,6 +355,7 @@ async def detect_coordination(
     from_time: Optional[datetime] = Query(None),
     to_time: Optional[datetime] = Query(None),
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> CoordinationResponse:
     """Detect multi-entity coordination patterns.
 
@@ -359,6 +375,7 @@ async def detect_sequences(
     from_time: Optional[datetime] = Query(None),
     to_time: Optional[datetime] = Query(None),
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> SequenceResponse:
     """Detect temporal sequences and causal relationships.
 
@@ -378,6 +395,7 @@ async def detect_group_anomalies(
     from_time: Optional[datetime] = Query(None),
     to_time: Optional[datetime] = Query(None),
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> GroupAnomalyResponse:
     """Detect group-level anomalies.
 
@@ -395,6 +413,7 @@ async def detect_group_anomalies(
 @router.post("/system/adaptive-weights/feedback", response_model=AdaptiveWeightResponse)
 async def submit_adaptive_feedback(
     request: AdaptiveWeightFeedbackRequest,
+    current_user: TokenData = Depends(get_current_user),
 ) -> AdaptiveWeightResponse:
     """Submit feedback to update adaptive risk weights.
 
@@ -410,7 +429,9 @@ async def submit_adaptive_feedback(
 
 
 @router.get("/system/adaptive-weights", response_model=AdaptiveWeightResponse)
-async def get_adaptive_weights() -> AdaptiveWeightResponse:
+async def get_adaptive_weights(
+    current_user: TokenData = Depends(get_current_user),
+) -> AdaptiveWeightResponse:
     """Get current adaptive risk weight state.
 
     Returns the current Bayesian-updated weights, update count,
@@ -421,7 +442,9 @@ async def get_adaptive_weights() -> AdaptiveWeightResponse:
 
 
 @router.post("/system/evaluate", response_model=EvaluationResponse)
-async def run_evaluation() -> EvaluationResponse:
+async def run_evaluation(
+    current_user: TokenData = Depends(get_current_user),
+) -> EvaluationResponse:
     """Run the full evaluation framework.
 
     Executes synthetic test scenarios across all system-level modules:

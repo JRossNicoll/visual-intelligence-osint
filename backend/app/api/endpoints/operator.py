@@ -6,6 +6,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.security import TokenData, get_current_user
 from app.db.session import get_db
 from app.schemas.operator import (
     AlertActionResponse,
@@ -33,6 +34,7 @@ router = APIRouter(prefix="/operator", tags=["operator"])
 @router.get("/dashboard", response_model=DashboardSummary)
 async def get_dashboard(
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> DashboardSummary:
     """Get aggregated operator dashboard data."""
     data = await OperatorService.get_dashboard_summary(db)
@@ -52,6 +54,7 @@ async def get_alerts(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> list[OperatorAlert]:
     """Get prioritized, deduplicated, grouped alerts for operator view."""
     alerts = await OperatorService.get_prioritized_alerts(
@@ -69,6 +72,7 @@ async def get_alerts(
 async def review_alert(
     alert_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> AlertActionResponse:
     """Mark an alert as reviewed."""
     result = await OperatorService.review_alert(db, alert_id)
@@ -81,6 +85,7 @@ async def review_alert(
 async def escalate_alert(
     alert_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> AlertActionResponse:
     """Escalate an alert - bumps severity and publishes event."""
     result = await OperatorService.escalate_alert(db, alert_id)
@@ -93,6 +98,7 @@ async def escalate_alert(
 async def dismiss_alert(
     alert_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> AlertActionResponse:
     """Dismiss an alert."""
     result = await OperatorService.dismiss_alert(db, alert_id)
@@ -112,6 +118,7 @@ async def get_feed(
     entity_id: Optional[str] = Query(None),
     since: Optional[str] = Query(None, description="ISO datetime string"),
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> list[FeedEvent]:
     """Get live event feed for operator monitoring."""
     since_dt = None
@@ -134,6 +141,7 @@ async def get_feed(
 @router.get("/watchlist", response_model=list[WatchlistEntry])
 async def get_watchlist(
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> list[WatchlistEntry]:
     """Get the operator watchlist with enriched entity data."""
     entries = await OperatorService.get_watchlist(db)
@@ -145,6 +153,7 @@ async def add_to_watchlist(
     entity_id: str,
     body: WatchlistAddRequest = WatchlistAddRequest(),
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> WatchlistActionResponse:
     """Add an entity to the operator watchlist."""
     result = await OperatorService.add_to_watchlist(
@@ -156,6 +165,7 @@ async def add_to_watchlist(
 @router.delete("/watchlist/{entity_id}", response_model=WatchlistActionResponse)
 async def remove_from_watchlist(
     entity_id: str,
+    current_user: TokenData = Depends(get_current_user),
 ) -> WatchlistActionResponse:
     """Remove an entity from the operator watchlist."""
     result = await OperatorService.remove_from_watchlist(entity_id)
@@ -171,6 +181,7 @@ async def remove_from_watchlist(
 async def get_entity_profile(
     entity_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> EntityFullProfile:
     """Get unified entity profile for investigation mode."""
     profile = await OperatorService.get_entity_full_profile(db, entity_id)
@@ -186,6 +197,7 @@ async def get_timeline(
     to_time: Optional[str] = Query(None, description="ISO datetime string"),
     limit: int = Query(200, ge=1, le=1000),
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> InvestigationTimeline:
     """Get investigation timeline combining events and alerts."""
     from_dt = None
@@ -215,6 +227,7 @@ async def search_entities(
     min_risk_score: Optional[float] = Query(None),
     limit: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> list[EntitySearchResult]:
     """Search entities for investigation mode."""
     results = await OperatorService.search_entities(
@@ -237,6 +250,7 @@ async def search_entities(
 async def get_intelligence_summary(
     days: int = Query(30, ge=1, le=365),
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> IntelligenceSummary:
     """Get long-term intelligence summary for strategic view."""
     data = await OperatorService.get_intelligence_summary(db, days=days)

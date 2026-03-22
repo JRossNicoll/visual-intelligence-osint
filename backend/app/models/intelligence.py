@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import Boolean, DateTime, Float, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -20,7 +20,8 @@ class EntityProfile(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "entity_profiles"
 
     entity_id: Mapped[str] = mapped_column(
-        String(36), nullable=False, unique=True, index=True
+        String(36), ForeignKey("entities.id", ondelete="CASCADE"),
+        nullable=False, unique=True, index=True,
     )
     entity_type: Mapped[str] = mapped_column(String(50), nullable=False)
 
@@ -86,7 +87,9 @@ class TemporalEvent(Base, UUIDMixin, TimestampMixin):
 
     __tablename__ = "temporal_events"
 
-    entity_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    entity_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("entities.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     stream_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     location_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True, index=True)
     location_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
@@ -116,7 +119,9 @@ class BehaviorRecord(Base, UUIDMixin, TimestampMixin):
 
     __tablename__ = "behavior_records"
 
-    entity_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    entity_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("entities.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     behavior_type: Mapped[str] = mapped_column(
         String(50), nullable=False, index=True
     )  # loitering, repeated_visit, convoy, short_stay, long_stay, routine, anomaly

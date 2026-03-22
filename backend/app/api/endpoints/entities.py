@@ -5,6 +5,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.security import TokenData, get_current_user
 from app.db.session import get_db
 from app.schemas.entity import (
     DetectionResponse,
@@ -27,6 +28,7 @@ async def search_entities(
     limit: int = Query(50, ge=1, le=500),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> list[EntityResponse]:
     """Search and filter tracked entities."""
     params = EntitySearchRequest(
@@ -46,6 +48,7 @@ async def search_entities(
 async def get_entity(
     entity_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> EntityResponse:
     """Get a specific entity by ID."""
     entity = await EntityService.get_entity(db, entity_id)
@@ -60,6 +63,7 @@ async def get_entity_detections(
     stream_id: Optional[str] = Query(None),
     limit: int = Query(100, ge=1, le=1000),
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> list[DetectionResponse]:
     """Get all detections for an entity."""
     detections = await EntityService.get_detections(
@@ -72,6 +76,7 @@ async def get_entity_detections(
 async def get_entity_graph(
     entity_id: str,
     depth: int = Query(2, ge=1, le=5),
+    current_user: TokenData = Depends(get_current_user),
 ) -> EntityGraphResponse:
     """Get the relationship graph for an entity."""
     graph = await EntityService.get_entity_graph(entity_id, depth)
@@ -82,6 +87,7 @@ async def get_entity_graph(
 async def get_entity_timeline(
     entity_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> list[dict]:
     """Get the sighting timeline for an entity."""
     entity = await EntityService.get_entity(db, entity_id)
@@ -97,6 +103,7 @@ async def get_stream_detections(
     to_frame: Optional[int] = Query(None),
     limit: int = Query(100, ge=1, le=1000),
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> list[DetectionResponse]:
     """Get all detections for a stream."""
     detections = await EntityService.get_detections(

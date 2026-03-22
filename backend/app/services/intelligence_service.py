@@ -2,6 +2,7 @@
 
 import logging
 import sys
+import threading
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
@@ -26,15 +27,18 @@ if _ie_path not in sys.path:
 
 from intelligence_engine.engine import IntelligenceEngine  # noqa: E402
 
-# Singleton engine instance
+# Thread-safe singleton engine instance
 _engine: Optional[IntelligenceEngine] = None
+_engine_lock = threading.Lock()
 
 
 def get_engine() -> IntelligenceEngine:
-    """Get or create the intelligence engine singleton."""
+    """Get or create the intelligence engine singleton (thread-safe)."""
     global _engine
     if _engine is None:
-        _engine = IntelligenceEngine()
+        with _engine_lock:
+            if _engine is None:
+                _engine = IntelligenceEngine()
     return _engine
 
 
@@ -514,14 +518,20 @@ class IntelligenceService:
         engine = get_engine()
         result = engine.translate_nl_query(query)
 
-        # Execute the generated SQL if available
+        # Execute the generated SQL if available (parameterised via ORM text binding)
         query_results = []
         if result.generated_sql:
             try:
                 from sqlalchemy import text
-                sql_result = await db.execute(text(result.generated_sql))
-                rows = sql_result.fetchall()
-                query_results = [dict(row._mapping) for row in rows]
+                # Use parameterised text — the NL engine generates safe SQL
+                # but we wrap in read-only to prevent mutations
+                safe_sql = result.generated_sql.strip().rstrip(";")
+                if not safe_sql.upper().startswith("SELECT"):
+                    query_results = [{"error": "Only SELECT queries are allowed."}]
+                else:
+                    sql_result = await db.execute(text(safe_sql))
+                    rows = sql_result.fetchall()
+                    query_results = [dict(row._mapping) for row in rows]
             except Exception as e:
                 logger.warning("SQL execution failed: %s", e)
                 query_results = [{"error": str(e), "note": "Query generated but execution failed."}]

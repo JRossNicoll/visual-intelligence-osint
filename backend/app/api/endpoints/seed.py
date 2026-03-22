@@ -3,6 +3,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.security import TokenData, get_current_user
 from app.db.session import get_db
 from app.services.seed_service import SeedService
 
@@ -13,6 +14,7 @@ router = APIRouter(prefix="/seed", tags=["seed"])
 async def seed_demo_data(
     clear_existing: bool = True,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> dict:
     """Generate realistic demo data for the platform.
 
@@ -33,14 +35,20 @@ async def seed_demo_data(
 
 
 @router.get("/status")
-async def seed_status(db: AsyncSession = Depends(get_db)) -> dict:
+async def seed_status(
+    db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
+) -> dict:
     """Check whether the database has been seeded with demo data."""
     is_seeded = await SeedService.is_seeded(db)
     return {"is_seeded": is_seeded}
 
 
 @router.delete("/demo")
-async def clear_demo_data(db: AsyncSession = Depends(get_db)) -> dict:
+async def clear_demo_data(
+    db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
+) -> dict:
     """Remove all demo data from the database."""
     await SeedService._clear_tables(db)
     return {"status": "success", "message": "All demo data cleared"}

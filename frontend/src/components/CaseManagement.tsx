@@ -16,6 +16,7 @@ import type {
 interface CaseManagementProps {
   onViewChange: (view: string) => void;
   onCaseSelect: (caseId: string) => void;
+  onEntitySelect?: (entityId: string) => void;
 }
 
 const PRIORITY_COLORS: Record<string, string> = {
@@ -41,7 +42,7 @@ const STATUS_BG: Record<string, string> = {
   closed: 'bg-gray-500/20 text-gray-500',
 };
 
-export default function CaseManagement({ onViewChange: _onViewChange, onCaseSelect }: CaseManagementProps) {
+export default function CaseManagement({ onViewChange: _onViewChange, onCaseSelect, onEntitySelect: onEntityNav }: CaseManagementProps) {
   void _onViewChange;
   const [cases, setCases] = useState<CaseSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -224,8 +225,8 @@ export default function CaseManagement({ onViewChange: _onViewChange, onCaseSele
         {selectedCaseId ? (
           <InlineCaseDetail
             caseId={selectedCaseId}
-            onEntitySelect={(id) => {
-              onCaseSelect(id); // Navigate to entity through parent
+            onEntitySelect={(entityId) => {
+              if (onEntityNav) onEntityNav(entityId);
             }}
           />
         ) : (

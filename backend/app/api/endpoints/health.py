@@ -97,24 +97,39 @@ async def platform_status(db: AsyncSession = Depends(get_db)) -> dict:
         except Exception:
             pass
 
-    # --- Data statistics ---
-    entity_count = (await db.execute(select(func.count()).select_from(Entity))).scalar() or 0
-    stream_count = (await db.execute(select(func.count()).select_from(Stream))).scalar() or 0
-    alert_count = (await db.execute(select(func.count()).select_from(Alert))).scalar() or 0
-    event_count = (await db.execute(select(func.count()).select_from(TemporalEvent))).scalar() or 0
-    case_count = (await db.execute(select(func.count()).select_from(Case))).scalar() or 0
+    # --- Data statistics (with rollback safety) ---
+    data_stats: dict = {}
+    try:
+        entity_count = (await db.execute(select(func.count()).select_from(Entity))).scalar() or 0
+        stream_count = (await db.execute(select(func.count()).select_from(Stream))).scalar() or 0
+        alert_count = (await db.execute(select(func.count()).select_from(Alert))).scalar() or 0
+        event_count = (await db.execute(select(func.count()).select_from(TemporalEvent))).scalar() or 0
+        case_count = (await db.execute(select(func.count()).select_from(Case))).scalar() or 0
 
-    active_streams = (
-        await db.execute(
-            select(func.count()).select_from(Stream).where(Stream.status == "active")
-        )
-    ).scalar() or 0
+        active_streams = (
+            await db.execute(
+                select(func.count()).select_from(Stream).where(Stream.status == "active")
+            )
+        ).scalar() or 0
 
-    unread_alerts = (
-        await db.execute(
-            select(func.count()).select_from(Alert).where(Alert.is_read.is_(False))
-        )
-    ).scalar() or 0
+        unread_alerts = (
+            await db.execute(
+                select(func.count()).select_from(Alert).where(Alert.is_read.is_(False))
+            )
+        ).scalar() or 0
+
+        data_stats = {
+            "entities": entity_count,
+            "streams": stream_count,
+            "active_streams": active_streams,
+            "alerts": alert_count,
+            "unread_alerts": unread_alerts,
+            "events": event_count,
+            "cases": case_count,
+        }
+    except Exception:
+        await db.rollback()
+        data_stats = {"error": "Failed to query data statistics"}
 
     overall = "healthy"
     if not db_ok:
@@ -135,13 +150,5 @@ async def platform_status(db: AsyncSession = Depends(get_db)) -> dict:
             },
             "neo4j": {"status": "connected" if neo4j_ok else "disconnected"},
         },
-        "data": {
-            "entities": entity_count,
-            "streams": stream_count,
-            "active_streams": active_streams,
-            "alerts": alert_count,
-            "unread_alerts": unread_alerts,
-            "events": event_count,
-            "cases": case_count,
-        },
+        "data": data_stats,
     }

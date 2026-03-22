@@ -11,6 +11,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.security import TokenData, get_current_user
 from app.db.neo4j import neo4j_manager
 from app.db.session import get_db
 from app.services.alert_service import AlertService
@@ -53,6 +54,7 @@ class PipelineStatsUpdate(BaseModel):
 async def receive_frame_result(
     result: PipelineFrameResult,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> dict:
     """Receive processed frame results from the CV pipeline.
 
@@ -175,7 +177,10 @@ async def receive_frame_result(
 
 
 @router.post("/stats")
-async def update_pipeline_stats(data: PipelineStatsUpdate) -> dict:
+async def update_pipeline_stats(
+    data: PipelineStatsUpdate,
+    current_user: TokenData = Depends(get_current_user),
+) -> dict:
     """Update real-time pipeline statistics."""
     await StreamService.update_stream_stats(
         stream_id=data.stream_id,

@@ -174,9 +174,14 @@ class Neo4jManager:
         return await self.execute_query(query, {"entity_id": entity_id})
 
     async def get_entity_graph(self, entity_id: str, depth: int = 2) -> list[dict]:
-        """Get the subgraph around an entity up to a given depth."""
-        query = """
-        MATCH path = (e:Entity {entity_id: $entity_id})-[*1..$depth]-(n)
+        """Get the subgraph around an entity up to a given depth.
+
+        Note: Neo4j does not support parameterised variable-length path bounds,
+        so we cap depth to a safe range and interpolate it into the query string.
+        """
+        depth = max(1, min(depth, 5))
+        query = f"""
+        MATCH path = (e:Entity {{entity_id: $entity_id}})-[*1..{depth}]-(n)
         UNWIND relationships(path) as r
         WITH startNode(r) as source, endNode(r) as target, type(r) as rel_type, properties(r) as rel_props
         RETURN DISTINCT
@@ -185,7 +190,7 @@ class Neo4jManager:
             rel_type, rel_props
         LIMIT 200
         """
-        return await self.execute_query(query, {"entity_id": entity_id, "depth": depth})
+        return await self.execute_query(query, {"entity_id": entity_id})
 
 
 neo4j_manager = Neo4jManager()

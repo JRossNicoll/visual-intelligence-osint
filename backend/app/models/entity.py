@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import DateTime, Float, Integer, String, Text
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -44,9 +44,15 @@ class Entity(Base, UUIDMixin, TimestampMixin):
     )
     total_sightings: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
 
-    # Source stream info
+    # Source stream/video info
     first_stream_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
     last_stream_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    case_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("cases.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    video_file_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("video_files.id", ondelete="SET NULL"), nullable=True, index=True
+    )
 
     # Cross-session match info
     match_cluster_id: Mapped[Optional[str]] = mapped_column(
@@ -61,7 +67,7 @@ class Detection(Base, UUIDMixin, TimestampMixin):
 
     stream_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     entity_id: Mapped[Optional[str]] = mapped_column(
-        String(36), nullable=True, index=True
+        String(36), ForeignKey("entities.id", ondelete="SET NULL"), nullable=True, index=True
     )
     frame_number: Mapped[int] = mapped_column(Integer, nullable=False)
     timestamp: Mapped[datetime] = mapped_column(
@@ -88,7 +94,9 @@ class Sighting(Base, UUIDMixin, TimestampMixin):
 
     __tablename__ = "sightings"
 
-    entity_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    entity_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("entities.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     stream_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     first_frame: Mapped[int] = mapped_column(Integer, nullable=False)
     last_frame: Mapped[int] = mapped_column(Integer, nullable=False)

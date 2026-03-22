@@ -5,6 +5,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.security import TokenData, get_current_user
 from app.db.session import get_db
 from app.schemas.case import (
     AuditLogEntry,
@@ -37,6 +38,7 @@ router = APIRouter(prefix="/cases", tags=["cases"])
 async def create_case(
     body: CaseCreate,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> CaseDetail:
     """Create a new intelligence case."""
     data = await CaseService.create_case(
@@ -63,6 +65,7 @@ async def list_cases(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> list[CaseSummary]:
     """List cases with optional filtering."""
     cases = await CaseService.list_cases(
@@ -80,6 +83,7 @@ async def get_all_audit_logs(
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> list[AuditLogEntry]:
     """Get all audit log entries with optional filtering."""
     logs = await AuditService.get_logs(
@@ -93,6 +97,7 @@ async def get_all_audit_logs(
 async def get_case(
     case_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> CaseDetail:
     """Get full case details."""
     data = await CaseService.get_case(db, case_id)
@@ -106,6 +111,7 @@ async def update_case(
     case_id: str,
     body: CaseUpdate,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> CaseDetail:
     """Update case fields (title, status, priority, etc.)."""
     data = await CaseService.update_case(
@@ -132,6 +138,7 @@ async def update_case(
 async def create_from_alert(
     alert_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> CaseDetail:
     """Create a case from an alert in one click — auto-populates entities, timeline, related alerts."""
     data = await CaseService.create_from_alert(db, alert_id)
@@ -144,6 +151,7 @@ async def create_from_alert(
 async def create_from_entity(
     entity_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> CaseDetail:
     """Create a case from an entity in one click — auto-populates profile data."""
     data = await CaseService.create_from_entity(db, entity_id)
@@ -162,6 +170,7 @@ async def link_entities(
     case_id: str,
     body: LinkEntitiesRequest,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> CaseActionResponse:
     """Link entities to a case."""
     result = await CaseService.link_entities(db, case_id, body.entity_ids)
@@ -175,6 +184,7 @@ async def link_alerts(
     case_id: str,
     body: LinkAlertsRequest,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> CaseActionResponse:
     """Link alerts to a case."""
     result = await CaseService.link_alerts(db, case_id, body.alert_ids)
@@ -193,6 +203,7 @@ async def add_evidence(
     case_id: str,
     body: EvidenceAdd,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> EvidenceItem:
     """Attach evidence to a case."""
     data = await CaseService.add_evidence(
@@ -218,6 +229,7 @@ async def get_evidence(
     evidence_type: Optional[str] = Query(None),
     limit: int = Query(100, ge=1, le=500),
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> list[EvidenceItem]:
     """Get all evidence for a case."""
     items = await CaseService.get_evidence(db, case_id, evidence_type=evidence_type, limit=limit)
@@ -234,6 +246,7 @@ async def add_note(
     case_id: str,
     body: NoteAdd,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> NoteItem:
     """Add a note to a case."""
     data = await CaseService.add_note(
@@ -249,6 +262,7 @@ async def get_notes(
     case_id: str,
     limit: int = Query(100, ge=1, le=500),
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> list[NoteItem]:
     """Get all notes for a case."""
     items = await CaseService.get_notes(db, case_id, limit=limit)
@@ -265,6 +279,7 @@ async def get_case_timeline(
     case_id: str,
     limit: int = Query(200, ge=1, le=1000),
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> CaseTimeline:
     """Get unified timeline for a case (events, alerts, evidence, notes)."""
     data = await CaseService.get_case_timeline(db, case_id, limit=limit)
@@ -284,6 +299,7 @@ async def get_case_timeline(
 async def generate_summary(
     case_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> CaseIntelSummary:
     """Generate (or regenerate) the intelligence summary for a case."""
     data = await CaseService.generate_case_summary(db, case_id)
@@ -303,6 +319,7 @@ async def get_case_audit(
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> list[AuditLogEntry]:
     """Get audit log entries for a specific case."""
     logs = await AuditService.get_logs(

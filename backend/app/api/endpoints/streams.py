@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.core.security import TokenData, get_current_user
 from app.db.session import get_db
 from app.schemas.stream import (
     StreamCreate,
@@ -26,6 +27,7 @@ router = APIRouter(prefix="/streams", tags=["streams"])
 async def create_stream(
     data: StreamCreate,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> StreamResponse:
     """Create a new video stream source."""
     stream = await StreamService.create_stream(db, data)
@@ -39,6 +41,7 @@ async def list_streams(
     limit: int = Query(50, ge=1, le=500),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> list[StreamResponse]:
     """List all streams with optional filtering."""
     streams = await StreamService.list_streams(db, status, source_type, limit, offset)
@@ -49,6 +52,7 @@ async def list_streams(
 async def get_stream(
     stream_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> StreamResponse:
     """Get a specific stream by ID."""
     stream = await StreamService.get_stream(db, stream_id)
@@ -62,6 +66,7 @@ async def update_stream(
     stream_id: str,
     data: StreamUpdate,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> StreamResponse:
     """Update a stream."""
     stream = await StreamService.update_stream(db, stream_id, data)
@@ -74,6 +79,7 @@ async def update_stream(
 async def delete_stream(
     stream_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> None:
     """Delete a stream."""
     deleted = await StreamService.delete_stream(db, stream_id)
@@ -86,6 +92,7 @@ async def start_stream(
     stream_id: str,
     config: Optional[StreamStartRequest] = None,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> StreamResponse:
     """Start processing a stream."""
     stream = await StreamService.start_stream(db, stream_id)
@@ -98,6 +105,7 @@ async def start_stream(
 async def stop_stream(
     stream_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> StreamResponse:
     """Stop processing a stream."""
     stream = await StreamService.stop_stream(db, stream_id)
@@ -110,6 +118,7 @@ async def stop_stream(
 async def get_stream_status(
     stream_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> StreamStatusResponse:
     """Get real-time stream processing status."""
     stream = await StreamService.get_stream(db, stream_id)
@@ -140,6 +149,7 @@ async def upload_video(
     stream_id: str,
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> StreamResponse:
     """Upload a video file for processing."""
     stream = await StreamService.get_stream(db, stream_id)

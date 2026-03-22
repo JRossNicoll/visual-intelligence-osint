@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.core.security import TokenData, get_current_user
 from app.db.session import get_db
 from app.schemas.target import TargetCreate, TargetResponse, TargetUpdate
 from app.services.target_service import TargetService
@@ -20,6 +21,7 @@ router = APIRouter(prefix="/targets", tags=["targets"])
 async def create_target(
     data: TargetCreate,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> TargetResponse:
     """Create a new intelligence target definition.
 
@@ -39,6 +41,7 @@ async def list_targets(
     limit: int = Query(50, ge=1, le=500),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> list[TargetResponse]:
     """List all targets with optional filtering."""
     targets = await TargetService.list_targets(db, is_active, target_type, limit, offset)
@@ -49,6 +52,7 @@ async def list_targets(
 async def get_target(
     target_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> TargetResponse:
     """Get a specific target by ID."""
     target = await TargetService.get_target(db, target_id)
@@ -62,6 +66,7 @@ async def update_target(
     target_id: str,
     data: TargetUpdate,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> TargetResponse:
     """Update a target definition."""
     target = await TargetService.update_target(db, target_id, data)
@@ -74,6 +79,7 @@ async def update_target(
 async def delete_target(
     target_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> None:
     """Delete a target."""
     deleted = await TargetService.delete_target(db, target_id)
@@ -86,6 +92,7 @@ async def upload_reference_image(
     target_id: str,
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> TargetResponse:
     """Upload a reference image for a target."""
     target = await TargetService.get_target(db, target_id)

@@ -5,6 +5,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.security import TokenData, get_current_user
 from app.db.session import get_db
 from app.schemas.alert import AlertResponse
 from app.services.alert_service import AlertService
@@ -24,6 +25,7 @@ async def list_alerts(
     limit: int = Query(50, ge=1, le=500),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> list[AlertResponse]:
     """List alerts with filtering."""
     alerts = await AlertService.list_alerts(
@@ -44,6 +46,7 @@ async def list_alerts(
 @router.get("/unread-count")
 async def get_unread_count(
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> dict:
     """Get count of unread alerts."""
     count = await AlertService.get_unread_count(db)
@@ -54,6 +57,7 @@ async def get_unread_count(
 async def get_alert(
     alert_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> AlertResponse:
     """Get a specific alert by ID."""
     alert = await AlertService.get_alert(db, alert_id)
@@ -66,6 +70,7 @@ async def get_alert(
 async def mark_alert_read(
     alert_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> AlertResponse:
     """Mark an alert as read."""
     alert = await AlertService.mark_as_read(db, alert_id)
@@ -78,6 +83,7 @@ async def mark_alert_read(
 async def acknowledge_alert(
     alert_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: TokenData = Depends(get_current_user),
 ) -> AlertResponse:
     """Acknowledge an alert."""
     alert = await AlertService.acknowledge_alert(db, alert_id)
