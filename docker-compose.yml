@@ -1,0 +1,290 @@
+version: '3.9'
+
+# ============================================================================
+# VIOSINT - Visual Intelligence OSINT Platform
+# Docker Compose Orchestration
+# ============================================================================
+# Usage:
+#   Development:  docker compose up -d
+#   Production:   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#   GPU Support:  docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+# ============================================================================
+
+services:
+  # --------------------------------------------------------------------------
+  # Data Layer
+  # --------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: viosint-postgres
+    environment:
+      POSTGRES_DB: viosint
+      POSTGRES_USER: viosint
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-viosint_dev_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U viosint -d viosint"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - viosint-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: viosint-redis
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - viosint-network
+
+  neo4j:
+    image: neo4j:5-community
+    container_name: viosint-neo4j
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:-viosint_dev_password}
+      NEO4J_PLUGINS: '["apoc"]'
+      NEO4J_server_memory_heap_initial__size: 512m
+      NEO4J_server_memory_heap_max__size: 1G
+      NEO4J_server_memory_pagecache_size: 256m
+    ports:
+      - "7474:7474"  # Browser UI
+      - "7687:7687"  # Bolt protocol
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:7474 || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - viosint-network
+
+  # --------------------------------------------------------------------------
+  # Backend API
+  # --------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: viosint-backend
+    environment:
+      # App
+      APP_NAME: VIOSINT
+      DEBUG: ${DEBUG:-true}
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
+      CORS_ORIGINS: ${CORS_ORIGINS:-["http://localhost:3000","http://localhost:80"]}
+      DEMO_MODE: ${DEMO_MODE:-false}
+      # Database
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: viosint
+      POSTGRES_USER: viosint
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-viosint_dev_password}
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      # Neo4j
+      NEO4J_URI: bolt://neo4j:7687
+      NEO4J_USER: neo4j
+      NEO4J_PASSWORD: ${NEO4J_PASSWORD:-viosint_dev_password}
+      # CV Pipeline
+      CV_PIPELINE_URL: http://cv-pipeline:8001
+    ports:
+      - "8000:8000"
+    volumes:
+      - upload_data:/app/uploads
+      - thumbnail_data:/app/thumbnails
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - viosint-network
+
+  # --------------------------------------------------------------------------
+  # Computer Vision Pipeline
+  # --------------------------------------------------------------------------
+  cv-pipeline:
+    build:
+      context: ./services/cv-pipeline
+      dockerfile: Dockerfile
+    container_name: viosint-cv-pipeline
+    environment:
+      BACKEND_URL: http://backend:8000
+      BACKEND_API_PREFIX: /api/v1
+      YOLO_MODEL: yolov8n.pt
+      DETECTION_CONFIDENCE: 0.5
+      DETECTION_DEVICE: cpu
+      CLIP_MODEL: ViT-B-32
+      CLIP_PRETRAINED: openai
+      EMBEDDING_DEVICE: cpu
+      PROCESSING_FPS: 10
+      MAX_CONCURRENT_STREAMS: 4
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "8001:8001"
+    volumes:
+      - upload_data:/data/uploads:ro
+      - thumbnail_data:/data/thumbnails
+      - model_cache:/root/.cache  # Cache downloaded models
+    depends_on:
+      backend:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - viosint-network
+
+  # --------------------------------------------------------------------------
+  # Frontend
+  # --------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: viosint-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-ws://localhost:8000}
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - viosint-network
+
+  # --------------------------------------------------------------------------
+  # Intelligence Engine
+  # --------------------------------------------------------------------------
+  intelligence-engine:
+    build:
+      context: .
+      dockerfile: services/intelligence-engine/Dockerfile
+    container_name: viosint-intelligence-engine
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: viosint
+      POSTGRES_USER: viosint
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-viosint_dev_password}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      NEO4J_URI: bolt://neo4j:7687
+      NEO4J_USER: neo4j
+      NEO4J_PASSWORD: ${NEO4J_PASSWORD:-viosint_dev_password}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - viosint-network
+
+  # --------------------------------------------------------------------------
+  # Event Processor
+  # --------------------------------------------------------------------------
+  event-processor:
+    build:
+      context: .
+      dockerfile: services/event-processor/Dockerfile
+    container_name: viosint-event-processor
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      BACKEND_API_URL: http://backend:8000/api/v1
+      INTELLIGENCE_ENGINE_URL: http://intelligence-engine:8002
+    depends_on:
+      backend:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - viosint-network
+
+  # --------------------------------------------------------------------------
+  # Reverse Proxy
+  # --------------------------------------------------------------------------
+  nginx:
+    image: nginx:alpine
+    container_name: viosint-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infra/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - upload_data:/data/uploads:ro
+      - thumbnail_data:/data/thumbnails:ro
+    depends_on:
+      - backend
+      - frontend
+    restart: unless-stopped
+    networks:
+      - viosint-network
+
+# --------------------------------------------------------------------------
+# Volumes
+# --------------------------------------------------------------------------
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  neo4j_data:
+    driver: local
+  neo4j_logs:
+    driver: local
+  upload_data:
+    driver: local
+  thumbnail_data:
+    driver: local
+  model_cache:
+    driver: local
+
+# --------------------------------------------------------------------------
+# Networks
+# --------------------------------------------------------------------------
+networks:
+  viosint-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16

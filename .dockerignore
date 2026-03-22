@@ -1,0 +1,15 @@
+node_modules
+.next
+__pycache__
+*.pyc
+.venv
+venv
+.git
+.env
+.env.local
+*.db
+uploads/
+thumbnails/
+*.pt
+*.pth
+.DS_Store
