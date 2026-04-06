@@ -45,9 +45,23 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     await neo4j_manager.connect()
     logger.info("Neo4j connected")
 
+    # Seed ontology and workflow builtins
+    from app.db.session import async_session_factory
+    from app.services.ontology_service import OntologyService
+    from app.services.workflow_service import WorkflowService
+
+    async with async_session_factory() as db:
+        try:
+            ontology_stats = await OntologyService.seed_builtins(db)
+            workflow_stats = await WorkflowService.seed_builtins(db)
+            await db.commit()
+            logger.info("Ontology seed: %s | Workflow seed: %s", ontology_stats, workflow_stats)
+        except Exception as e:
+            logger.warning("Ontology/workflow seeding failed: %s", e)
+            await db.rollback()
+
     # Demo mode: auto-seed if database is empty
     if settings.DEMO_MODE:
-        from app.db.session import async_session_factory
         from app.services.seed_service import SeedService
 
         async with async_session_factory() as db:

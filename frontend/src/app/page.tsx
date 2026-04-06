@@ -21,6 +21,9 @@ import CaseDetailView from '@/components/CaseDetailView';
 import LoginScreen from '@/components/LoginScreen';
 import Sprint1CaseList from '@/components/Sprint1CaseList';
 import Sprint1CaseDetail from '@/components/Sprint1CaseDetail';
+import OntologyManager from '@/components/OntologyManager';
+import DataSourcesManager from '@/components/DataSourcesManager';
+import WorkflowBuilder from '@/components/WorkflowBuilder';
 import type { Detection } from '@/types';
 import { getGeneralWS, getAlertWS } from '@/lib/websocket';
 import { authApi, getAuthToken } from '@/lib/api';
@@ -215,6 +218,12 @@ export default function Home() {
         ) : (
           <InvestigationView onViewChange={setActiveView} />
         );
+      case 'ontology':
+        return <OntologyManager />;
+      case 'fusion':
+        return <DataSourcesManager />;
+      case 'workflows':
+        return <WorkflowBuilder />;
       default:
         return (
           <Sprint1CaseList

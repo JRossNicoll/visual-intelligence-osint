@@ -7,10 +7,12 @@ from app.api.endpoints import (
     auth,
     case_intel,
     cases,
+    data_fusion,
     entities,
     health,
     intelligence,
     matching,
+    ontology,
     operator,
     pipeline,
     seed,
@@ -18,6 +20,7 @@ from app.api.endpoints import (
     targets,
     videos,
     websocket,
+    workflows,
 )
 
 api_router = APIRouter()
@@ -36,6 +39,9 @@ api_router.include_router(videos.router)
 api_router.include_router(matching.router)
 api_router.include_router(case_intel.router)
 api_router.include_router(seed.router)
+api_router.include_router(ontology.router)
+api_router.include_router(data_fusion.router)
+api_router.include_router(workflows.router)
 
 # Health and WebSocket routes are mounted at root level
 health_router = health.router

@@ -14,6 +14,10 @@ import type {
   CaseTimeline, CaseIntelSummary, AuditLogEntry,
   VideoFile, PendingMatch, CaseIntelligenceResult,
   AuthToken, AuthUser,
+  OntologyEntityType, OntologyRelationType, OntologyRelationship,
+  InferenceRule, ActionDefinition, ActionExecution,
+  DataSource, IngestedRecord, CorrelationRecord, FusionSummaryItem,
+  WorkflowDefinition, WorkflowExecution, StepExecution, ApprovalRequest,
 } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -666,4 +670,185 @@ export const caseIntelligenceApi = {
     fetchAPI<CaseIntelligenceResult>(`/case-intelligence/${caseId}/generate`, {
       method: 'POST',
     }),
+};
+
+// ===================== Ontology API =====================
+
+export const ontologyApi = {
+  listEntityTypes: (includeAbstract?: boolean) => {
+    const q = includeAbstract === false ? '?include_abstract=false' : '';
+    return fetchAPI<OntologyEntityType[]>(`/ontology/entity-types${q}`);
+  },
+  getEntityType: (id: string) => fetchAPI<OntologyEntityType>(`/ontology/entity-types/${id}`),
+  createEntityType: (data: {
+    name: string; display_name: string; description?: string;
+    icon?: string; color?: string; parent_type_id?: string;
+    property_schema?: Record<string, unknown>; is_abstract?: boolean;
+  }) => fetchAPI<OntologyEntityType>('/ontology/entity-types', { method: 'POST', body: JSON.stringify(data) }),
+  getTypeHierarchy: () => fetchAPI<Record<string, unknown>[]>('/ontology/entity-types/hierarchy'),
+
+  listRelationTypes: () => fetchAPI<OntologyRelationType[]>('/ontology/relation-types'),
+  getRelationType: (id: string) => fetchAPI<OntologyRelationType>(`/ontology/relation-types/${id}`),
+  createRelationType: (data: {
+    name: string; display_name: string; description?: string;
+    source_type_id?: string; target_type_id?: string;
+    is_directed?: boolean; is_symmetric?: boolean; propagation_weight?: number;
+  }) => fetchAPI<OntologyRelationType>('/ontology/relation-types', { method: 'POST', body: JSON.stringify(data) }),
+
+  listRelationships: (params?: { entity_id?: string; relation_type_id?: string; min_confidence?: number; limit?: number }) => {
+    const query = new URLSearchParams();
+    if (params?.entity_id) query.set('entity_id', params.entity_id);
+    if (params?.relation_type_id) query.set('relation_type_id', params.relation_type_id);
+    if (params?.min_confidence !== undefined) query.set('min_confidence', params.min_confidence.toString());
+    if (params?.limit) query.set('limit', params.limit.toString());
+    const qs = query.toString();
+    return fetchAPI<OntologyRelationship[]>(`/ontology/relationships${qs ? `?${qs}` : ''}`);
+  },
+
+  listRules: (activeOnly?: boolean) => {
+    const q = activeOnly === false ? '?active_only=false' : '';
+    return fetchAPI<InferenceRule[]>(`/ontology/rules${q}`);
+  },
+  getRule: (id: string) => fetchAPI<InferenceRule>(`/ontology/rules/${id}`),
+  createRule: (data: {
+    name: string; description?: string; conditions: Record<string, unknown>;
+    actions: Array<Record<string, unknown>>; applicable_entity_types?: string[];
+    priority?: number; cooldown_seconds?: number;
+  }) => fetchAPI<InferenceRule>('/ontology/rules', { method: 'POST', body: JSON.stringify(data) }),
+
+  listActions: (category?: string) => {
+    const q = category ? `?category=${category}` : '';
+    return fetchAPI<ActionDefinition[]>(`/ontology/actions${q}`);
+  },
+  getAction: (id: string) => fetchAPI<ActionDefinition>(`/ontology/actions/${id}`),
+  listActionExecutions: (params?: { entity_id?: string; status?: string; limit?: number }) => {
+    const query = new URLSearchParams();
+    if (params?.entity_id) query.set('entity_id', params.entity_id);
+    if (params?.status) query.set('status', params.status);
+    if (params?.limit) query.set('limit', params.limit.toString());
+    const qs = query.toString();
+    return fetchAPI<ActionExecution[]>(`/ontology/actions/executions/history${qs ? `?${qs}` : ''}`);
+  },
+
+  seed: () => fetchAPI<{ status: string; seeded: Record<string, number> }>('/ontology/seed', { method: 'POST' }),
+};
+
+// ===================== Data Fusion API =====================
+
+export const fusionApi = {
+  listSources: (params?: { source_type?: string; status?: string; limit?: number }) => {
+    const query = new URLSearchParams();
+    if (params?.source_type) query.set('source_type', params.source_type);
+    if (params?.status) query.set('status', params.status);
+    if (params?.limit) query.set('limit', params.limit.toString());
+    const qs = query.toString();
+    return fetchAPI<DataSource[]>(`/fusion/sources${qs ? `?${qs}` : ''}`);
+  },
+  getSource: (id: string) => fetchAPI<DataSource>(`/fusion/sources/${id}`),
+  getSourceStats: () => fetchAPI<Record<string, unknown>>('/fusion/sources/stats'),
+  createSource: (data: {
+    name: string; display_name: string; description?: string;
+    source_type: string; adapter_type?: string;
+    connection_config?: Record<string, unknown>; field_mapping?: Record<string, unknown>;
+    reliability_rating?: string; credibility_rating?: string;
+  }) => fetchAPI<DataSource>('/fusion/sources', { method: 'POST', body: JSON.stringify(data) }),
+  updateSource: (id: string, data: Record<string, unknown>) =>
+    fetchAPI<DataSource>(`/fusion/sources/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteSource: (id: string) =>
+    fetchAPI<{ status: string }>(`/fusion/sources/${id}`, { method: 'DELETE' }),
+
+  ingestRecord: (data: { data_source_id: string; raw_data: Record<string, unknown>; external_id?: string }) =>
+    fetchAPI<IngestedRecord>('/fusion/ingest', { method: 'POST', body: JSON.stringify(data) }),
+  listRecords: (params?: { data_source_id?: string; processing_status?: string; limit?: number }) => {
+    const query = new URLSearchParams();
+    if (params?.data_source_id) query.set('data_source_id', params.data_source_id);
+    if (params?.processing_status) query.set('processing_status', params.processing_status);
+    if (params?.limit) query.set('limit', params.limit.toString());
+    const qs = query.toString();
+    return fetchAPI<IngestedRecord[]>(`/fusion/records${qs ? `?${qs}` : ''}`);
+  },
+
+  correlatePending: (batchSize?: number) => {
+    const q = batchSize ? `?batch_size=${batchSize}` : '';
+    return fetchAPI<Record<string, unknown>>(`/fusion/correlate/pending${q}`, { method: 'POST' });
+  },
+  listCorrelations: (params?: { entity_id?: string; status?: string; limit?: number }) => {
+    const query = new URLSearchParams();
+    if (params?.entity_id) query.set('entity_id', params.entity_id);
+    if (params?.status) query.set('status', params.status);
+    if (params?.limit) query.set('limit', params.limit.toString());
+    const qs = query.toString();
+    return fetchAPI<CorrelationRecord[]>(`/fusion/correlations${qs ? `?${qs}` : ''}`);
+  },
+  reviewCorrelation: (id: string, decision: string) =>
+    fetchAPI<CorrelationRecord>(`/fusion/correlations/${id}/review`, {
+      method: 'POST', body: JSON.stringify({ decision }),
+    }),
+
+  listFusionSummaries: (minSources?: number) => {
+    const q = minSources ? `?min_sources=${minSources}` : '';
+    return fetchAPI<FusionSummaryItem[]>(`/fusion/summaries${q}`);
+  },
+  getFusionSummary: (entityId: string) => fetchAPI<FusionSummaryItem>(`/fusion/summaries/${entityId}`),
+  computeFusionSummary: (entityId: string) =>
+    fetchAPI<FusionSummaryItem>(`/fusion/summaries/${entityId}/compute`, { method: 'POST' }),
+};
+
+// ===================== Workflow API =====================
+
+export const workflowApi = {
+  listDefinitions: (params?: { category?: string; active_only?: boolean; limit?: number }) => {
+    const query = new URLSearchParams();
+    if (params?.category) query.set('category', params.category);
+    if (params?.active_only !== undefined) query.set('active_only', params.active_only.toString());
+    if (params?.limit) query.set('limit', params.limit.toString());
+    const qs = query.toString();
+    return fetchAPI<WorkflowDefinition[]>(`/workflows/definitions${qs ? `?${qs}` : ''}`);
+  },
+  getDefinition: (id: string) => fetchAPI<WorkflowDefinition>(`/workflows/definitions/${id}`),
+  createDefinition: (data: {
+    name: string; display_name: string; description?: string;
+    category?: string; trigger_config: Record<string, unknown>;
+    steps: Array<Record<string, unknown>>; sla_seconds?: number;
+  }) => fetchAPI<WorkflowDefinition>('/workflows/definitions', { method: 'POST', body: JSON.stringify(data) }),
+  deleteDefinition: (id: string) =>
+    fetchAPI<{ status: string }>(`/workflows/definitions/${id}`, { method: 'DELETE' }),
+
+  listExecutions: (params?: { workflow_definition_id?: string; status?: string; limit?: number }) => {
+    const query = new URLSearchParams();
+    if (params?.workflow_definition_id) query.set('workflow_definition_id', params.workflow_definition_id);
+    if (params?.status) query.set('status', params.status);
+    if (params?.limit) query.set('limit', params.limit.toString());
+    const qs = query.toString();
+    return fetchAPI<WorkflowExecution[]>(`/workflows/executions${qs ? `?${qs}` : ''}`);
+  },
+  getExecution: (id: string) => fetchAPI<WorkflowExecution>(`/workflows/executions/${id}`),
+  getExecutionStats: () => fetchAPI<Record<string, unknown>>('/workflows/executions/stats'),
+  getExecutionSteps: (id: string) => fetchAPI<StepExecution[]>(`/workflows/executions/${id}/steps`),
+  startExecution: (data: {
+    workflow_definition_id: string; trigger_type?: string;
+    trigger_data?: Record<string, unknown>; context?: Record<string, unknown>;
+    entity_id?: string; case_id?: string; alert_id?: string;
+  }) => fetchAPI<WorkflowExecution>('/workflows/executions', { method: 'POST', body: JSON.stringify(data) }),
+  advanceExecution: (id: string, stepResult?: Record<string, unknown>) =>
+    fetchAPI<WorkflowExecution>(`/workflows/executions/${id}/advance`, {
+      method: 'POST', body: JSON.stringify({ step_result: stepResult }),
+    }),
+  cancelExecution: (id: string, reason?: string) =>
+    fetchAPI<WorkflowExecution>(`/workflows/executions/${id}/cancel`, {
+      method: 'POST', body: JSON.stringify({ reason: reason || '' }),
+    }),
+
+  listPendingApprovals: (role?: string) => {
+    const q = role ? `?role=${role}` : '';
+    return fetchAPI<ApprovalRequest[]>(`/workflows/approvals${q}`);
+  },
+  decideApproval: (id: string, decision: string, comment?: string) =>
+    fetchAPI<ApprovalRequest>(`/workflows/approvals/${id}/decide`, {
+      method: 'POST', body: JSON.stringify({ decision, comment: comment || '' }),
+    }),
+
+  checkSlaBreaches: () => fetchAPI<{ breaches: Record<string, unknown>[]; count: number }>('/workflows/sla/breaches'),
+
+  seed: () => fetchAPI<{ status: string; seeded: Record<string, number> }>('/workflows/seed', { method: 'POST' }),
 };

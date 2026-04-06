@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Activity, Bell, BookOpen, Briefcase, Brain, Clock, Eye, GitBranch, MessageSquare, Radio, Search, Shield, WifiOff } from 'lucide-react';
+import { Activity, Bell, BookOpen, Briefcase, Brain, Clock, Database, Eye, GitBranch, Layers, MessageSquare, Radio, Search, Shield, Workflow, WifiOff } from 'lucide-react';
 import { alertsApi } from '@/lib/api';
 
 interface HeaderProps {
@@ -42,6 +42,9 @@ export default function Header({ activeView, onViewChange, wsConnected }: Header
     { id: 'streams', label: 'STREAMS', icon: Eye },
     { id: 'entities', label: 'ENTITIES', icon: Eye },
     { id: 'alerts', label: 'ALERTS', icon: Bell },
+    { id: 'ontology', label: 'ONTOLOGY', icon: Layers },
+    { id: 'fusion', label: 'FUSION', icon: Database },
+    { id: 'workflows', label: 'WORKFLOWS', icon: Workflow },
   ];
 
   return (

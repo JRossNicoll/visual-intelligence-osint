@@ -623,3 +623,225 @@ export interface AuthUser {
   username: string;
   role: string;
 }
+
+// ===================== Ontology Types =====================
+
+export interface OntologyEntityType {
+  id: string;
+  name: string;
+  display_name: string;
+  description: string;
+  icon?: string;
+  color?: string;
+  parent_type_id?: string;
+  property_schema?: Record<string, unknown>;
+  is_abstract: boolean;
+  is_builtin: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OntologyRelationType {
+  id: string;
+  name: string;
+  display_name: string;
+  description: string;
+  source_type_id?: string;
+  target_type_id?: string;
+  is_directed: boolean;
+  is_symmetric: boolean;
+  propagation_weight: number;
+  property_schema?: Record<string, unknown>;
+  is_builtin: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OntologyRelationship {
+  id: string;
+  relation_type_id: string;
+  relation_type_name?: string;
+  source_entity_id: string;
+  target_entity_id: string;
+  confidence: number;
+  weight: number;
+  properties?: Record<string, unknown>;
+  source_system?: string;
+  is_inferred: boolean;
+  created_at: string;
+}
+
+export interface InferenceRule {
+  id: string;
+  name: string;
+  description: string;
+  conditions: Record<string, unknown>;
+  actions: Array<Record<string, unknown>>;
+  applicable_entity_types?: string[];
+  priority: number;
+  cooldown_seconds: number;
+  is_active: boolean;
+  times_fired: number;
+  last_fired_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ActionDefinition {
+  id: string;
+  name: string;
+  display_name: string;
+  description: string;
+  category: string;
+  execution_type: string;
+  parameter_schema?: Record<string, unknown>;
+  webhook_url?: string;
+  webhook_method?: string;
+  is_builtin: boolean;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ActionExecution {
+  id: string;
+  action_definition_id: string;
+  action_name?: string;
+  entity_id?: string;
+  case_id?: string;
+  triggered_by: string;
+  parameters?: Record<string, unknown>;
+  result?: Record<string, unknown>;
+  status: string;
+  error_message?: string;
+  started_at: string;
+  completed_at?: string;
+}
+
+// ===================== Data Fusion Types =====================
+
+export interface DataSource {
+  id: string;
+  name: string;
+  display_name: string;
+  description: string;
+  source_type: string;
+  adapter_type: string;
+  connection_config?: Record<string, unknown>;
+  field_mapping?: Record<string, unknown>;
+  reliability_rating: string;
+  credibility_rating: string;
+  status: string;
+  last_sync_at?: string;
+  total_records_ingested: number;
+  total_correlations_found: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IngestedRecord {
+  id: string;
+  data_source_id: string;
+  external_id?: string;
+  raw_data: Record<string, unknown>;
+  normalized_data?: Record<string, unknown>;
+  entity_hints?: Record<string, unknown>;
+  processing_status: string;
+  correlation_status: string;
+  matched_entity_id?: string;
+  confidence_score?: number;
+  ingested_at: string;
+}
+
+export interface CorrelationRecord {
+  id: string;
+  ingested_record_id: string;
+  matched_entity_id: string;
+  data_source_id: string;
+  confidence_score: number;
+  correlation_method: string;
+  matching_fields?: Record<string, unknown>;
+  status: string;
+  reviewed_by?: string;
+  reviewed_at?: string;
+  created_at: string;
+}
+
+export interface FusionSummaryItem {
+  id: string;
+  entity_id: string;
+  source_count: number;
+  total_records: number;
+  fused_confidence: number;
+  source_breakdown?: Record<string, unknown>;
+  field_provenance?: Record<string, unknown>;
+  last_computed_at: string;
+}
+
+// ===================== Workflow Types =====================
+
+export interface WorkflowDefinition {
+  id: string;
+  name: string;
+  display_name: string;
+  description: string;
+  category: string;
+  trigger_config: Record<string, unknown>;
+  steps: Array<Record<string, unknown>>;
+  sla_seconds?: number;
+  escalation_policy?: Record<string, unknown>;
+  is_active: boolean;
+  is_builtin: boolean;
+  total_executions: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WorkflowExecution {
+  id: string;
+  workflow_definition_id: string;
+  workflow_name?: string;
+  status: string;
+  trigger_type: string;
+  trigger_data?: Record<string, unknown>;
+  context?: Record<string, unknown>;
+  current_step_index: number;
+  entity_id?: string;
+  case_id?: string;
+  alert_id?: string;
+  initiated_by: string;
+  started_at: string;
+  completed_at?: string;
+  sla_deadline?: string;
+  sla_breached: boolean;
+}
+
+export interface StepExecution {
+  id: string;
+  workflow_execution_id: string;
+  step_index: number;
+  step_name: string;
+  step_type: string;
+  status: string;
+  input_data?: Record<string, unknown>;
+  output_data?: Record<string, unknown>;
+  error_message?: string;
+  started_at?: string;
+  completed_at?: string;
+}
+
+export interface ApprovalRequest {
+  id: string;
+  workflow_execution_id: string;
+  step_execution_id: string;
+  workflow_name?: string;
+  step_name?: string;
+  required_role?: string;
+  reason: string;
+  status: string;
+  decided_by?: string;
+  decided_at?: string;
+  decision_comment?: string;
+  expires_at?: string;
+  created_at: string;
+}
