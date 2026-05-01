@@ -76,7 +76,7 @@ function EntityDetail({ entity, onClose }: EntityDetailProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/60"
         onClick={onClose}
       />
       <motion.div
@@ -84,30 +84,30 @@ function EntityDetail({ entity, onClose }: EntityDetailProps) {
         animate={{ x: 0 }}
         exit={{ x: '100%' }}
         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-        className="relative w-full max-w-lg h-full bg-intel-surface/95 backdrop-blur-xl border-l border-intel-border/50 overflow-y-auto"
+        className="relative w-full max-w-lg h-full bg-intel-surface/95 border-l border-intel-border overflow-y-auto"
       >
         {/* Header */}
-        <div className="sticky top-0 bg-intel-surface/90 backdrop-blur-lg border-b border-intel-border/30 p-5 z-10">
+        <div className="sticky top-0 bg-intel-surface/90 border-b border-intel-border p-5 z-10">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className={cn('p-2.5 rounded-xl border', typeColor)}>
                 {typeIcon}
               </div>
               <div>
-                <h3 className="text-base font-bold text-white">{entity.label}</h3>
-                <p className="text-xs text-gray-500 capitalize">{entity.entity_type}</p>
+                <h3 className="text-base font-semibold text-white">{entity.label}</h3>
+                <p className="text-xs text-zinc-500 capitalize">{entity.entity_type}</p>
               </div>
             </div>
             <button
               onClick={onClose}
               className="p-2 rounded-lg hover:bg-white/5 transition-colors"
             >
-              <X className="w-4 h-4 text-gray-400" />
+              <X className="w-4 h-4 text-zinc-400" />
             </button>
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 p-1 bg-intel-bg/60 rounded-xl">
+          <div className="flex gap-1 p-1 bg-intel-bg rounded-xl">
             {(['overview', 'graph', 'timeline'] as const).map((tab) => (
               <button
                 key={tab}
@@ -116,7 +116,7 @@ function EntityDetail({ entity, onClose }: EntityDetailProps) {
                   'flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all capitalize',
                   activeTab === tab
                     ? 'bg-intel-card text-white shadow-card'
-                    : 'text-gray-500 hover:text-gray-300'
+                    : 'text-zinc-500 hover:text-zinc-300'
                 )}
               >
                 {tab}
@@ -131,9 +131,9 @@ function EntityDetail({ entity, onClose }: EntityDetailProps) {
             <div className="space-y-4">
               {/* Key Stats */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="glass-card rounded-xl p-4">
-                  <div className="text-[11px] text-gray-500 mb-1.5 font-medium">Confidence</div>
-                  <div className="text-xl font-bold text-white">
+                <div className="card rounded-xl p-4">
+                  <div className="text-[11px] text-zinc-500 mb-1.5 font-medium">Confidence</div>
+                  <div className="text-xl font-semibold text-white">
                     {Math.round(entity.confidence * 100)}%
                   </div>
                   <div className="mt-2.5 h-1.5 bg-intel-bg rounded-full overflow-hidden">
@@ -145,31 +145,31 @@ function EntityDetail({ entity, onClose }: EntityDetailProps) {
                     />
                   </div>
                 </div>
-                <div className="glass-card rounded-xl p-4">
-                  <div className="text-[11px] text-gray-500 mb-1.5 font-medium">Total Sightings</div>
-                  <div className="text-xl font-bold text-white">{entity.total_sightings}</div>
-                  <div className="text-[11px] text-gray-600 mt-1">across sessions</div>
+                <div className="card rounded-xl p-4">
+                  <div className="text-[11px] text-zinc-500 mb-1.5 font-medium">Total Sightings</div>
+                  <div className="text-xl font-semibold text-white">{entity.total_sightings}</div>
+                  <div className="text-[11px] text-zinc-600 mt-1">across sessions</div>
                 </div>
               </div>
 
               {/* Timestamps */}
-              <div className="glass-card rounded-xl p-4 space-y-3">
-                <h4 className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest">Temporal Data</h4>
+              <div className="card rounded-xl p-4 space-y-3">
+                <h4 className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">Temporal Data</h4>
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-400 flex items-center gap-2">
+                    <span className="text-zinc-400 flex items-center gap-2">
                       <Clock className="w-3.5 h-3.5" /> First Seen
                     </span>
                     <span className="text-white font-mono text-xs">{formatTimestamp(entity.first_seen)}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-400 flex items-center gap-2">
+                    <span className="text-zinc-400 flex items-center gap-2">
                       <Clock className="w-3.5 h-3.5" /> Last Seen
                     </span>
                     <span className="text-white font-mono text-xs">{formatTimestamp(entity.last_seen)}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-400 flex items-center gap-2">
+                    <span className="text-zinc-400 flex items-center gap-2">
                       <Activity className="w-3.5 h-3.5" /> Duration
                     </span>
                     <span className="text-white text-xs">{formatRelativeTime(entity.first_seen)}</span>
@@ -179,14 +179,14 @@ function EntityDetail({ entity, onClose }: EntityDetailProps) {
 
               {/* Attributes */}
               {entity.attributes && Object.keys(entity.attributes).length > 0 && (
-                <div className="glass-card rounded-xl p-4">
-                  <h4 className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">
+                <div className="card rounded-xl p-4">
+                  <h4 className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest mb-3">
                     Extracted Attributes
                   </h4>
                   <div className="space-y-2">
                     {Object.entries(entity.attributes).map(([key, value]) => (
                       <div key={key} className="flex items-center justify-between">
-                        <span className="text-sm text-gray-400 capitalize">
+                        <span className="text-sm text-zinc-400 capitalize">
                           {key.replace(/_/g, ' ')}
                         </span>
                         <span className="text-sm text-intel-accent font-medium capitalize">
@@ -199,23 +199,23 @@ function EntityDetail({ entity, onClose }: EntityDetailProps) {
               )}
 
               {/* Identity */}
-              <div className="glass-card rounded-xl p-4">
-                <h4 className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">
+              <div className="card rounded-xl p-4">
+                <h4 className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest mb-3">
                   Identity Information
                 </h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-400 flex items-center gap-2">
+                    <span className="text-zinc-400 flex items-center gap-2">
                       <Fingerprint className="w-3.5 h-3.5" /> Entity ID
                     </span>
-                    <span className="text-white font-mono text-[11px] bg-intel-bg/60 px-2 py-0.5 rounded">{entity.id.slice(0, 12)}...</span>
+                    <span className="text-white font-mono text-[11px] bg-intel-bg px-2 py-0.5 rounded">{entity.id.slice(0, 12)}...</span>
                   </div>
                   {entity.match_cluster_id && (
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-400 flex items-center gap-2">
+                      <span className="text-zinc-400 flex items-center gap-2">
                         <Layers className="w-3.5 h-3.5" /> Cluster
                       </span>
-                      <span className="text-white font-mono text-[11px] bg-intel-bg/60 px-2 py-0.5 rounded">
+                      <span className="text-white font-mono text-[11px] bg-intel-bg px-2 py-0.5 rounded">
                         {entity.match_cluster_id.slice(0, 12)}...
                       </span>
                     </div>
@@ -227,13 +227,13 @@ function EntityDetail({ entity, onClose }: EntityDetailProps) {
 
           {activeTab === 'graph' && (
             <div className="space-y-4">
-              <div className="glass-card rounded-xl p-4">
-                <h4 className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">
+              <div className="card rounded-xl p-4">
+                <h4 className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest mb-3">
                   Relationship Graph
                 </h4>
                 {graph && graph.nodes.length > 0 ? (
                   <div className="space-y-3">
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                    <div className="flex items-center gap-4 text-xs text-zinc-500">
                       <span className="font-mono">{graph.nodes.length} nodes</span>
                       <span className="font-mono">{graph.edges.length} relationships</span>
                     </div>
@@ -241,7 +241,7 @@ function EntityDetail({ entity, onClose }: EntityDetailProps) {
                       {graph.nodes.map((node) => (
                         <div
                           key={node.id}
-                          className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.02] border border-intel-border/20"
+                          className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.02] border border-intel-border"
                         >
                           <div className="w-8 h-8 rounded-full bg-intel-accent/10 flex items-center justify-center">
                             {node.labels.includes('Entity') ? (
@@ -254,19 +254,19 @@ function EntityDetail({ entity, onClose }: EntityDetailProps) {
                             <p className="text-xs font-medium text-white truncate">
                               {String(node.properties.label || node.properties.name || node.id).slice(0, 30)}
                             </p>
-                            <p className="text-[10px] text-gray-500">{node.labels.join(', ')}</p>
+                            <p className="text-[10px] text-zinc-500">{node.labels.join(', ')}</p>
                           </div>
                         </div>
                       ))}
                     </div>
                     {graph.edges.length > 0 && (
                       <>
-                        <h5 className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mt-4 mb-2">
+                        <h5 className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest mt-4 mb-2">
                           Relationships
                         </h5>
                         <div className="space-y-1.5">
                           {graph.edges.map((edge, i) => (
-                            <div key={i} className="flex items-center gap-2 text-xs text-gray-400 p-2 bg-white/[0.01] rounded-lg">
+                            <div key={i} className="flex items-center gap-2 text-xs text-zinc-400 p-2 bg-white/[0.01] rounded-lg">
                               <span className="font-mono text-[10px]">{edge.source.slice(0, 8)}</span>
                               <ChevronRight className="w-3 h-3 text-intel-accent" />
                               <span className="text-intel-accent font-medium">{edge.type}</span>
@@ -279,7 +279,7 @@ function EntityDetail({ entity, onClose }: EntityDetailProps) {
                     )}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500 text-center py-6">No graph data available</p>
+                  <p className="text-sm text-zinc-500 text-center py-6">No graph data available</p>
                 )}
               </div>
             </div>
@@ -287,8 +287,8 @@ function EntityDetail({ entity, onClose }: EntityDetailProps) {
 
           {activeTab === 'timeline' && (
             <div className="space-y-4">
-              <div className="glass-card rounded-xl p-4">
-                <h4 className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest mb-3">
+              <div className="card rounded-xl p-4">
+                <h4 className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest mb-3">
                   Sighting Timeline
                 </h4>
                 {timeline.length > 0 ? (
@@ -296,7 +296,7 @@ function EntityDetail({ entity, onClose }: EntityDetailProps) {
                     {timeline.map((entry, i) => (
                       <div
                         key={entry.id}
-                        className="flex items-start gap-3 p-3 rounded-lg bg-white/[0.02] border border-intel-border/20"
+                        className="flex items-start gap-3 p-3 rounded-lg bg-white/[0.02] border border-intel-border"
                       >
                         <div className="relative flex flex-col items-center">
                           <div className="w-2.5 h-2.5 rounded-full bg-intel-accent/60" />
@@ -313,10 +313,10 @@ function EntityDetail({ entity, onClose }: EntityDetailProps) {
                               {Math.round(entry.avg_confidence * 100)}%
                             </span>
                           </div>
-                          <p className="text-[11px] text-gray-500 mt-0.5">
+                          <p className="text-[11px] text-zinc-500 mt-0.5">
                             {entry.detection_count} detections
                           </p>
-                          <p className="text-[10px] text-gray-600 mt-0.5">
+                          <p className="text-[10px] text-zinc-600 mt-0.5">
                             {formatTimestamp(entry.first_timestamp)} &mdash; {formatTimestamp(entry.last_timestamp)}
                           </p>
                         </div>
@@ -324,7 +324,7 @@ function EntityDetail({ entity, onClose }: EntityDetailProps) {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500 text-center py-6">No timeline data available</p>
+                  <p className="text-sm text-zinc-500 text-center py-6">No timeline data available</p>
                 )}
               </div>
             </div>
@@ -390,25 +390,25 @@ export default function EntitiesView() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-white tracking-tight">Tracked Entities</h2>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h2 className="text-xl font-semibold text-white">Tracked Entities</h2>
+          <p className="text-sm text-zinc-500 mt-0.5">
             Browse and analyze detected objects across all streams
           </p>
         </div>
-        <span className="text-sm text-gray-500 font-mono">{entities.length} results</span>
+        <span className="text-sm text-zinc-500 font-mono">{entities.length} results</span>
       </div>
 
       {/* Filters */}
       <div className="flex items-center gap-3 flex-wrap">
         {/* Search */}
         <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
           <input
             type="text"
             placeholder="Search entities..."
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setPage(0); }}
-            className="w-full pl-10 pr-4 py-2 bg-intel-bg/80 border border-intel-border/50 rounded-xl text-white text-sm focus:outline-none focus:border-intel-accent/50 focus:shadow-glow-sm transition-all placeholder-gray-600"
+            className="w-full pl-10 pr-4 py-2 bg-intel-bg border border-intel-border rounded-lg text-white text-sm focus:outline-none focus:border-intel-accent/40 transition-colors placeholder-zinc-600"
           />
         </div>
 
@@ -420,7 +420,7 @@ export default function EntitiesView() {
               'px-3 py-1.5 rounded-lg text-xs font-medium border transition-all',
               !filterType
                 ? 'bg-intel-accent/10 text-intel-accent border-intel-accent/20'
-                : 'text-gray-400 border-intel-border/30 hover:text-white'
+                : 'text-zinc-400 border-intel-border hover:text-white'
             )}
           >
             All
@@ -433,7 +433,7 @@ export default function EntitiesView() {
                 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all',
                 filterType === type
                   ? 'bg-intel-accent/10 text-intel-accent border-intel-accent/20'
-                  : 'text-gray-400 border-intel-border/30 hover:text-white'
+                  : 'text-zinc-400 border-intel-border hover:text-white'
               )}
             >
               {typeIcon(type)}
@@ -445,17 +445,17 @@ export default function EntitiesView() {
 
       {/* Entity Grid */}
       {loading ? (
-        <div className="flex items-center justify-center py-20 text-gray-500">
+        <div className="flex items-center justify-center py-20 text-zinc-500">
           <Eye className="w-5 h-5 animate-pulse mr-2" />
           <span className="text-sm">Loading entities...</span>
         </div>
       ) : entities.length === 0 ? (
         <div className="text-center py-20">
-          <div className="w-16 h-16 rounded-2xl bg-intel-card flex items-center justify-center mx-auto mb-4 border border-intel-border/30">
-            <Eye className="w-7 h-7 text-gray-600" />
+          <div className="w-16 h-16 rounded-xl bg-intel-card flex items-center justify-center mx-auto mb-4 border border-intel-border">
+            <Eye className="w-7 h-7 text-zinc-600" />
           </div>
-          <p className="text-gray-400 font-medium">No entities found</p>
-          <p className="text-sm text-gray-600 mt-1">Entities will appear once detection begins</p>
+          <p className="text-zinc-400 font-medium">No entities found</p>
+          <p className="text-sm text-zinc-600 mt-1">Entities will appear once detection begins</p>
         </div>
       ) : (
         <motion.div
@@ -470,7 +470,7 @@ export default function EntitiesView() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.02 }}
               onClick={() => setSelectedEntity(entity)}
-              className="glass-card glass-card-hover rounded-xl p-4 text-left w-full group"
+              className="card card-hover rounded-xl p-4 text-left w-full group"
             >
               <div className="flex items-start gap-3">
                 <div className={cn('p-2 rounded-lg border flex-shrink-0', typeColor(entity.entity_type))}>
@@ -480,13 +480,13 @@ export default function EntitiesView() {
                   <h3 className="text-sm font-semibold text-white truncate group-hover:text-intel-accent transition-colors">
                     {entity.label}
                   </h3>
-                  <p className="text-[11px] text-gray-500 capitalize mt-0.5">{entity.entity_type}</p>
+                  <p className="text-[11px] text-zinc-500 capitalize mt-0.5">{entity.entity_type}</p>
                 </div>
-                <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-intel-accent transition-colors flex-shrink-0 mt-0.5" />
+                <ChevronRight className="w-4 h-4 text-zinc-600 group-hover:text-intel-accent transition-colors flex-shrink-0 mt-0.5" />
               </div>
 
               {/* Stats Row */}
-              <div className="flex items-center gap-3 mt-3 text-[11px] text-gray-500">
+              <div className="flex items-center gap-3 mt-3 text-[11px] text-zinc-500">
                 <span className="flex items-center gap-1">
                   <Eye className="w-3 h-3" /> {entity.total_sightings}
                 </span>
@@ -499,7 +499,7 @@ export default function EntitiesView() {
               </div>
 
               {/* Confidence Bar */}
-              <div className="mt-2.5 h-1 bg-intel-bg/60 rounded-full overflow-hidden">
+              <div className="mt-2.5 h-1 bg-intel-bg rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-intel-accent to-intel-cyan rounded-full transition-all"
                   style={{ width: `${entity.confidence * 100}%` }}
@@ -516,15 +516,15 @@ export default function EntitiesView() {
           <button
             onClick={() => setPage(Math.max(0, page - 1))}
             disabled={page === 0}
-            className="px-3 py-1.5 text-xs font-medium text-gray-400 border border-intel-border/30 rounded-lg hover:text-white disabled:opacity-30 transition-colors"
+            className="px-3 py-1.5 text-xs font-medium text-zinc-400 border border-intel-border rounded-lg hover:text-white disabled:opacity-30 transition-colors"
           >
             Previous
           </button>
-          <span className="text-xs text-gray-500 font-mono px-3">Page {page + 1}</span>
+          <span className="text-xs text-zinc-500 font-mono px-3">Page {page + 1}</span>
           <button
             onClick={() => setPage(page + 1)}
             disabled={entities.length < pageSize}
-            className="px-3 py-1.5 text-xs font-medium text-gray-400 border border-intel-border/30 rounded-lg hover:text-white disabled:opacity-30 transition-colors"
+            className="px-3 py-1.5 text-xs font-medium text-zinc-400 border border-intel-border rounded-lg hover:text-white disabled:opacity-30 transition-colors"
           >
             Next
           </button>

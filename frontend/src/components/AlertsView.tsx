@@ -48,14 +48,14 @@ function AlertDetail({ alert, onClose, onAcknowledge, onMarkRead }: AlertDetailP
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/60"
         onClick={onClose}
       />
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 10 }}
-        className="relative w-full max-w-md glass-card rounded-2xl overflow-hidden shadow-2xl"
+        className="relative w-full max-w-md card rounded-2xl overflow-hidden shadow-2xl"
       >
         {/* Severity Banner */}
         <div className={cn(
@@ -66,14 +66,14 @@ function AlertDetail({ alert, onClose, onAcknowledge, onMarkRead }: AlertDetailP
             <div className="flex items-center gap-3">
               <AlertTriangle className={cn(
                 'w-5 h-5',
-                severityIconColor[alert.severity] || 'text-gray-400'
+                severityIconColor[alert.severity] || 'text-zinc-400'
               )} />
               <span className="text-sm font-bold uppercase tracking-wider text-white">
                 {alert.severity} - {alert.alert_type.replace(/_/g, ' ')}
               </span>
             </div>
             <button onClick={onClose} className="p-1 rounded-lg hover:bg-white/10 transition-colors">
-              <X className="w-4 h-4 text-gray-400" />
+              <X className="w-4 h-4 text-zinc-400" />
             </button>
           </div>
         </div>
@@ -81,39 +81,39 @@ function AlertDetail({ alert, onClose, onAcknowledge, onMarkRead }: AlertDetailP
         {/* Content */}
         <div className="p-6 space-y-4">
           <div>
-            <h3 className="text-base font-bold text-white mb-1">{alert.title}</h3>
+            <h3 className="text-base font-semibold text-white mb-1">{alert.title}</h3>
             {alert.description && (
-              <p className="text-sm text-gray-400">{alert.description}</p>
+              <p className="text-sm text-zinc-400">{alert.description}</p>
             )}
           </div>
 
           {/* Details Grid */}
           <div className="grid grid-cols-2 gap-3">
             {alert.confidence != null && (
-              <div className="glass-card rounded-xl p-3">
-                <div className="text-[10px] text-gray-500 mb-1 font-medium">Confidence</div>
-                <div className="text-sm font-bold text-white">
+              <div className="card rounded-xl p-3">
+                <div className="text-[10px] text-zinc-500 mb-1 font-medium">Confidence</div>
+                <div className="text-sm font-semibold text-white">
                   {Math.round(alert.confidence * 100)}%
                 </div>
               </div>
             )}
             {alert.similarity_score != null && (
-              <div className="glass-card rounded-xl p-3">
-                <div className="text-[10px] text-gray-500 mb-1 font-medium">Similarity</div>
+              <div className="card rounded-xl p-3">
+                <div className="text-[10px] text-zinc-500 mb-1 font-medium">Similarity</div>
                 <div className="text-sm font-bold text-intel-accent">
                   {Math.round(alert.similarity_score * 100)}%
                 </div>
               </div>
             )}
             {alert.frame_number != null && (
-              <div className="glass-card rounded-xl p-3">
-                <div className="text-[10px] text-gray-500 mb-1 font-medium">Frame</div>
-                <div className="text-sm font-bold text-white font-mono">#{alert.frame_number}</div>
+              <div className="card rounded-xl p-3">
+                <div className="text-[10px] text-zinc-500 mb-1 font-medium">Frame</div>
+                <div className="text-sm font-semibold text-white font-mono">#{alert.frame_number}</div>
               </div>
             )}
-            <div className="glass-card rounded-xl p-3">
-              <div className="text-[10px] text-gray-500 mb-1 font-medium">Time</div>
-              <div className="text-sm font-bold text-white">
+            <div className="card rounded-xl p-3">
+              <div className="text-[10px] text-zinc-500 mb-1 font-medium">Time</div>
+              <div className="text-sm font-semibold text-white">
                 {formatRelativeTime(alert.created_at)}
               </div>
             </div>
@@ -122,21 +122,21 @@ function AlertDetail({ alert, onClose, onAcknowledge, onMarkRead }: AlertDetailP
           {/* References */}
           <div className="space-y-2 text-sm">
             {alert.entity_id && (
-              <div className="flex items-center justify-between py-1.5 border-b border-intel-border/20">
-                <span className="text-gray-400">Entity</span>
-                <span className="text-white font-mono text-[11px] bg-intel-bg/60 px-2 py-0.5 rounded">{alert.entity_id.slice(0, 16)}...</span>
+              <div className="flex items-center justify-between py-1.5 border-b border-intel-border">
+                <span className="text-zinc-400">Entity</span>
+                <span className="text-white font-mono text-[11px] bg-intel-bg px-2 py-0.5 rounded">{alert.entity_id.slice(0, 16)}...</span>
               </div>
             )}
             {alert.target_id && (
-              <div className="flex items-center justify-between py-1.5 border-b border-intel-border/20">
-                <span className="text-gray-400">Target</span>
-                <span className="text-white font-mono text-[11px] bg-intel-bg/60 px-2 py-0.5 rounded">{alert.target_id.slice(0, 16)}...</span>
+              <div className="flex items-center justify-between py-1.5 border-b border-intel-border">
+                <span className="text-zinc-400">Target</span>
+                <span className="text-white font-mono text-[11px] bg-intel-bg px-2 py-0.5 rounded">{alert.target_id.slice(0, 16)}...</span>
               </div>
             )}
             {alert.stream_id && (
-              <div className="flex items-center justify-between py-1.5 border-b border-intel-border/20">
-                <span className="text-gray-400">Stream</span>
-                <span className="text-white font-mono text-[11px] bg-intel-bg/60 px-2 py-0.5 rounded">{alert.stream_id.slice(0, 16)}...</span>
+              <div className="flex items-center justify-between py-1.5 border-b border-intel-border">
+                <span className="text-zinc-400">Stream</span>
+                <span className="text-white font-mono text-[11px] bg-intel-bg px-2 py-0.5 rounded">{alert.stream_id.slice(0, 16)}...</span>
               </div>
             )}
           </div>
@@ -173,7 +173,7 @@ function AlertDetail({ alert, onClose, onAcknowledge, onMarkRead }: AlertDetailP
             {!alert.is_acknowledged && (
               <button
                 onClick={() => onAcknowledge(alert.id)}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-intel-accent/10 text-intel-accent border border-intel-accent/20 rounded-xl text-sm font-medium hover:bg-intel-accent/20 hover:shadow-glow-sm transition-all"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-intel-accent/10 text-intel-accent border border-intel-accent/20 rounded-xl text-sm font-medium hover:bg-intel-accent/20 transition-all"
               >
                 <Check className="w-4 h-4" /> Acknowledge
               </button>
@@ -249,7 +249,7 @@ export default function AlertsView() {
       case 'high': return <AlertTriangle className="w-4 h-4 text-orange-400" />;
       case 'medium': return <Bell className="w-4 h-4 text-yellow-400" />;
       case 'low': return <Bell className="w-4 h-4 text-blue-400" />;
-      default: return <Bell className="w-4 h-4 text-gray-400" />;
+      default: return <Bell className="w-4 h-4 text-zinc-400" />;
     }
   };
 
@@ -258,13 +258,13 @@ export default function AlertsView() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-white tracking-tight">Intelligence Alerts</h2>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h2 className="text-xl font-semibold text-white">Intelligence Alerts</h2>
+          <p className="text-sm text-zinc-500 mt-0.5">
             Target matches, reappearances, and anomaly notifications
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-gray-500 font-mono">
+          <span className="text-xs text-zinc-500 font-mono">
             {alerts.filter(a => !a.is_read).length} unread
           </span>
         </div>
@@ -274,7 +274,7 @@ export default function AlertsView() {
       <div className="flex items-center gap-3 flex-wrap">
         {/* Severity Filters */}
         <div className="flex items-center gap-1.5">
-          <span className="text-[10px] text-gray-500 uppercase tracking-wider mr-1 font-semibold">Severity:</span>
+          <span className="text-[10px] text-zinc-500 uppercase tracking-wider mr-1 font-semibold">Severity:</span>
           {['', 'critical', 'high', 'medium', 'low'].map((sev) => (
             <button
               key={sev || 'all'}
@@ -283,7 +283,7 @@ export default function AlertsView() {
                 'px-2.5 py-1 rounded-lg text-[11px] font-medium border transition-all capitalize',
                 filterSeverity === sev
                   ? 'bg-intel-accent/10 text-intel-accent border-intel-accent/20'
-                  : 'text-gray-500 border-intel-border/30 hover:text-white'
+                  : 'text-zinc-500 border-intel-border hover:text-white'
               )}
             >
               {sev || 'All'}
@@ -295,7 +295,7 @@ export default function AlertsView() {
 
         {/* Read Filter */}
         <div className="flex items-center gap-1.5">
-          <span className="text-[10px] text-gray-500 uppercase tracking-wider mr-1 font-semibold">Status:</span>
+          <span className="text-[10px] text-zinc-500 uppercase tracking-wider mr-1 font-semibold">Status:</span>
           {[
             { value: '', label: 'All' },
             { value: 'unread', label: 'Unread' },
@@ -308,7 +308,7 @@ export default function AlertsView() {
                 'px-2.5 py-1 rounded-lg text-[11px] font-medium border transition-all',
                 filterRead === opt.value
                   ? 'bg-intel-accent/10 text-intel-accent border-intel-accent/20'
-                  : 'text-gray-500 border-intel-border/30 hover:text-white'
+                  : 'text-zinc-500 border-intel-border hover:text-white'
               )}
             >
               {opt.label}
@@ -320,7 +320,7 @@ export default function AlertsView() {
 
         {/* Type Filter */}
         <div className="flex items-center gap-1.5">
-          <span className="text-[10px] text-gray-500 uppercase tracking-wider mr-1 font-semibold">Type:</span>
+          <span className="text-[10px] text-zinc-500 uppercase tracking-wider mr-1 font-semibold">Type:</span>
           {[
             { value: '', label: 'All' },
             { value: 'target_match', label: 'Target Match' },
@@ -334,7 +334,7 @@ export default function AlertsView() {
                 'px-2.5 py-1 rounded-lg text-[11px] font-medium border transition-all',
                 filterType === opt.value
                   ? 'bg-intel-accent/10 text-intel-accent border-intel-accent/20'
-                  : 'text-gray-500 border-intel-border/30 hover:text-white'
+                  : 'text-zinc-500 border-intel-border hover:text-white'
               )}
             >
               {opt.label}
@@ -345,17 +345,17 @@ export default function AlertsView() {
 
       {/* Alert List */}
       {loading ? (
-        <div className="flex items-center justify-center py-20 text-gray-500">
+        <div className="flex items-center justify-center py-20 text-zinc-500">
           <Bell className="w-5 h-5 animate-pulse mr-2" />
           <span className="text-sm">Loading alerts...</span>
         </div>
       ) : alerts.length === 0 ? (
         <div className="text-center py-20">
-          <div className="w-16 h-16 rounded-2xl bg-intel-card flex items-center justify-center mx-auto mb-4 border border-intel-border/30">
-            <Bell className="w-7 h-7 text-gray-600" />
+          <div className="w-16 h-16 rounded-xl bg-intel-card flex items-center justify-center mx-auto mb-4 border border-intel-border">
+            <Bell className="w-7 h-7 text-zinc-600" />
           </div>
-          <p className="text-gray-400 font-medium">No alerts found</p>
-          <p className="text-sm text-gray-600 mt-1">Alerts will appear when targets are matched</p>
+          <p className="text-zinc-400 font-medium">No alerts found</p>
+          <p className="text-sm text-zinc-600 mt-1">Alerts will appear when targets are matched</p>
         </div>
       ) : (
         <motion.div
@@ -371,7 +371,7 @@ export default function AlertsView() {
               transition={{ delay: i * 0.02 }}
               onClick={() => setSelectedAlert(alert)}
               className={cn(
-                'w-full glass-card glass-card-hover rounded-xl p-4 text-left',
+                'w-full card card-hover rounded-xl p-4 text-left',
                 !alert.is_read && 'border-l-2 border-l-intel-accent/50'
               )}
             >
@@ -387,9 +387,9 @@ export default function AlertsView() {
                     )}
                   </div>
                   {alert.description && (
-                    <p className="text-xs text-gray-500 truncate mb-1.5">{alert.description}</p>
+                    <p className="text-xs text-zinc-500 truncate mb-1.5">{alert.description}</p>
                   )}
-                  <div className="flex items-center gap-3 text-[11px] text-gray-500">
+                  <div className="flex items-center gap-3 text-[11px] text-zinc-500">
                     <span className={cn(
                       'font-bold uppercase',
                       alert.severity === 'critical' ? 'text-red-400' :
@@ -421,15 +421,15 @@ export default function AlertsView() {
         <button
           onClick={() => setPage(Math.max(0, page - 1))}
           disabled={page === 0}
-          className="px-3 py-1.5 text-xs font-medium text-gray-400 border border-intel-border/30 rounded-lg hover:text-white disabled:opacity-30 transition-colors"
+          className="px-3 py-1.5 text-xs font-medium text-zinc-400 border border-intel-border rounded-lg hover:text-white disabled:opacity-30 transition-colors"
         >
           Previous
         </button>
-        <span className="text-xs text-gray-500 font-mono">Page {page + 1}</span>
+        <span className="text-xs text-zinc-500 font-mono">Page {page + 1}</span>
         <button
           onClick={() => setPage(page + 1)}
           disabled={alerts.length < pageSize}
-          className="px-3 py-1.5 text-xs font-medium text-gray-400 border border-intel-border/30 rounded-lg hover:text-white disabled:opacity-30 transition-colors"
+          className="px-3 py-1.5 text-xs font-medium text-zinc-400 border border-intel-border rounded-lg hover:text-white disabled:opacity-30 transition-colors"
         >
           Next
         </button>

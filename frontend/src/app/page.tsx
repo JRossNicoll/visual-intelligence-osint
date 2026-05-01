@@ -61,7 +61,6 @@ export default function Home() {
     };
   }, []);
 
-  // Command palette keyboard shortcut
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -76,12 +75,7 @@ export default function Home() {
   const renderView = () => {
     switch (activeView) {
       case 'dashboard':
-        return (
-          <Dashboard
-            realtimeDetections={realtimeDetections}
-            onViewChange={setActiveView}
-          />
-        );
+        return <Dashboard realtimeDetections={realtimeDetections} onViewChange={setActiveView} />;
       case 'live':
         return <LiveFeedView />;
       case 'streams':
@@ -93,25 +87,21 @@ export default function Home() {
       case 'alerts':
         return <AlertsView />;
       default:
-        return (
-          <Dashboard
-            realtimeDetections={realtimeDetections}
-            onViewChange={setActiveView}
-          />
-        );
+        return <Dashboard realtimeDetections={realtimeDetections} onViewChange={setActiveView} />;
     }
   };
 
-  const severityStyles: Record<string, string> = {
-    critical: 'bg-red-500/15 border-red-500/30 text-red-300',
-    high: 'bg-orange-500/15 border-orange-500/30 text-orange-300',
-    medium: 'bg-yellow-500/15 border-yellow-500/30 text-yellow-300',
-    low: 'bg-blue-500/15 border-blue-500/30 text-blue-300',
+  const viewLabels: Record<string, string> = {
+    dashboard: 'Dashboard',
+    live: 'Live Feed',
+    streams: 'Streams',
+    targets: 'Targets',
+    entities: 'Entities',
+    alerts: 'Alerts',
   };
 
   return (
-    <div className="h-screen flex bg-intel-bg">
-      {/* Sidebar */}
+    <div className="h-screen flex bg-intel-bg relative z-10">
       <Sidebar
         activeView={activeView}
         onViewChange={setActiveView}
@@ -121,7 +111,6 @@ export default function Home() {
         onOpenCommandPalette={() => setCommandPaletteOpen(true)}
       />
 
-      {/* Main Content */}
       <main
         className={cn(
           'flex-1 h-screen overflow-hidden transition-all duration-300 ease-in-out',
@@ -129,33 +118,32 @@ export default function Home() {
         )}
       >
         {/* Top Bar */}
-        <div className="h-14 flex items-center justify-between px-6 border-b border-intel-border/30 bg-intel-surface/40 backdrop-blur-lg flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <h2 className="text-sm font-semibold text-white capitalize tracking-wide">
-              {activeView === 'live' ? 'Live Feed' : activeView}
+        <div className="h-14 flex items-center justify-between px-6 border-b border-intel-border flex-shrink-0">
+          <div className="flex items-center gap-4">
+            <h2 className="text-sm font-semibold text-white">
+              {viewLabels[activeView] || activeView}
             </h2>
-            <div className="h-4 w-px bg-intel-border/50" />
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-zinc-600">
               {new Date().toLocaleDateString('en-US', {
                 weekday: 'long',
-                year: 'numeric',
-                month: 'long',
+                month: 'short',
                 day: 'numeric',
+                year: 'numeric',
               })}
             </span>
           </div>
           <div className="flex items-center gap-3">
             <div className={cn(
-              'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium',
+              'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border',
               wsConnected
-                ? 'bg-intel-accent/10 text-intel-accent border border-intel-accent/20'
-                : 'bg-gray-500/10 text-gray-500 border border-gray-500/20'
+                ? 'text-intel-accent border-intel-accent/20'
+                : 'text-zinc-600 border-intel-border'
             )}>
               <span className={cn(
                 'w-1.5 h-1.5 rounded-full',
-                wsConnected ? 'bg-intel-accent animate-pulse' : 'bg-gray-500'
+                wsConnected ? 'bg-intel-accent' : 'bg-zinc-600'
               )} />
-              {wsConnected ? `${realtimeDetections.length} live detections` : 'Offline'}
+              {wsConnected ? `${realtimeDetections.length} live` : 'Offline'}
             </div>
           </div>
         </div>
@@ -165,10 +153,10 @@ export default function Home() {
           <AnimatePresence mode="wait">
             <motion.div
               key={activeView}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.15, ease: 'easeOut' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.12 }}
               className="min-h-full"
             >
               {renderView()}
@@ -177,31 +165,31 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Alert Toast Notification */}
+      {/* Alert Toast */}
       <AnimatePresence>
         {alertNotification && (
           <motion.div
-            initial={{ opacity: 0, x: 100 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 100 }}
-            className="fixed top-20 right-6 z-50"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="fixed top-4 right-4 z-50"
           >
-            <div
-              className={cn(
-                'flex items-center gap-3 px-4 py-3 rounded-xl border shadow-2xl backdrop-blur-md',
-                severityStyles[alertNotification.severity] || severityStyles.medium
-              )}
-            >
-              <div className="w-2 h-2 rounded-full bg-current animate-pulse" />
+            <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-intel-card border border-intel-border shadow-lg">
+              <div className={cn(
+                'w-2 h-2 rounded-full',
+                alertNotification.severity === 'critical' ? 'bg-red-500' :
+                alertNotification.severity === 'high' ? 'bg-orange-500' :
+                alertNotification.severity === 'medium' ? 'bg-yellow-500' : 'bg-blue-500'
+              )} />
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider opacity-70">
+                <p className="text-[10px] font-medium uppercase tracking-wider text-zinc-500">
                   {alertNotification.severity} Alert
                 </p>
-                <p className="text-sm font-medium">{alertNotification.title}</p>
+                <p className="text-sm font-medium text-white">{alertNotification.title}</p>
               </div>
               <button
                 onClick={() => setAlertNotification(null)}
-                className="ml-2 opacity-50 hover:opacity-100 transition-opacity text-sm"
+                className="ml-2 text-zinc-600 hover:text-zinc-400 transition-colors"
               >
                 &times;
               </button>
@@ -210,7 +198,6 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      {/* Command Palette */}
       <CommandPalette
         isOpen={commandPaletteOpen}
         onClose={() => setCommandPaletteOpen(false)}
@@ -220,21 +207,18 @@ export default function Home() {
       {/* Status Bar */}
       <footer
         className={cn(
-          'fixed bottom-0 right-0 h-7 flex items-center justify-between text-[10px] text-gray-600 px-4 bg-intel-surface/60 backdrop-blur-sm border-t border-intel-border/20 transition-all duration-300',
+          'fixed bottom-0 right-0 h-7 flex items-center justify-between text-[10px] text-zinc-600 px-4 bg-intel-surface border-t border-intel-border transition-all duration-300 z-10',
           sidebarCollapsed ? 'left-[72px]' : 'left-[260px]'
         )}
       >
         <div className="flex items-center gap-3">
           <span className="font-mono">VIOSINT v0.1.0</span>
-          <div className="h-2.5 w-px bg-intel-border/30" />
           <span className={wsConnected ? 'text-intel-accent' : ''}>
             {wsConnected ? 'WS Connected' : 'WS Disconnected'}
           </span>
         </div>
-        <div className="flex items-center gap-3">
-          <span>{realtimeDetections.length} active tracks</span>
-          <div className="h-2.5 w-px bg-intel-border/30" />
-          <span className="font-mono">{new Date().toLocaleTimeString()}</span>
+        <div className="flex items-center gap-3 font-mono">
+          <span>{realtimeDetections.length} tracks</span>
         </div>
       </footer>
     </div>

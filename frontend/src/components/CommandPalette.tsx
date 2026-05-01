@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  AlertTriangle,
   Bell,
   Camera,
   Eye,
@@ -10,7 +9,6 @@ import {
   MonitorPlay,
   Search,
   Shield,
-  Zap,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -81,12 +79,12 @@ export default function CommandPalette({ isOpen, onClose, onNavigate }: CommandP
 
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh]">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-lg animate-slide-in-up">
-        <div className="glass-card rounded-2xl overflow-hidden shadow-2xl border-intel-border-light/30">
+      <div className="absolute inset-0 bg-black/70" onClick={onClose} />
+      <div className="relative w-full max-w-lg animate-fade-in">
+        <div className="rounded-xl overflow-hidden bg-intel-surface border border-intel-border shadow-2xl">
           {/* Search Input */}
-          <div className="flex items-center gap-3 px-5 py-4 border-b border-intel-border/50">
-            <Search className="w-5 h-5 text-gray-500 flex-shrink-0" />
+          <div className="flex items-center gap-3 px-4 py-3.5 border-b border-intel-border">
+            <Search className="w-4 h-4 text-zinc-500 flex-shrink-0" />
             <input
               ref={inputRef}
               type="text"
@@ -97,9 +95,9 @@ export default function CommandPalette({ isOpen, onClose, onNavigate }: CommandP
                 setSelectedIndex(0);
               }}
               onKeyDown={handleKeyDown}
-              className="flex-1 bg-transparent text-white text-sm placeholder-gray-500 outline-none"
+              className="flex-1 bg-transparent text-white text-sm placeholder-zinc-600 outline-none"
             />
-            <kbd className="px-1.5 py-0.5 rounded bg-intel-card text-[10px] font-mono text-gray-500 border border-intel-border/50">
+            <kbd className="px-1.5 py-0.5 rounded text-[10px] font-mono text-zinc-600 border border-intel-border">
               ESC
             </kbd>
           </div>
@@ -107,13 +105,13 @@ export default function CommandPalette({ isOpen, onClose, onNavigate }: CommandP
           {/* Results */}
           <div className="max-h-[300px] overflow-y-auto py-2">
             {filtered.length === 0 ? (
-              <div className="px-5 py-8 text-center text-sm text-gray-500">
+              <div className="px-4 py-8 text-center text-sm text-zinc-600">
                 No results found
               </div>
             ) : (
               categories.map((category) => (
                 <div key={category}>
-                  <p className="px-5 py-1.5 text-[10px] font-semibold text-gray-500 uppercase tracking-widest">
+                  <p className="px-4 py-1.5 text-[10px] font-medium text-zinc-600 uppercase tracking-widest">
                     {category}
                   </p>
                   {filtered
@@ -131,24 +129,24 @@ export default function CommandPalette({ isOpen, onClose, onNavigate }: CommandP
                           }}
                           onMouseEnter={() => setSelectedIndex(globalIdx)}
                           className={cn(
-                            'w-full flex items-center gap-3 px-5 py-2.5 text-left transition-colors',
+                            'w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors',
                             isSelected
-                              ? 'bg-intel-accent/10 text-white'
-                              : 'text-gray-400 hover:bg-white/[0.03]'
+                              ? 'bg-white/[0.04] text-white'
+                              : 'text-zinc-400 hover:bg-white/[0.02]'
                           )}
                         >
                           <div className={cn(
-                            'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0',
-                            isSelected ? 'bg-intel-accent/20 text-intel-accent' : 'bg-intel-card text-gray-500'
+                            'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 border',
+                            isSelected ? 'bg-intel-accent/10 text-intel-accent border-intel-accent/20' : 'bg-intel-card text-zinc-500 border-intel-border'
                           )}>
                             <Icon className="w-4 h-4" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium">{cmd.label}</p>
-                            <p className="text-xs text-gray-500 truncate">{cmd.description}</p>
+                            <p className="text-xs text-zinc-600 truncate">{cmd.description}</p>
                           </div>
                           {isSelected && (
-                            <span className="text-[10px] text-gray-500 font-mono">Enter</span>
+                            <span className="text-[10px] text-zinc-600 font-mono">Enter</span>
                           )}
                         </button>
                       );
@@ -159,23 +157,17 @@ export default function CommandPalette({ isOpen, onClose, onNavigate }: CommandP
           </div>
 
           {/* Footer */}
-          <div className="flex items-center gap-4 px-5 py-2.5 border-t border-intel-border/50 text-[10px] text-gray-600">
+          <div className="flex items-center gap-4 px-4 py-2.5 border-t border-intel-border text-[10px] text-zinc-600">
             <span className="flex items-center gap-1">
-              <kbd className="px-1 py-0.5 rounded bg-intel-card border border-intel-border/50 font-mono">
-                &uarr;&darr;
-              </kbd>
+              <kbd className="px-1 py-0.5 rounded border border-intel-border font-mono">&uarr;&darr;</kbd>
               Navigate
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1 py-0.5 rounded bg-intel-card border border-intel-border/50 font-mono">
-                Enter
-              </kbd>
+              <kbd className="px-1 py-0.5 rounded border border-intel-border font-mono">Enter</kbd>
               Select
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1 py-0.5 rounded bg-intel-card border border-intel-border/50 font-mono">
-                Esc
-              </kbd>
+              <kbd className="px-1 py-0.5 rounded border border-intel-border font-mono">Esc</kbd>
               Close
             </span>
           </div>

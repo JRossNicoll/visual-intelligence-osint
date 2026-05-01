@@ -175,7 +175,7 @@ function StreamFeed({ stream, isExpanded, onToggleExpand }: StreamFeedProps) {
 
   return (
     <div className={cn(
-      'glass-card rounded-xl overflow-hidden transition-all',
+      'card rounded-xl overflow-hidden transition-all',
       isExpanded ? 'col-span-full' : ''
     )}>
       {/* Video Area */}
@@ -191,7 +191,6 @@ function StreamFeed({ stream, isExpanded, onToggleExpand }: StreamFeedProps) {
                 <div className="w-full h-full bg-gradient-to-br from-blue-900/20 to-green-900/20" />
               </div>
               <Camera className="w-12 h-12 text-intel-accent/20" />
-              <div className="scanline opacity-15" />
               <DetectionOverlay
                 detections={detections}
                 containerWidth={containerWidth}
@@ -202,8 +201,8 @@ function StreamFeed({ stream, isExpanded, onToggleExpand }: StreamFeedProps) {
             </>
           ) : (
             <div className="text-center">
-              <Camera className="w-10 h-10 text-gray-700 mx-auto mb-2" />
-              <p className="text-xs text-gray-600 capitalize">{stream.status}</p>
+              <Camera className="w-10 h-10 text-zinc-700 mx-auto mb-2" />
+              <p className="text-xs text-zinc-600 capitalize">{stream.status}</p>
             </div>
           )}
         </div>
@@ -212,7 +211,7 @@ function StreamFeed({ stream, isExpanded, onToggleExpand }: StreamFeedProps) {
         <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-3 bg-gradient-to-b from-black/70 to-transparent">
           <div className="flex items-center gap-2">
             {stream.status === 'active' && (
-              <span className="flex items-center gap-1.5 px-2 py-1 bg-red-600/80 text-white text-[9px] font-bold rounded-md tracking-widest backdrop-blur-sm">
+              <span className="flex items-center gap-1.5 px-2 py-1 bg-red-600/80 text-white text-[9px] font-bold rounded-md tracking-widest">
                 <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
                 LIVE
               </span>
@@ -271,11 +270,11 @@ function StreamFeed({ stream, isExpanded, onToggleExpand }: StreamFeedProps) {
 
       {/* Detection Summary Panel (when expanded) */}
       {isExpanded && detections.length > 0 && (
-        <div className="p-4 border-t border-intel-border/20">
+        <div className="p-4 border-t border-intel-border">
           <div className="flex items-center gap-2 mb-3">
             <Crosshair className="w-3.5 h-3.5 text-intel-accent" />
             <span className="text-xs font-semibold text-white">Active Detections</span>
-            <span className="text-[10px] text-gray-500 font-mono">({detections.length})</span>
+            <span className="text-[10px] text-zinc-500 font-mono">({detections.length})</span>
           </div>
           <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
             {detections.slice(0, 12).map((det, i) => (
@@ -294,7 +293,7 @@ function StreamFeed({ stream, isExpanded, onToggleExpand }: StreamFeedProps) {
                    <Box className="w-3 h-3" />}
                 </div>
                 <p className="text-[10px] text-white truncate capitalize">{det.label}</p>
-                <p className="text-[9px] text-gray-500 font-mono">
+                <p className="text-[9px] text-zinc-500 font-mono">
                   {Math.round(det.confidence * 100)}%
                 </p>
               </div>
@@ -335,13 +334,13 @@ export default function LiveFeedView() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-white tracking-tight">Live Feed</h2>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h2 className="text-xl font-semibold text-white">Live Feed</h2>
+          <p className="text-sm text-zinc-500 mt-0.5">
             Real-time video streams with detection overlays
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1.5 text-xs text-gray-500">
+          <span className="flex items-center gap-1.5 text-xs text-zinc-500">
             <div className="relative">
               <Camera className="w-4 h-4" />
               {activeStreams.length > 0 && (
@@ -354,24 +353,24 @@ export default function LiveFeedView() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-20 text-gray-500">
+        <div className="flex items-center justify-center py-20 text-zinc-500">
           <Camera className="w-5 h-5 animate-pulse mr-2" />
           <span className="text-sm">Loading streams...</span>
         </div>
       ) : streams.length === 0 ? (
         <div className="text-center py-20">
-          <div className="w-16 h-16 rounded-2xl bg-intel-card flex items-center justify-center mx-auto mb-4 border border-intel-border/30">
-            <Camera className="w-7 h-7 text-gray-600" />
+          <div className="w-16 h-16 rounded-xl bg-intel-card flex items-center justify-center mx-auto mb-4 border border-intel-border">
+            <Camera className="w-7 h-7 text-zinc-600" />
           </div>
-          <p className="text-gray-400 font-medium">No video streams available</p>
-          <p className="text-sm text-gray-600 mt-1">Configure streams to start live monitoring</p>
+          <p className="text-zinc-400 font-medium">No video streams available</p>
+          <p className="text-sm text-zinc-600 mt-1">Configure streams to start live monitoring</p>
         </div>
       ) : (
         <>
           {/* Active Streams */}
           {activeStreams.length > 0 && (
             <div>
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+              <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-3 flex items-center gap-2">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
@@ -403,7 +402,7 @@ export default function LiveFeedView() {
           {/* Inactive Streams */}
           {inactiveStreams.length > 0 && (
             <div>
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">
+              <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-3">
                 Inactive Streams
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
