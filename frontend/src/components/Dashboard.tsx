@@ -32,6 +32,7 @@ function AnimatedCounter({ value, duration = 800 }: { value: number; duration?: 
     const start = prevValue.current;
     const end = value;
     const startTime = performance.now();
+    let rafId: number;
 
     const animate = (currentTime: number) => {
       const elapsed = currentTime - startTime;
@@ -39,12 +40,14 @@ function AnimatedCounter({ value, duration = 800 }: { value: number; duration?: 
       const eased = 1 - Math.pow(1 - progress, 3);
       setDisplayValue(Math.round(start + (end - start) * eased));
       if (progress < 1) {
-        requestAnimationFrame(animate);
+        rafId = requestAnimationFrame(animate);
       }
     };
 
-    requestAnimationFrame(animate);
+    rafId = requestAnimationFrame(animate);
     prevValue.current = value;
+
+    return () => cancelAnimationFrame(rafId);
   }, [value, duration]);
 
   return <>{displayValue.toLocaleString()}</>;

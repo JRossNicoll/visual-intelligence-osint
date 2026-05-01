@@ -523,7 +523,8 @@ export default function EntitiesView() {
           <span className="text-xs text-gray-500 font-mono px-3">Page {page + 1}</span>
           <button
             onClick={() => setPage(page + 1)}
-            className="px-3 py-1.5 text-xs font-medium text-gray-400 border border-intel-border/30 rounded-lg hover:text-white transition-colors"
+            disabled={entities.length < pageSize}
+            className="px-3 py-1.5 text-xs font-medium text-gray-400 border border-intel-border/30 rounded-lg hover:text-white disabled:opacity-30 transition-colors"
           >
             Next
           </button>
