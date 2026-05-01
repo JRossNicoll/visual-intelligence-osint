@@ -511,7 +511,7 @@ export default function EntitiesView() {
       )}
 
       {/* Pagination */}
-      {entities.length >= pageSize && (
+      {(page > 0 || entities.length >= pageSize) && (
         <div className="flex items-center justify-center gap-2 pt-4">
           <button
             onClick={() => setPage(Math.max(0, page - 1))}
