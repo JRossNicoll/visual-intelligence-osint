@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   AlertTriangle,
   Bell,
@@ -27,31 +28,51 @@ interface AlertDetailProps {
 }
 
 function AlertDetail({ alert, onClose, onAcknowledge, onMarkRead }: AlertDetailProps) {
+  const severityBanner: Record<string, string> = {
+    critical: 'bg-red-500/10 border-red-500/20',
+    high: 'bg-orange-500/10 border-orange-500/20',
+    medium: 'bg-yellow-500/10 border-yellow-500/20',
+    low: 'bg-blue-500/10 border-blue-500/20',
+  };
+
+  const severityIconColor: Record<string, string> = {
+    critical: 'text-red-400',
+    high: 'text-orange-400',
+    medium: 'text-yellow-400',
+    low: 'text-blue-400',
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-intel-surface border border-intel-border rounded-2xl overflow-hidden">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        className="relative w-full max-w-md glass-card rounded-2xl overflow-hidden shadow-2xl"
+      >
         {/* Severity Banner */}
         <div className={cn(
           'px-6 py-4 border-b',
-          alert.severity === 'critical' ? 'bg-red-500/10 border-red-500/20' :
-          alert.severity === 'high' ? 'bg-orange-500/10 border-orange-500/20' :
-          alert.severity === 'medium' ? 'bg-yellow-500/10 border-yellow-500/20' :
-          'bg-blue-500/10 border-blue-500/20'
+          severityBanner[alert.severity] || severityBanner.medium
         )}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <AlertTriangle className={cn(
                 'w-5 h-5',
-                alert.severity === 'critical' ? 'text-red-400' :
-                alert.severity === 'high' ? 'text-orange-400' :
-                alert.severity === 'medium' ? 'text-yellow-400' : 'text-blue-400'
+                severityIconColor[alert.severity] || 'text-gray-400'
               )} />
               <span className="text-sm font-bold uppercase tracking-wider text-white">
                 {alert.severity} - {alert.alert_type.replace(/_/g, ' ')}
               </span>
             </div>
-            <button onClick={onClose} className="p-1 rounded hover:bg-white/10">
+            <button onClick={onClose} className="p-1 rounded-lg hover:bg-white/10 transition-colors">
               <X className="w-4 h-4 text-gray-400" />
             </button>
           </div>
@@ -69,29 +90,29 @@ function AlertDetail({ alert, onClose, onAcknowledge, onMarkRead }: AlertDetailP
           {/* Details Grid */}
           <div className="grid grid-cols-2 gap-3">
             {alert.confidence != null && (
-              <div className="bg-intel-card border border-intel-border rounded-lg p-3">
-                <div className="text-xs text-gray-500 mb-1">Confidence</div>
+              <div className="glass-card rounded-xl p-3">
+                <div className="text-[10px] text-gray-500 mb-1 font-medium">Confidence</div>
                 <div className="text-sm font-bold text-white">
                   {Math.round(alert.confidence * 100)}%
                 </div>
               </div>
             )}
             {alert.similarity_score != null && (
-              <div className="bg-intel-card border border-intel-border rounded-lg p-3">
-                <div className="text-xs text-gray-500 mb-1">Similarity</div>
+              <div className="glass-card rounded-xl p-3">
+                <div className="text-[10px] text-gray-500 mb-1 font-medium">Similarity</div>
                 <div className="text-sm font-bold text-intel-accent">
                   {Math.round(alert.similarity_score * 100)}%
                 </div>
               </div>
             )}
             {alert.frame_number != null && (
-              <div className="bg-intel-card border border-intel-border rounded-lg p-3">
-                <div className="text-xs text-gray-500 mb-1">Frame</div>
-                <div className="text-sm font-bold text-white">#{alert.frame_number}</div>
+              <div className="glass-card rounded-xl p-3">
+                <div className="text-[10px] text-gray-500 mb-1 font-medium">Frame</div>
+                <div className="text-sm font-bold text-white font-mono">#{alert.frame_number}</div>
               </div>
             )}
-            <div className="bg-intel-card border border-intel-border rounded-lg p-3">
-              <div className="text-xs text-gray-500 mb-1">Time</div>
+            <div className="glass-card rounded-xl p-3">
+              <div className="text-[10px] text-gray-500 mb-1 font-medium">Time</div>
               <div className="text-sm font-bold text-white">
                 {formatRelativeTime(alert.created_at)}
               </div>
@@ -101,40 +122,40 @@ function AlertDetail({ alert, onClose, onAcknowledge, onMarkRead }: AlertDetailP
           {/* References */}
           <div className="space-y-2 text-sm">
             {alert.entity_id && (
-              <div className="flex items-center justify-between py-1.5 border-b border-intel-border/30">
+              <div className="flex items-center justify-between py-1.5 border-b border-intel-border/20">
                 <span className="text-gray-400">Entity</span>
-                <span className="text-white font-mono text-xs">{alert.entity_id.slice(0, 16)}...</span>
+                <span className="text-white font-mono text-[11px] bg-intel-bg/60 px-2 py-0.5 rounded">{alert.entity_id.slice(0, 16)}...</span>
               </div>
             )}
             {alert.target_id && (
-              <div className="flex items-center justify-between py-1.5 border-b border-intel-border/30">
+              <div className="flex items-center justify-between py-1.5 border-b border-intel-border/20">
                 <span className="text-gray-400">Target</span>
-                <span className="text-white font-mono text-xs">{alert.target_id.slice(0, 16)}...</span>
+                <span className="text-white font-mono text-[11px] bg-intel-bg/60 px-2 py-0.5 rounded">{alert.target_id.slice(0, 16)}...</span>
               </div>
             )}
             {alert.stream_id && (
-              <div className="flex items-center justify-between py-1.5 border-b border-intel-border/30">
+              <div className="flex items-center justify-between py-1.5 border-b border-intel-border/20">
                 <span className="text-gray-400">Stream</span>
-                <span className="text-white font-mono text-xs">{alert.stream_id.slice(0, 16)}...</span>
+                <span className="text-white font-mono text-[11px] bg-intel-bg/60 px-2 py-0.5 rounded">{alert.stream_id.slice(0, 16)}...</span>
               </div>
             )}
           </div>
 
           {/* Status Badges */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {alert.is_read && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20">
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium">
                 <Eye className="w-3 h-3" /> Read
               </span>
             )}
             {alert.is_acknowledged && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-green-500/10 text-green-400 border border-green-500/20">
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] bg-green-500/10 text-green-400 border border-green-500/20 font-medium">
                 <CheckCircle className="w-3 h-3" /> Acknowledged
               </span>
             )}
             {alert.webhook_delivered && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-purple-500/10 text-purple-400 border border-purple-500/20">
-                <Zap className="w-3 h-3" /> Webhook Sent
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] bg-purple-500/10 text-purple-400 border border-purple-500/20 font-medium">
+                <Zap className="w-3 h-3" /> Webhook
               </span>
             )}
           </div>
@@ -144,7 +165,7 @@ function AlertDetail({ alert, onClose, onAcknowledge, onMarkRead }: AlertDetailP
             {!alert.is_read && (
               <button
                 onClick={() => onMarkRead(alert.id)}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-500/10 text-blue-400 border border-blue-500/30 rounded-lg text-sm font-medium hover:bg-blue-500/20 transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-xl text-sm font-medium hover:bg-blue-500/20 transition-colors"
               >
                 <Eye className="w-4 h-4" /> Mark Read
               </button>
@@ -152,14 +173,14 @@ function AlertDetail({ alert, onClose, onAcknowledge, onMarkRead }: AlertDetailP
             {!alert.is_acknowledged && (
               <button
                 onClick={() => onAcknowledge(alert.id)}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-intel-accent/10 text-intel-accent border border-intel-accent/30 rounded-lg text-sm font-medium hover:bg-intel-accent/20 transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-intel-accent/10 text-intel-accent border border-intel-accent/20 rounded-xl text-sm font-medium hover:bg-intel-accent/20 hover:shadow-glow-sm transition-all"
               >
                 <Check className="w-4 h-4" /> Acknowledge
               </button>
             )}
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
@@ -233,35 +254,36 @@ export default function AlertsView() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 pb-12 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-white">Intelligence Alerts</h2>
-          <p className="text-sm text-gray-400 mt-1">
+          <h2 className="text-xl font-bold text-white tracking-tight">Intelligence Alerts</h2>
+          <p className="text-sm text-gray-500 mt-0.5">
             Target matches, reappearances, and anomaly notifications
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-400">
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-gray-500 font-mono">
             {alerts.filter(a => !a.is_read).length} unread
           </span>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3">
-        {/* Severity */}
-        <div className="flex items-center gap-1">
+      <div className="flex items-center gap-3 flex-wrap">
+        {/* Severity Filters */}
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] text-gray-500 uppercase tracking-wider mr-1 font-semibold">Severity:</span>
           {['', 'critical', 'high', 'medium', 'low'].map((sev) => (
             <button
-              key={sev}
-              onClick={() => setFilterSeverity(sev)}
+              key={sev || 'all'}
+              onClick={() => { setFilterSeverity(sev); setPage(0); }}
               className={cn(
-                'px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors capitalize',
+                'px-2.5 py-1 rounded-lg text-[11px] font-medium border transition-all capitalize',
                 filterSeverity === sev
-                  ? 'bg-intel-accent/10 text-intel-accent border-intel-accent/30'
-                  : 'text-gray-400 border-intel-border hover:text-white'
+                  ? 'bg-intel-accent/10 text-intel-accent border-intel-accent/20'
+                  : 'text-gray-500 border-intel-border/30 hover:text-white'
               )}
             >
               {sev || 'All'}
@@ -269,144 +291,161 @@ export default function AlertsView() {
           ))}
         </div>
 
-        {/* Read status */}
-        <select
-          value={filterRead}
-          onChange={(e) => setFilterRead(e.target.value)}
-          className="px-3 py-1.5 bg-intel-card border border-intel-border rounded-lg text-xs text-gray-300 focus:outline-none focus:border-intel-accent"
-        >
-          <option value="">All Alerts</option>
-          <option value="unread">Unread Only</option>
-          <option value="read">Read Only</option>
-        </select>
+        <div className="h-4 w-px bg-intel-border/30" />
 
-        {/* Type */}
-        <select
-          value={filterType}
-          onChange={(e) => setFilterType(e.target.value)}
-          className="px-3 py-1.5 bg-intel-card border border-intel-border rounded-lg text-xs text-gray-300 focus:outline-none focus:border-intel-accent"
-        >
-          <option value="">All Types</option>
-          <option value="target_match">Target Match</option>
-          <option value="reappearance">Reappearance</option>
-          <option value="anomaly">Anomaly</option>
-        </select>
+        {/* Read Filter */}
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] text-gray-500 uppercase tracking-wider mr-1 font-semibold">Status:</span>
+          {[
+            { value: '', label: 'All' },
+            { value: 'unread', label: 'Unread' },
+            { value: 'read', label: 'Read' },
+          ].map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => { setFilterRead(opt.value); setPage(0); }}
+              className={cn(
+                'px-2.5 py-1 rounded-lg text-[11px] font-medium border transition-all',
+                filterRead === opt.value
+                  ? 'bg-intel-accent/10 text-intel-accent border-intel-accent/20'
+                  : 'text-gray-500 border-intel-border/30 hover:text-white'
+              )}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="h-4 w-px bg-intel-border/30" />
+
+        {/* Type Filter */}
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] text-gray-500 uppercase tracking-wider mr-1 font-semibold">Type:</span>
+          {[
+            { value: '', label: 'All' },
+            { value: 'target_match', label: 'Target Match' },
+            { value: 'reappearance', label: 'Reappearance' },
+            { value: 'anomaly', label: 'Anomaly' },
+          ].map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => { setFilterType(opt.value); setPage(0); }}
+              className={cn(
+                'px-2.5 py-1 rounded-lg text-[11px] font-medium border transition-all',
+                filterType === opt.value
+                  ? 'bg-intel-accent/10 text-intel-accent border-intel-accent/20'
+                  : 'text-gray-500 border-intel-border/30 hover:text-white'
+              )}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Alert List */}
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <Bell className="w-6 h-6 text-intel-accent animate-pulse" />
+        <div className="flex items-center justify-center py-20 text-gray-500">
+          <Bell className="w-5 h-5 animate-pulse mr-2" />
+          <span className="text-sm">Loading alerts...</span>
         </div>
       ) : alerts.length === 0 ? (
         <div className="text-center py-20">
-          <BellOff className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-          <p className="text-gray-400">No alerts</p>
-          <p className="text-sm text-gray-500 mt-1">
-            Alerts are generated when targets are matched or entities reappear
-          </p>
+          <div className="w-16 h-16 rounded-2xl bg-intel-card flex items-center justify-center mx-auto mb-4 border border-intel-border/30">
+            <Bell className="w-7 h-7 text-gray-600" />
+          </div>
+          <p className="text-gray-400 font-medium">No alerts found</p>
+          <p className="text-sm text-gray-600 mt-1">Alerts will appear when targets are matched</p>
         </div>
       ) : (
-        <div className="space-y-2">
-          {alerts.map((alert) => (
-            <div
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="space-y-2"
+        >
+          {alerts.map((alert, i) => (
+            <motion.button
               key={alert.id}
+              initial={{ opacity: 0, x: -12 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.02 }}
               onClick={() => setSelectedAlert(alert)}
               className={cn(
-                'flex items-start gap-4 p-4 rounded-xl border cursor-pointer transition-all hover:shadow-lg',
-                !alert.is_read
-                  ? 'bg-intel-card border-intel-border hover:border-intel-accent/30'
-                  : 'bg-intel-card/50 border-intel-border/50 hover:border-intel-border',
-                alert.severity === 'critical' && !alert.is_read && 'glow-red'
+                'w-full glass-card glass-card-hover rounded-xl p-4 text-left',
+                !alert.is_read && 'border-l-2 border-l-intel-accent/50'
               )}
             >
-              {/* Severity Icon */}
-              <div className={cn(
-                'p-2 rounded-lg mt-0.5',
-                alert.severity === 'critical' ? 'bg-red-500/10' :
-                alert.severity === 'high' ? 'bg-orange-500/10' :
-                alert.severity === 'medium' ? 'bg-yellow-500/10' : 'bg-blue-500/10'
-              )}>
-                {severityIcon(alert.severity)}
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className={cn(
-                    'text-sm font-semibold truncate',
-                    !alert.is_read ? 'text-white' : 'text-gray-300'
-                  )}>
-                    {alert.title}
-                  </h3>
-                  {!alert.is_read && (
-                    <span className="flex-shrink-0 w-2 h-2 bg-intel-accent rounded-full" />
-                  )}
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 mt-0.5">
+                  {severityIcon(alert.severity)}
                 </div>
-                {alert.description && (
-                  <p className="text-xs text-gray-400 truncate mb-1">{alert.description}</p>
-                )}
-                <div className="flex items-center gap-3 text-xs text-gray-500">
-                  <span className="capitalize">{alert.alert_type.replace(/_/g, ' ')}</span>
-                  {alert.similarity_score != null && (
-                    <span className="text-intel-accent">
-                      {Math.round(alert.similarity_score * 100)}% match
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-sm font-semibold text-white truncate">{alert.title}</h3>
+                    {!alert.is_read && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-intel-accent flex-shrink-0" />
+                    )}
+                  </div>
+                  {alert.description && (
+                    <p className="text-xs text-gray-500 truncate mb-1.5">{alert.description}</p>
+                  )}
+                  <div className="flex items-center gap-3 text-[11px] text-gray-500">
+                    <span className={cn(
+                      'font-bold uppercase',
+                      alert.severity === 'critical' ? 'text-red-400' :
+                      alert.severity === 'high' ? 'text-orange-400' :
+                      alert.severity === 'medium' ? 'text-yellow-400' : 'text-blue-400'
+                    )}>
+                      {alert.severity}
                     </span>
+                    <span>{alert.alert_type.replace(/_/g, ' ')}</span>
+                    <span className="ml-auto">{formatRelativeTime(alert.created_at)}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  {alert.is_acknowledged && (
+                    <CheckCircle className="w-3.5 h-3.5 text-green-500/60" />
                   )}
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    {formatRelativeTime(alert.created_at)}
-                  </span>
+                  {alert.webhook_delivered && (
+                    <Zap className="w-3.5 h-3.5 text-purple-500/60" />
+                  )}
                 </div>
               </div>
-
-              {/* Status */}
-              <div className="flex flex-col items-end gap-2">
-                <span className={cn(
-                  'px-2 py-0.5 rounded text-xs font-semibold uppercase',
-                  severityColor(alert.severity)
-                )}>
-                  {alert.severity}
-                </span>
-                {alert.is_acknowledged && (
-                  <CheckCircle className="w-4 h-4 text-green-400" />
-                )}
-              </div>
-            </div>
+            </motion.button>
           ))}
-        </div>
+        </motion.div>
       )}
 
       {/* Pagination */}
-      {alerts.length >= pageSize && (
-        <div className="flex items-center justify-center gap-4 pt-4">
-          <button
-            onClick={() => setPage(Math.max(0, page - 1))}
-            disabled={page === 0}
-            className="px-4 py-2 text-sm text-gray-400 hover:text-white disabled:opacity-30 transition-colors"
-          >
-            Previous
-          </button>
-          <span className="text-sm text-gray-500">Page {page + 1}</span>
-          <button
-            onClick={() => setPage(page + 1)}
-            disabled={alerts.length < pageSize}
-            className="px-4 py-2 text-sm text-gray-400 hover:text-white disabled:opacity-30 transition-colors"
-          >
-            Next
-          </button>
-        </div>
-      )}
+      <div className="flex items-center justify-between pt-2">
+        <button
+          onClick={() => setPage(Math.max(0, page - 1))}
+          disabled={page === 0}
+          className="px-3 py-1.5 text-xs font-medium text-gray-400 border border-intel-border/30 rounded-lg hover:text-white disabled:opacity-30 transition-colors"
+        >
+          Previous
+        </button>
+        <span className="text-xs text-gray-500 font-mono">Page {page + 1}</span>
+        <button
+          onClick={() => setPage(page + 1)}
+          disabled={alerts.length < pageSize}
+          className="px-3 py-1.5 text-xs font-medium text-gray-400 border border-intel-border/30 rounded-lg hover:text-white disabled:opacity-30 transition-colors"
+        >
+          Next
+        </button>
+      </div>
 
       {/* Alert Detail Modal */}
-      {selectedAlert && (
-        <AlertDetail
-          alert={selectedAlert}
-          onClose={() => setSelectedAlert(null)}
-          onAcknowledge={handleAcknowledge}
-          onMarkRead={handleMarkRead}
-        />
-      )}
+      <AnimatePresence>
+        {selectedAlert && (
+          <AlertDetail
+            alert={selectedAlert}
+            onClose={() => setSelectedAlert(null)}
+            onAcknowledge={handleAcknowledge}
+            onMarkRead={handleMarkRead}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
