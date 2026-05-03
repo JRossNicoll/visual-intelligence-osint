@@ -79,39 +79,39 @@ export default function CommandPalette({ isOpen, onClose, onNavigate }: CommandP
 
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh]">
-      <div className="absolute inset-0 bg-black/70" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/80" onClick={onClose} />
       <div className="relative w-full max-w-lg animate-fade-in">
-        <div className="rounded-xl overflow-hidden bg-intel-surface border border-intel-border shadow-2xl">
+        <div className="overflow-hidden bg-intel-surface border border-intel-border">
           {/* Search Input */}
-          <div className="flex items-center gap-3 px-4 py-3.5 border-b border-intel-border">
-            <Search className="w-4 h-4 text-zinc-500 flex-shrink-0" />
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-intel-border">
+            <span className="text-[10px] font-mono text-zinc-600">&gt;</span>
             <input
               ref={inputRef}
               type="text"
-              placeholder="Search commands..."
+              placeholder="search --cmd"
               value={query}
               onChange={(e) => {
                 setQuery(e.target.value);
                 setSelectedIndex(0);
               }}
               onKeyDown={handleKeyDown}
-              className="flex-1 bg-transparent text-white text-sm placeholder-zinc-600 outline-none"
+              className="flex-1 bg-transparent text-zinc-200 text-[12px] font-mono placeholder-zinc-600 outline-none"
             />
-            <kbd className="px-1.5 py-0.5 rounded text-[10px] font-mono text-zinc-600 border border-intel-border">
+            <kbd className="px-1.5 py-0.5 text-[9px] font-mono text-zinc-600 border border-intel-border">
               ESC
             </kbd>
           </div>
 
           {/* Results */}
-          <div className="max-h-[300px] overflow-y-auto py-2">
+          <div className="max-h-[300px] overflow-y-auto">
             {filtered.length === 0 ? (
-              <div className="px-4 py-8 text-center text-sm text-zinc-600">
+              <div className="px-4 py-8 text-center text-[11px] font-mono text-zinc-600">
                 No results found
               </div>
             ) : (
               categories.map((category) => (
                 <div key={category}>
-                  <p className="px-4 py-1.5 text-[10px] font-medium text-zinc-600 uppercase tracking-widest">
+                  <p className="px-4 py-1.5 mono-label">
                     {category}
                   </p>
                   {filtered
@@ -131,22 +131,22 @@ export default function CommandPalette({ isOpen, onClose, onNavigate }: CommandP
                           className={cn(
                             'w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors',
                             isSelected
-                              ? 'bg-white/[0.04] text-white'
-                              : 'text-zinc-400 hover:bg-white/[0.02]'
+                              ? 'bg-white/[0.04] text-zinc-100'
+                              : 'text-zinc-500 hover:bg-white/[0.02]'
                           )}
                         >
                           <div className={cn(
-                            'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 border',
-                            isSelected ? 'bg-intel-accent/10 text-intel-accent border-intel-accent/20' : 'bg-intel-card text-zinc-500 border-intel-border'
+                            'w-7 h-7 flex items-center justify-center flex-shrink-0 border',
+                            isSelected ? 'border-zinc-500 text-zinc-200' : 'border-intel-border text-zinc-600'
                           )}>
-                            <Icon className="w-4 h-4" />
+                            <Icon className="w-3.5 h-3.5" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium">{cmd.label}</p>
-                            <p className="text-xs text-zinc-600 truncate">{cmd.description}</p>
+                            <p className="text-[11px] font-mono uppercase tracking-wider">{cmd.label}</p>
+                            <p className="text-[10px] text-zinc-600 truncate">{cmd.description}</p>
                           </div>
                           {isSelected && (
-                            <span className="text-[10px] text-zinc-600 font-mono">Enter</span>
+                            <span className="text-[9px] text-zinc-600 font-mono uppercase">Enter</span>
                           )}
                         </button>
                       );
@@ -157,17 +157,17 @@ export default function CommandPalette({ isOpen, onClose, onNavigate }: CommandP
           </div>
 
           {/* Footer */}
-          <div className="flex items-center gap-4 px-4 py-2.5 border-t border-intel-border text-[10px] text-zinc-600">
+          <div className="flex items-center gap-4 px-4 py-2 border-t border-intel-border text-[9px] font-mono text-zinc-600 uppercase tracking-wider">
             <span className="flex items-center gap-1">
-              <kbd className="px-1 py-0.5 rounded border border-intel-border font-mono">&uarr;&darr;</kbd>
+              <kbd className="px-1 py-0.5 border border-intel-border">&uarr;&darr;</kbd>
               Navigate
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1 py-0.5 rounded border border-intel-border font-mono">Enter</kbd>
+              <kbd className="px-1 py-0.5 border border-intel-border">Enter</kbd>
               Select
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1 py-0.5 rounded border border-intel-border font-mono">Esc</kbd>
+              <kbd className="px-1 py-0.5 border border-intel-border">Esc</kbd>
               Close
             </span>
           </div>

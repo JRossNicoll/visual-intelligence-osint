@@ -72,37 +72,34 @@ export default function Sidebar({
         key={item.id}
         onClick={() => onViewChange(item.id)}
         className={cn(
-          'w-full flex items-center gap-3 rounded-lg text-sm font-medium transition-colors relative group',
+          'w-full flex items-center gap-3 text-[11px] font-mono transition-colors relative group',
           collapsed ? 'justify-center p-2.5' : 'px-3 py-2',
           isActive
-            ? 'bg-white/[0.06] text-intel-accent'
-            : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.03]'
+            ? 'bg-white/[0.06] text-zinc-100 border-l-2 border-zinc-100'
+            : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.03] border-l-2 border-transparent'
         )}
         title={collapsed ? item.label : undefined}
       >
-        {isActive && (
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-4 rounded-r bg-intel-accent" />
-        )}
         <div className="relative flex-shrink-0">
-          <Icon className="w-[18px] h-[18px]" />
+          <Icon className="w-4 h-4" />
           {showBadge && collapsed && (
-            <span className="absolute -top-1 -right-1 w-3.5 h-3.5 flex items-center justify-center text-[8px] font-bold bg-red-500 text-white rounded-full">
+            <span className="absolute -top-1 -right-1 w-3 h-3 flex items-center justify-center text-[7px] font-bold bg-red-500 text-white">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
         </div>
         {!collapsed && (
           <>
-            <span className="flex-1 text-left">{item.label}</span>
+            <span className="flex-1 text-left uppercase tracking-wider">{item.label}</span>
             {showBadge && (
-              <span className="px-1.5 py-0.5 text-[10px] font-medium bg-red-500/15 text-red-400 rounded">
+              <span className="px-1 py-0.5 text-[9px] font-mono bg-red-500/10 text-red-400 border border-red-500/20">
                 {unreadCount}
               </span>
             )}
           </>
         )}
         {collapsed && (
-          <div className="absolute left-full ml-2 px-2 py-1 rounded-md bg-zinc-900 text-white text-xs font-medium opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 border border-intel-border">
+          <div className="absolute left-full ml-2 px-2 py-1 bg-zinc-900 text-zinc-200 text-[10px] font-mono uppercase opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 border border-intel-border">
             {item.label}
           </div>
         )}
@@ -113,24 +110,22 @@ export default function Sidebar({
   return (
     <aside
       className={cn(
-        'fixed top-0 left-0 h-screen z-40 flex flex-col transition-all duration-300 ease-in-out',
+        'fixed top-0 left-0 h-screen z-40 flex flex-col transition-all duration-200 ease-in-out',
         'bg-intel-surface border-r border-intel-border',
-        collapsed ? 'w-[72px]' : 'w-[260px]'
+        collapsed ? 'w-[56px]' : 'w-[280px]'
       )}
     >
       {/* Logo */}
       <div className={cn(
-        'flex items-center h-14 border-b border-intel-border flex-shrink-0',
-        collapsed ? 'justify-center px-0' : 'px-5'
+        'flex items-center h-12 border-b border-intel-border flex-shrink-0',
+        collapsed ? 'justify-center px-0' : 'px-4'
       )}>
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-intel-accent/10 flex items-center justify-center">
-            <Eye className="w-4 h-4 text-intel-accent" />
-          </div>
+          <Eye className="w-4 h-4 text-zinc-400 flex-shrink-0" />
           {!collapsed && (
-            <div>
-              <h1 className="text-sm font-semibold tracking-wide text-white">VIOSINT</h1>
-              <p className="text-[9px] text-zinc-600 tracking-widest">VISUAL INTELLIGENCE</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-[11px] font-mono font-semibold tracking-widest text-zinc-200">VIOSINT</span>
+              <span className="text-[8px] font-mono text-zinc-600 tracking-widest">v0.1</span>
             </div>
           )}
         </div>
@@ -138,50 +133,50 @@ export default function Sidebar({
 
       {/* Search / Command Palette Trigger */}
       {!collapsed ? (
-        <div className="px-3 py-3">
+        <div className="px-3 py-2.5">
           <button
             onClick={onOpenCommandPalette}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg border border-intel-border text-zinc-500 text-sm hover:border-intel-border-light hover:text-zinc-400 transition-colors"
+            className="w-full flex items-center gap-2 px-3 py-1.5 border border-intel-border text-zinc-600 text-[11px] font-mono hover:border-intel-border-light hover:text-zinc-400 transition-colors"
           >
-            <Search className="w-3.5 h-3.5" />
-            <span className="flex-1 text-left text-xs">Search...</span>
-            <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-intel-bg text-[10px] font-mono text-zinc-600 border border-intel-border">
+            <Search className="w-3 h-3" />
+            <span className="flex-1 text-left">search...</span>
+            <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1 py-0.5 text-[9px] font-mono text-zinc-600 border border-intel-border">
               <Command className="w-2.5 h-2.5" />K
             </kbd>
           </button>
         </div>
       ) : (
-        <div className="flex justify-center py-3">
+        <div className="flex justify-center py-2.5">
           <button
             onClick={onOpenCommandPalette}
-            className="p-2 rounded-lg text-zinc-500 hover:text-zinc-400 hover:bg-white/[0.03] transition-colors"
+            className="p-2 text-zinc-600 hover:text-zinc-400 hover:bg-white/[0.03] transition-colors"
             title="Search (Cmd+K)"
           >
-            <Search className="w-4 h-4" />
+            <Search className="w-3.5 h-3.5" />
           </button>
         </div>
       )}
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-1 px-3 space-y-5">
+      <nav className="flex-1 overflow-y-auto py-1 space-y-4">
         <div>
           {!collapsed && (
-            <p className="px-3 mb-2 text-[10px] font-medium text-zinc-600 uppercase tracking-widest">
+            <p className="px-4 mb-1.5 mono-label">
               Overview
             </p>
           )}
-          <div className="space-y-0.5">
+          <div className="space-y-px">
             {overviewItems.map(renderNavItem)}
           </div>
         </div>
 
         <div>
           {!collapsed && (
-            <p className="px-3 mb-2 text-[10px] font-medium text-zinc-600 uppercase tracking-widest">
+            <p className="px-4 mb-1.5 mono-label">
               Intelligence
             </p>
           )}
-          <div className="space-y-0.5">
+          <div className="space-y-px">
             {intelItems.map(renderNavItem)}
           </div>
         </div>
@@ -190,15 +185,19 @@ export default function Sidebar({
       {/* Bottom Section */}
       <div className="flex-shrink-0 border-t border-intel-border p-3 space-y-1">
         <div className={cn(
-          'flex items-center gap-2.5 rounded-lg transition-colors',
-          collapsed ? 'justify-center p-2.5' : 'px-3 py-2',
-          wsConnected ? 'text-intel-accent' : 'text-zinc-600'
+          'flex items-center gap-2 transition-colors',
+          collapsed ? 'justify-center p-2' : 'px-3 py-1.5',
         )}>
-          {wsConnected ? <Wifi className="w-4 h-4 flex-shrink-0" /> : <WifiOff className="w-4 h-4 flex-shrink-0" />}
+          {wsConnected ? (
+            <Wifi className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+          ) : (
+            <WifiOff className="w-3.5 h-3.5 text-zinc-600 flex-shrink-0" />
+          )}
           {!collapsed && (
-            <div className="flex-1">
-              <span className="text-xs font-medium">{wsConnected ? 'Connected' : 'Disconnected'}</span>
-              <p className="text-[10px] text-zinc-700">{wsConnected ? 'Real-time active' : 'No connection'}</p>
+            <div className="flex-1 font-mono">
+              <span className="text-[10px] uppercase tracking-wider text-zinc-400">
+                {wsConnected ? 'LINK:OK' : 'LINK:NONE'}
+              </span>
             </div>
           )}
         </div>
@@ -206,14 +205,14 @@ export default function Sidebar({
         <button
           onClick={onToggleCollapse}
           className={cn(
-            'w-full flex items-center gap-2.5 rounded-lg text-zinc-600 hover:text-zinc-400 hover:bg-white/[0.03] transition-colors',
-            collapsed ? 'justify-center p-2.5' : 'px-3 py-2'
+            'w-full flex items-center gap-2 text-zinc-600 hover:text-zinc-400 hover:bg-white/[0.03] transition-colors',
+            collapsed ? 'justify-center p-2' : 'px-3 py-1.5'
           )}
         >
-          {collapsed ? <ChevronRight className="w-4 h-4" /> : (
+          {collapsed ? <ChevronRight className="w-3.5 h-3.5" /> : (
             <>
-              <ChevronLeft className="w-4 h-4" />
-              <span className="text-xs">Collapse</span>
+              <ChevronLeft className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-mono uppercase tracking-wider">Collapse</span>
             </>
           )}
         </button>

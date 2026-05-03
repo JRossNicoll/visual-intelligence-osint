@@ -2,14 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-  --foreground-rgb: 255, 255, 255;
-  --background-rgb: 9, 9, 11;
-  --accent: 0, 212, 170;
-  --sidebar-width: 260px;
-  --sidebar-collapsed-width: 72px;
+  --foreground-rgb: 228, 228, 231;
+  --background-rgb: 10, 10, 10;
+  --sidebar-width: 280px;
+  --sidebar-collapsed-width: 56px;
+}
+
+* {
+  border-radius: 0 !important;
 }
 
 body {
@@ -18,23 +21,10 @@ body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-/* Subtle grid background */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-  background-size: 60px 60px;
-  pointer-events: none;
-  z-index: 0;
-}
-
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
@@ -43,60 +33,65 @@ body::before {
 
 ::-webkit-scrollbar-thumb {
   background: #27272a;
-  border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: #3f3f46;
 }
 
-/* Card utility */
+/* Terminal card utility */
 @layer utilities {
   .card {
-    background: #141416;
+    background: #111111;
     border: 1px solid #27272a;
-    border-radius: 12px;
   }
 
   .card-hover {
-    transition: all 0.15s ease;
+    transition: background-color 0.1s ease, border-color 0.1s ease;
   }
 
   .card-hover:hover {
-    background: #1a1a1e;
+    background: #161616;
     border-color: #3f3f46;
   }
+}
 
-  .text-gradient {
-    background: linear-gradient(135deg, #00d4aa 0%, #06b6d4 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+/* Monospace label utility */
+.mono-label {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #71717a;
+}
+
+.mono-sm {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  font-size: 11px;
 }
 
 /* Detection overlay styles */
 .detection-box {
   position: absolute;
-  border: 2px solid;
+  border: 1px solid;
   pointer-events: none;
 }
 
 .detection-label {
   position: absolute;
-  top: -24px;
-  left: -2px;
-  padding: 2px 8px;
-  font-size: 11px;
-  font-weight: 600;
+  top: -20px;
+  left: -1px;
+  padding: 1px 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
   white-space: nowrap;
 }
 
 /* Focus ring */
 *:focus-visible {
-  outline: 2px solid rgba(0, 212, 170, 0.5);
-  outline-offset: 2px;
-  border-radius: 4px;
+  outline: 1px solid #e4e4e7;
+  outline-offset: 1px;
 }
 
 /* Input styling */
@@ -109,22 +104,20 @@ input[type="range"] {
 }
 
 input[type="range"]::-webkit-slider-runnable-track {
-  height: 4px;
+  height: 2px;
   background: #27272a;
-  border-radius: 4px;
 }
 
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #00d4aa;
-  margin-top: -5px;
+  width: 10px;
+  height: 10px;
+  background: #e4e4e7;
+  margin-top: -4px;
 }
 
 /* Selection color */
 ::selection {
-  background: rgba(0, 212, 170, 0.2);
+  background: rgba(228, 228, 231, 0.15);
   color: white;
 }
