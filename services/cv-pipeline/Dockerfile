@@ -21,8 +21,9 @@ WORKDIR /app
 # Copy dependency files first for caching
 COPY pyproject.toml poetry.lock* ./
 
-# Install setuptools for legacy packages, then dependencies
-RUN pip install --no-cache-dir setuptools wheel \
+# Pre-install problematic deps, then install the rest via poetry
+RUN pip install --no-cache-dir setuptools wheel numpy \
+    && pip install --no-cache-dir lap==0.4.0 \
     && poetry config virtualenvs.create false \
     && poetry install --no-interaction --no-ansi --no-dev 2>/dev/null || \
        poetry install --no-interaction --no-ansi
