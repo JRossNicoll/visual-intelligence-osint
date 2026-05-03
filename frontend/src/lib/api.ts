@@ -63,6 +63,20 @@ export const streamsApi = {
     fetchAPI<{ stream_id: string; status: string; current_fps?: number; frames_processed: number; detections_count: number; active_tracks: number }>(
       `/streams/${id}/status`
     ),
+
+  uploadVideo: async (id: string, file: File): Promise<Stream> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch(`${API_URL}${API_PREFIX}/streams/${id}/upload`, {
+      method: 'POST',
+      body: formData,
+    });
+    if (!res.ok) {
+      const error = await res.text().catch(() => 'Unknown error');
+      throw new Error(`Upload failed: ${error}`);
+    }
+    return res.json();
+  },
 };
 
 // Entity endpoints
@@ -126,6 +140,20 @@ export const targetsApi = {
 
   delete: (id: string) =>
     fetch(`${API_URL}${API_PREFIX}/targets/${id}`, { method: 'DELETE' }),
+
+  uploadReferenceImage: async (id: string, file: File): Promise<Target> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch(`${API_URL}${API_PREFIX}/targets/${id}/reference_image`, {
+      method: 'POST',
+      body: formData,
+    });
+    if (!res.ok) {
+      const error = await res.text().catch(() => 'Unknown error');
+      throw new Error(`Upload failed: ${error}`);
+    }
+    return res.json();
+  },
 };
 
 // Alert endpoints
