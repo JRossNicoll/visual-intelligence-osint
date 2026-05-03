@@ -57,18 +57,12 @@ function EntityDetail({ entity, onClose }: EntityDetailProps) {
   }, [entity.id]);
 
   const typeIcon = entity.entity_type === 'person' ? (
-    <User className="w-5 h-5" />
+    <User className="w-4 h-4" />
   ) : entity.entity_type === 'vehicle' ? (
-    <Car className="w-5 h-5" />
+    <Car className="w-4 h-4" />
   ) : (
-    <Box className="w-5 h-5" />
+    <Box className="w-4 h-4" />
   );
-
-  const typeColor = entity.entity_type === 'person'
-    ? 'text-purple-400 bg-purple-500/10 border-purple-500/20'
-    : entity.entity_type === 'vehicle'
-    ? 'text-blue-400 bg-blue-500/10 border-blue-500/20'
-    : 'text-orange-400 bg-orange-500/10 border-orange-500/20';
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-end">
@@ -76,7 +70,7 @@ function EntityDetail({ entity, onClose }: EntityDetailProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="absolute inset-0 bg-black/60"
+        className="absolute inset-0 bg-black/70"
         onClick={onClose}
       />
       <motion.div
@@ -84,39 +78,39 @@ function EntityDetail({ entity, onClose }: EntityDetailProps) {
         animate={{ x: 0 }}
         exit={{ x: '100%' }}
         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-        className="relative w-full max-w-lg h-full bg-intel-surface/95 border-l border-intel-border overflow-y-auto"
+        className="relative w-full max-w-lg h-full bg-intel-surface border-l border-intel-border overflow-y-auto"
       >
         {/* Header */}
-        <div className="sticky top-0 bg-intel-surface/90 border-b border-intel-border p-5 z-10">
+        <div className="sticky top-0 bg-intel-surface border-b border-intel-border p-4 z-10">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className={cn('p-2.5 rounded-xl border', typeColor)}>
+              <div className="w-8 h-8 flex items-center justify-center border border-intel-border text-zinc-400">
                 {typeIcon}
               </div>
               <div>
-                <h3 className="text-base font-semibold text-white">{entity.label}</h3>
-                <p className="text-xs text-zinc-500 capitalize">{entity.entity_type}</p>
+                <h3 className="text-sm text-zinc-200">{entity.label}</h3>
+                <p className="text-[10px] font-mono text-zinc-600 uppercase">{entity.entity_type}</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-white/5 transition-colors"
+              className="p-1.5 hover:bg-white/5 transition-colors"
             >
-              <X className="w-4 h-4 text-zinc-400" />
+              <X className="w-4 h-4 text-zinc-500" />
             </button>
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 p-1 bg-intel-bg rounded-xl">
+          <div className="flex border border-intel-border">
             {(['overview', 'graph', 'timeline'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={cn(
-                  'flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all capitalize',
+                  'flex-1 px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider transition-colors',
                   activeTab === tab
-                    ? 'bg-intel-card text-white shadow-card'
-                    : 'text-zinc-500 hover:text-zinc-300'
+                    ? 'bg-white/[0.04] text-zinc-200'
+                    : 'text-zinc-600 hover:text-zinc-400'
                 )}
               >
                 {tab}
@@ -126,72 +120,66 @@ function EntityDetail({ entity, onClose }: EntityDetailProps) {
         </div>
 
         {/* Content */}
-        <div className="p-5">
+        <div className="p-4">
           {activeTab === 'overview' && (
             <div className="space-y-4">
               {/* Key Stats */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="card rounded-xl p-4">
-                  <div className="text-[11px] text-zinc-500 mb-1.5 font-medium">Confidence</div>
-                  <div className="text-xl font-semibold text-white">
+              <div className="grid grid-cols-2 gap-px bg-intel-border">
+                <div className="bg-intel-card p-4">
+                  <div className="mono-label mb-1.5">Confidence</div>
+                  <div className="text-xl font-light text-white font-mono">
                     {Math.round(entity.confidence * 100)}%
                   </div>
-                  <div className="mt-2.5 h-1.5 bg-intel-bg rounded-full overflow-hidden">
+                  <div className="mt-2 h-1 bg-intel-bg overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${entity.confidence * 100}%` }}
                       transition={{ duration: 0.8, ease: 'easeOut' }}
-                      className="h-full bg-gradient-to-r from-intel-accent to-intel-cyan rounded-full"
+                      className="h-full bg-zinc-400"
                     />
                   </div>
                 </div>
-                <div className="card rounded-xl p-4">
-                  <div className="text-[11px] text-zinc-500 mb-1.5 font-medium">Total Sightings</div>
-                  <div className="text-xl font-semibold text-white">{entity.total_sightings}</div>
-                  <div className="text-[11px] text-zinc-600 mt-1">across sessions</div>
+                <div className="bg-intel-card p-4">
+                  <div className="mono-label mb-1.5">Total Sightings</div>
+                  <div className="text-xl font-light text-white font-mono">{entity.total_sightings}</div>
+                  <div className="text-[10px] font-mono text-zinc-600 mt-1">across sessions</div>
                 </div>
               </div>
 
               {/* Timestamps */}
-              <div className="card rounded-xl p-4 space-y-3">
-                <h4 className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">Temporal Data</h4>
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-zinc-400 flex items-center gap-2">
-                      <Clock className="w-3.5 h-3.5" /> First Seen
+              <div className="bg-intel-card border border-intel-border p-4 space-y-3">
+                <h4 className="mono-label">Temporal Data</h4>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] text-zinc-500 flex items-center gap-2">
+                      <Clock className="w-3 h-3" /> First Seen
                     </span>
-                    <span className="text-white font-mono text-xs">{formatTimestamp(entity.first_seen)}</span>
+                    <span className="text-[11px] text-zinc-300 font-mono">{formatTimestamp(entity.first_seen)}</span>
                   </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-zinc-400 flex items-center gap-2">
-                      <Clock className="w-3.5 h-3.5" /> Last Seen
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] text-zinc-500 flex items-center gap-2">
+                      <Clock className="w-3 h-3" /> Last Seen
                     </span>
-                    <span className="text-white font-mono text-xs">{formatTimestamp(entity.last_seen)}</span>
+                    <span className="text-[11px] text-zinc-300 font-mono">{formatTimestamp(entity.last_seen)}</span>
                   </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-zinc-400 flex items-center gap-2">
-                      <Activity className="w-3.5 h-3.5" /> Duration
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] text-zinc-500 flex items-center gap-2">
+                      <Activity className="w-3 h-3" /> Duration
                     </span>
-                    <span className="text-white text-xs">{formatRelativeTime(entity.first_seen)}</span>
+                    <span className="text-[11px] text-zinc-300">{formatRelativeTime(entity.first_seen)}</span>
                   </div>
                 </div>
               </div>
 
               {/* Attributes */}
               {entity.attributes && Object.keys(entity.attributes).length > 0 && (
-                <div className="card rounded-xl p-4">
-                  <h4 className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest mb-3">
-                    Extracted Attributes
-                  </h4>
+                <div className="bg-intel-card border border-intel-border p-4">
+                  <h4 className="mono-label mb-3">Extracted Attributes</h4>
                   <div className="space-y-2">
                     {Object.entries(entity.attributes).map(([key, value]) => (
                       <div key={key} className="flex items-center justify-between">
-                        <span className="text-sm text-zinc-400 capitalize">
-                          {key.replace(/_/g, ' ')}
-                        </span>
-                        <span className="text-sm text-intel-accent font-medium capitalize">
-                          {String(value)}
-                        </span>
+                        <span className="text-[11px] text-zinc-500 capitalize">{key.replace(/_/g, ' ')}</span>
+                        <span className="text-[11px] text-zinc-300 font-mono capitalize">{String(value)}</span>
                       </div>
                     ))}
                   </div>
@@ -199,23 +187,21 @@ function EntityDetail({ entity, onClose }: EntityDetailProps) {
               )}
 
               {/* Identity */}
-              <div className="card rounded-xl p-4">
-                <h4 className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest mb-3">
-                  Identity Information
-                </h4>
-                <div className="space-y-2 text-sm">
+              <div className="bg-intel-card border border-intel-border p-4">
+                <h4 className="mono-label mb-3">Identity Information</h4>
+                <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-zinc-400 flex items-center gap-2">
-                      <Fingerprint className="w-3.5 h-3.5" /> Entity ID
+                    <span className="text-[11px] text-zinc-500 flex items-center gap-2">
+                      <Fingerprint className="w-3 h-3" /> Entity ID
                     </span>
-                    <span className="text-white font-mono text-[11px] bg-intel-bg px-2 py-0.5 rounded">{entity.id.slice(0, 12)}...</span>
+                    <span className="text-[10px] font-mono text-zinc-400 bg-intel-bg px-2 py-0.5 border border-intel-border">{entity.id.slice(0, 12)}...</span>
                   </div>
                   {entity.match_cluster_id && (
                     <div className="flex items-center justify-between">
-                      <span className="text-zinc-400 flex items-center gap-2">
-                        <Layers className="w-3.5 h-3.5" /> Cluster
+                      <span className="text-[11px] text-zinc-500 flex items-center gap-2">
+                        <Layers className="w-3 h-3" /> Cluster
                       </span>
-                      <span className="text-white font-mono text-[11px] bg-intel-bg px-2 py-0.5 rounded">
+                      <span className="text-[10px] font-mono text-zinc-400 bg-intel-bg px-2 py-0.5 border border-intel-border">
                         {entity.match_cluster_id.slice(0, 12)}...
                       </span>
                     </div>
@@ -227,51 +213,47 @@ function EntityDetail({ entity, onClose }: EntityDetailProps) {
 
           {activeTab === 'graph' && (
             <div className="space-y-4">
-              <div className="card rounded-xl p-4">
-                <h4 className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest mb-3">
-                  Relationship Graph
-                </h4>
+              <div className="bg-intel-card border border-intel-border p-4">
+                <h4 className="mono-label mb-3">Relationship Graph</h4>
                 {graph && graph.nodes.length > 0 ? (
                   <div className="space-y-3">
-                    <div className="flex items-center gap-4 text-xs text-zinc-500">
-                      <span className="font-mono">{graph.nodes.length} nodes</span>
-                      <span className="font-mono">{graph.edges.length} relationships</span>
+                    <div className="flex items-center gap-4 text-[10px] font-mono text-zinc-600 uppercase">
+                      <span>{graph.nodes.length} nodes</span>
+                      <span>{graph.edges.length} relationships</span>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       {graph.nodes.map((node) => (
                         <div
                           key={node.id}
-                          className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.02] border border-intel-border"
+                          className="flex items-center gap-3 p-2 border border-intel-border hover:bg-white/[0.02] transition-colors"
                         >
-                          <div className="w-8 h-8 rounded-full bg-intel-accent/10 flex items-center justify-center">
+                          <div className="w-6 h-6 flex items-center justify-center border border-intel-border">
                             {node.labels.includes('Entity') ? (
-                              <Eye className="w-4 h-4 text-intel-accent" />
+                              <Eye className="w-3 h-3 text-zinc-500" />
                             ) : (
-                              <GitBranch className="w-4 h-4 text-blue-400" />
+                              <GitBranch className="w-3 h-3 text-zinc-500" />
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs font-medium text-white truncate">
+                            <p className="text-[11px] text-zinc-300 truncate">
                               {String(node.properties.label || node.properties.name || node.id).slice(0, 30)}
                             </p>
-                            <p className="text-[10px] text-zinc-500">{node.labels.join(', ')}</p>
+                            <p className="text-[9px] font-mono text-zinc-600 uppercase">{node.labels.join(', ')}</p>
                           </div>
                         </div>
                       ))}
                     </div>
                     {graph.edges.length > 0 && (
                       <>
-                        <h5 className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest mt-4 mb-2">
-                          Relationships
-                        </h5>
-                        <div className="space-y-1.5">
+                        <h5 className="mono-label mt-4 mb-2">Relationships</h5>
+                        <div className="space-y-1">
                           {graph.edges.map((edge, i) => (
-                            <div key={i} className="flex items-center gap-2 text-xs text-zinc-400 p-2 bg-white/[0.01] rounded-lg">
-                              <span className="font-mono text-[10px]">{edge.source.slice(0, 8)}</span>
-                              <ChevronRight className="w-3 h-3 text-intel-accent" />
-                              <span className="text-intel-accent font-medium">{edge.type}</span>
-                              <ChevronRight className="w-3 h-3 text-intel-accent" />
-                              <span className="font-mono text-[10px]">{edge.target.slice(0, 8)}</span>
+                            <div key={i} className="flex items-center gap-2 text-[10px] text-zinc-500 p-2 border border-intel-border font-mono">
+                              <span>{edge.source.slice(0, 8)}</span>
+                              <ChevronRight className="w-3 h-3 text-zinc-600" />
+                              <span className="text-zinc-300">{edge.type}</span>
+                              <ChevronRight className="w-3 h-3 text-zinc-600" />
+                              <span>{edge.target.slice(0, 8)}</span>
                             </div>
                           ))}
                         </div>
@@ -279,7 +261,7 @@ function EntityDetail({ entity, onClose }: EntityDetailProps) {
                     )}
                   </div>
                 ) : (
-                  <p className="text-sm text-zinc-500 text-center py-6">No graph data available</p>
+                  <p className="text-[11px] font-mono text-zinc-600 text-center py-6">No graph data available</p>
                 )}
               </div>
             </div>
@@ -287,44 +269,42 @@ function EntityDetail({ entity, onClose }: EntityDetailProps) {
 
           {activeTab === 'timeline' && (
             <div className="space-y-4">
-              <div className="card rounded-xl p-4">
-                <h4 className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest mb-3">
-                  Sighting Timeline
-                </h4>
+              <div className="bg-intel-card border border-intel-border p-4">
+                <h4 className="mono-label mb-3">Sighting Timeline</h4>
                 {timeline.length > 0 ? (
-                  <div className="space-y-2">
+                  <div className="space-y-1">
                     {timeline.map((entry, i) => (
                       <div
                         key={entry.id}
-                        className="flex items-start gap-3 p-3 rounded-lg bg-white/[0.02] border border-intel-border"
+                        className="flex items-start gap-3 p-2 border border-intel-border hover:bg-white/[0.02] transition-colors"
                       >
                         <div className="relative flex flex-col items-center">
-                          <div className="w-2.5 h-2.5 rounded-full bg-intel-accent/60" />
+                          <div className="w-2 h-2 bg-zinc-500 mt-1" />
                           {i < timeline.length - 1 && (
-                            <div className="w-px h-full bg-intel-border/30 absolute top-3" />
+                            <div className="w-px h-full bg-intel-border absolute top-3" />
                           )}
                         </div>
                         <div className="flex-1 pb-2">
                           <div className="flex items-center justify-between">
-                            <p className="text-xs font-medium text-white">
-                              Stream: <span className="font-mono text-[10px]">{entry.stream_id.slice(0, 12)}...</span>
+                            <p className="text-[11px] text-zinc-300">
+                              Stream: <span className="font-mono text-[10px] text-zinc-500">{entry.stream_id.slice(0, 12)}...</span>
                             </p>
-                            <span className="text-[10px] text-intel-accent font-mono">
+                            <span className="text-[10px] font-mono text-zinc-400">
                               {Math.round(entry.avg_confidence * 100)}%
                             </span>
                           </div>
-                          <p className="text-[11px] text-zinc-500 mt-0.5">
+                          <p className="text-[10px] font-mono text-zinc-600 mt-0.5">
                             {entry.detection_count} detections
                           </p>
-                          <p className="text-[10px] text-zinc-600 mt-0.5">
-                            {formatTimestamp(entry.first_timestamp)} &mdash; {formatTimestamp(entry.last_timestamp)}
+                          <p className="text-[9px] font-mono text-zinc-600 mt-0.5">
+                            {formatTimestamp(entry.first_timestamp)} — {formatTimestamp(entry.last_timestamp)}
                           </p>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-zinc-500 text-center py-6">No timeline data available</p>
+                  <p className="text-[11px] font-mono text-zinc-600 text-center py-6">No timeline data available</p>
                 )}
               </div>
             </div>
@@ -338,11 +318,11 @@ function EntityDetail({ entity, onClose }: EntityDetailProps) {
 export default function EntitiesView() {
   const [entities, setEntities] = useState<Entity[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedEntity, setSelectedEntity] = useState<Entity | null>(null);
-  const [filterType, setFilterType] = useState<string>('');
+  const [filterType, setFilterType] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedEntity, setSelectedEntity] = useState<Entity | null>(null);
   const [page, setPage] = useState(0);
-  const pageSize = 24;
+  const pageSize = 20;
 
   const fetchEntities = useCallback(async () => {
     try {
@@ -371,73 +351,61 @@ export default function EntitiesView() {
 
   const typeIcon = (type: string) => {
     switch (type) {
-      case 'person': return <User className="w-4 h-4" />;
-      case 'vehicle': return <Car className="w-4 h-4" />;
-      default: return <Box className="w-4 h-4" />;
+      case 'person': return <User className="w-3.5 h-3.5" />;
+      case 'vehicle': return <Car className="w-3.5 h-3.5" />;
+      default: return <Box className="w-3.5 h-3.5" />;
     }
   };
 
-  const typeColor = (type: string) => {
-    switch (type) {
-      case 'person': return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
-      case 'vehicle': return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
-      default: return 'bg-orange-500/10 text-orange-400 border-orange-500/20';
-    }
-  };
+  const filterBtn = (active: boolean) => cn(
+    'px-3 py-1 text-[10px] font-mono uppercase tracking-wider border transition-colors',
+    active ? 'text-white border-intel-border-light bg-white/[0.04]' : 'text-zinc-600 border-intel-border hover:text-zinc-300 hover:border-intel-border-light'
+  );
 
   return (
     <div className="p-6 pb-12 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-white">Tracked Entities</h2>
-          <p className="text-sm text-zinc-500 mt-0.5">
+          <h2 className="text-2xl font-light text-white">Tracked Entities</h2>
+          <p className="text-[11px] font-mono text-zinc-600 mt-1 uppercase tracking-wider">
             Browse and analyze detected objects across all streams
           </p>
         </div>
-        <span className="text-sm text-zinc-500 font-mono">{entities.length} results</span>
+        <span className="text-[10px] font-mono text-zinc-600 uppercase">{entities.length} results</span>
       </div>
 
       {/* Filters */}
       <div className="flex items-center gap-3 flex-wrap">
         {/* Search */}
         <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-600" />
           <input
             type="text"
-            placeholder="Search entities..."
+            placeholder="search --entities"
             value={searchQuery}
             onChange={(e) => { setSearchQuery(e.target.value); setPage(0); }}
-            className="w-full pl-10 pr-4 py-2 bg-intel-bg border border-intel-border rounded-lg text-white text-sm focus:outline-none focus:border-intel-accent/40 transition-colors placeholder-zinc-600"
+            className="w-full pl-9 pr-4 py-1.5 bg-intel-bg border border-intel-border text-zinc-200 text-[12px] font-mono focus:outline-none focus:border-intel-border-light transition-colors placeholder-zinc-600"
           />
         </div>
 
         {/* Type Filters */}
         <div className="flex items-center gap-1.5">
+          <span className="mono-label mr-1">Type</span>
           <button
             onClick={() => { setFilterType(''); setPage(0); }}
-            className={cn(
-              'px-3 py-1.5 rounded-lg text-xs font-medium border transition-all',
-              !filterType
-                ? 'bg-intel-accent/10 text-intel-accent border-intel-accent/20'
-                : 'text-zinc-400 border-intel-border hover:text-white'
-            )}
+            className={filterBtn(!filterType)}
           >
-            All
+            all
           </button>
           {['person', 'vehicle', 'object'].map((type) => (
             <button
               key={type}
               onClick={() => { setFilterType(type); setPage(0); }}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all',
-                filterType === type
-                  ? 'bg-intel-accent/10 text-intel-accent border-intel-accent/20'
-                  : 'text-zinc-400 border-intel-border hover:text-white'
-              )}
+              className={cn(filterBtn(filterType === type), 'flex items-center gap-1.5')}
             >
               {typeIcon(type)}
-              <span className="capitalize">{type}s</span>
+              <span>{type}s</span>
             </button>
           ))}
         </div>
@@ -445,63 +413,63 @@ export default function EntitiesView() {
 
       {/* Entity Grid */}
       {loading ? (
-        <div className="flex items-center justify-center py-20 text-zinc-500">
-          <Eye className="w-5 h-5 animate-pulse mr-2" />
-          <span className="text-sm">Loading entities...</span>
+        <div className="flex items-center justify-center py-20 text-zinc-600">
+          <Eye className="w-4 h-4 animate-pulse mr-2" />
+          <span className="text-[11px] font-mono uppercase">Loading entities...</span>
         </div>
       ) : entities.length === 0 ? (
         <div className="text-center py-20">
-          <div className="w-16 h-16 rounded-xl bg-intel-card flex items-center justify-center mx-auto mb-4 border border-intel-border">
-            <Eye className="w-7 h-7 text-zinc-600" />
+          <div className="w-12 h-12 flex items-center justify-center mx-auto mb-4 border border-intel-border">
+            <Eye className="w-5 h-5 text-zinc-600" />
           </div>
-          <p className="text-zinc-400 font-medium">No entities found</p>
-          <p className="text-sm text-zinc-600 mt-1">Entities will appear once detection begins</p>
+          <p className="text-zinc-400 text-sm">No entities found</p>
+          <p className="text-[11px] font-mono text-zinc-600 mt-1">Entities will appear once detection begins</p>
         </div>
       ) : (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-px bg-intel-border"
         >
           {entities.map((entity, i) => (
             <motion.button
               key={entity.id}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ delay: i * 0.02 }}
               onClick={() => setSelectedEntity(entity)}
-              className="card card-hover rounded-xl p-4 text-left w-full group"
+              className="bg-intel-card p-4 text-left w-full hover:bg-intel-card-hover transition-colors group"
             >
               <div className="flex items-start gap-3">
-                <div className={cn('p-2 rounded-lg border flex-shrink-0', typeColor(entity.entity_type))}>
+                <div className="w-7 h-7 flex items-center justify-center border border-intel-border text-zinc-500 flex-shrink-0">
                   {typeIcon(entity.entity_type)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-semibold text-white truncate group-hover:text-intel-accent transition-colors">
+                  <h3 className="text-xs text-zinc-200 truncate group-hover:text-white transition-colors">
                     {entity.label}
                   </h3>
-                  <p className="text-[11px] text-zinc-500 capitalize mt-0.5">{entity.entity_type}</p>
+                  <p className="text-[10px] font-mono text-zinc-600 uppercase mt-0.5">{entity.entity_type}</p>
                 </div>
-                <ChevronRight className="w-4 h-4 text-zinc-600 group-hover:text-intel-accent transition-colors flex-shrink-0 mt-0.5" />
+                <ChevronRight className="w-3.5 h-3.5 text-zinc-700 group-hover:text-zinc-400 transition-colors flex-shrink-0 mt-0.5" />
               </div>
 
               {/* Stats Row */}
-              <div className="flex items-center gap-3 mt-3 text-[11px] text-zinc-500">
+              <div className="flex items-center gap-3 mt-3 text-[10px] font-mono text-zinc-600">
                 <span className="flex items-center gap-1">
                   <Eye className="w-3 h-3" /> {entity.total_sightings}
                 </span>
-                <span className="font-mono text-intel-accent">
+                <span className="text-zinc-400">
                   {Math.round(entity.confidence * 100)}%
                 </span>
-                <span className="ml-auto">
+                <span className="ml-auto text-[9px]">
                   {formatRelativeTime(entity.last_seen)}
                 </span>
               </div>
 
               {/* Confidence Bar */}
-              <div className="mt-2.5 h-1 bg-intel-bg rounded-full overflow-hidden">
+              <div className="mt-2 h-px bg-intel-bg overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-intel-accent to-intel-cyan rounded-full transition-all"
+                  className="h-full bg-zinc-500 transition-all"
                   style={{ width: `${entity.confidence * 100}%` }}
                 />
               </div>
@@ -516,15 +484,15 @@ export default function EntitiesView() {
           <button
             onClick={() => setPage(Math.max(0, page - 1))}
             disabled={page === 0}
-            className="px-3 py-1.5 text-xs font-medium text-zinc-400 border border-intel-border rounded-lg hover:text-white disabled:opacity-30 transition-colors"
+            className="px-3 py-1 text-[10px] font-mono uppercase text-zinc-500 border border-intel-border hover:text-white disabled:opacity-30 transition-colors"
           >
             Previous
           </button>
-          <span className="text-xs text-zinc-500 font-mono px-3">Page {page + 1}</span>
+          <span className="text-[10px] font-mono text-zinc-600 px-3">Page {page + 1}</span>
           <button
             onClick={() => setPage(page + 1)}
             disabled={entities.length < pageSize}
-            className="px-3 py-1.5 text-xs font-medium text-zinc-400 border border-intel-border rounded-lg hover:text-white disabled:opacity-30 transition-colors"
+            className="px-3 py-1 text-[10px] font-mono uppercase text-zinc-500 border border-intel-border hover:text-white disabled:opacity-30 transition-colors"
           >
             Next
           </button>
