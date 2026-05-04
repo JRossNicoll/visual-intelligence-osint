@@ -144,7 +144,7 @@ export const targetsApi = {
   uploadReferenceImage: async (id: string, file: File): Promise<Target> => {
     const formData = new FormData();
     formData.append('file', file);
-    const res = await fetch(`${API_URL}${API_PREFIX}/targets/${id}/reference_image`, {
+    const res = await fetch(`${API_URL}${API_PREFIX}/targets/${id}/reference-image`, {
       method: 'POST',
       body: formData,
     });

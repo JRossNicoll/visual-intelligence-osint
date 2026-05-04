@@ -103,7 +103,7 @@ export default function StreamsView() {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     const file = e.dataTransfer.files?.[0];
-    if (file && (file.type.startsWith('video/') || file.type.startsWith('image/'))) {
+    if (file && file.type.startsWith('video/')) {
       setSelectedFile(file);
       if (!newStream.name) {
         setNewStream(prev => ({ ...prev, name: file.name.replace(/\.[^/.]+$/, '') }));
@@ -198,7 +198,7 @@ export default function StreamsView() {
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept="video/*,image/*"
+                    accept="video/*"
                     className="hidden"
                     onChange={handleFileSelect}
                   />
@@ -221,7 +221,7 @@ export default function StreamsView() {
                   ) : (
                     <div className="flex flex-col items-center justify-center py-8">
                       <Upload className="w-8 h-8 text-zinc-600 mb-3" />
-                      <p className="text-xs text-zinc-400">Drop a video or image file here</p>
+                      <p className="text-xs text-zinc-400">Drop a video file here</p>
                       <p className="text-[10px] font-mono text-zinc-600 mt-1">or click to browse &middot; MP4, AVI, MOV, WEBM</p>
                     </div>
                   )}
