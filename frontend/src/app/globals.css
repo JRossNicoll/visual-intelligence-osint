@@ -5,26 +5,20 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 228, 228, 231;
-  --background-rgb: 10, 10, 10;
-  --sidebar-width: 280px;
-  --sidebar-collapsed-width: 56px;
-}
-
-* {
-  border-radius: 0 !important;
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 60px;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-rgb));
+  color: #e2e2ea;
+  background: #050507;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-/* Custom scrollbar */
+/* Scrollbar */
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -32,37 +26,38 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #27272a;
+  background: rgba(255,255,255,0.08);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
+  background: rgba(255,255,255,0.14);
 }
 
-/* Terminal card utility */
+/* Utility classes */
 @layer utilities {
   .card {
-    background: #111111;
-    border: 1px solid #27272a;
+    background: #111118;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 8px;
   }
 
   .card-hover {
-    transition: background-color 0.1s ease, border-color 0.1s ease;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
   }
 
   .card-hover:hover {
-    background: #161616;
-    border-color: #3f3f46;
+    background: #16161f;
+    border-color: rgba(255,255,255,0.10);
   }
 }
 
-/* Monospace label utility */
-.mono-label {
-  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #71717a;
+/* Label utility */
+.label-sm {
+  font-size: 11px;
+  font-weight: 500;
+  color: #8b8b9e;
+  letter-spacing: 0.01em;
 }
 
 .mono-sm {
@@ -70,7 +65,7 @@ body {
   font-size: 11px;
 }
 
-/* Detection overlay styles */
+/* Detection overlay */
 .detection-box {
   position: absolute;
   border: 1px solid;
@@ -90,11 +85,12 @@ body {
 
 /* Focus ring */
 *:focus-visible {
-  outline: 1px solid #e4e4e7;
-  outline-offset: 1px;
+  outline: 1px solid #4a9eff;
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
-/* Input styling */
+/* Range input */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
@@ -104,20 +100,42 @@ input[type="range"] {
 }
 
 input[type="range"]::-webkit-slider-runnable-track {
-  height: 2px;
-  background: #27272a;
+  height: 3px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px;
 }
 
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 10px;
-  height: 10px;
-  background: #e4e4e7;
-  margin-top: -4px;
+  width: 14px;
+  height: 14px;
+  background: #4a9eff;
+  border-radius: 50%;
+  margin-top: -5.5px;
 }
 
-/* Selection color */
+/* Selection */
 ::selection {
-  background: rgba(228, 228, 231, 0.15);
+  background: rgba(74, 158, 255, 0.2);
   color: white;
+}
+
+/* Smooth view transitions */
+.view-enter {
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
 }

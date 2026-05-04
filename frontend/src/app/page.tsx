@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
 import CommandPalette from '@/components/CommandPalette';
 import Dashboard from '@/components/Dashboard';
@@ -101,7 +100,7 @@ export default function Home() {
   };
 
   return (
-    <div className="h-screen flex bg-intel-bg relative z-10">
+    <div className="h-screen flex bg-g-bg relative">
       <Sidebar
         activeView={activeView}
         onViewChange={setActiveView}
@@ -113,85 +112,66 @@ export default function Home() {
 
       <main
         className={cn(
-          'flex-1 h-screen overflow-hidden transition-all duration-200 ease-in-out',
-          sidebarCollapsed ? 'ml-[56px]' : 'ml-[280px]'
+          'flex-1 h-screen overflow-hidden transition-all duration-200 ease-out',
+          sidebarCollapsed ? 'ml-[60px]' : 'ml-[260px]'
         )}
       >
         {/* Top Bar */}
-        <header className="h-12 flex items-center justify-between px-6 border-b border-intel-border flex-shrink-0 bg-intel-surface">
+        <header className="h-12 flex items-center justify-between px-6 border-b border-g-border flex-shrink-0 bg-g-surface/80 backdrop-blur-sm">
           <div className="flex items-center gap-4">
-            <h2 className="text-[11px] font-mono font-medium uppercase tracking-widest text-zinc-200">
+            <h2 className="text-sm font-medium text-g-text">
               {viewLabels[activeView] || activeView}
             </h2>
-            <span className="text-[10px] font-mono text-zinc-600">
-              Session:{new Date().getFullYear()}
-            </span>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <div className={cn(
-              'flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider border',
+              'flex items-center gap-2 px-2.5 py-1 text-xs rounded-full',
               wsConnected
-                ? 'text-green-500 border-green-500/20'
-                : 'text-zinc-600 border-intel-border'
+                ? 'text-g-success bg-g-success/10'
+                : 'text-g-text-muted bg-white/[0.03]'
             )}>
               <span className={cn(
-                'w-1.5 h-1.5',
-                wsConnected ? 'bg-green-500' : 'bg-zinc-600'
+                'w-1.5 h-1.5 rounded-full',
+                wsConnected ? 'bg-g-success' : 'bg-g-text-muted'
               )} />
-              {wsConnected ? `${realtimeDetections.length}_LIVE` : 'OFFLINE'}
+              {wsConnected ? `${realtimeDetections.length} live` : 'Offline'}
             </div>
           </div>
         </header>
 
         {/* Page Content */}
         <div className="h-[calc(100vh-3rem)] overflow-y-auto">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeView}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.1 }}
-              className="min-h-full"
-            >
-              {renderView()}
-            </motion.div>
-          </AnimatePresence>
+          <div key={activeView} className="min-h-full view-enter">
+            {renderView()}
+          </div>
         </div>
       </main>
 
       {/* Alert Toast */}
-      <AnimatePresence>
-        {alertNotification && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="fixed top-3 right-3 z-50"
-          >
-            <div className="flex items-center gap-3 px-4 py-2.5 bg-intel-card border border-intel-border">
-              <div className={cn(
-                'w-1.5 h-1.5',
-                alertNotification.severity === 'critical' ? 'bg-red-500' :
-                alertNotification.severity === 'high' ? 'bg-orange-500' :
-                alertNotification.severity === 'medium' ? 'bg-yellow-500' : 'bg-blue-500'
-              )} />
-              <div>
-                <p className="text-[9px] font-mono uppercase tracking-wider text-zinc-500">
-                  {alertNotification.severity}_alert
-                </p>
-                <p className="text-xs text-zinc-200">{alertNotification.title}</p>
-              </div>
-              <button
-                onClick={() => setAlertNotification(null)}
-                className="ml-2 text-zinc-600 hover:text-zinc-400 transition-colors text-sm"
-              >
-                &times;
-              </button>
+      {alertNotification && (
+        <div className="fixed top-4 right-4 z-50 animate-slide-up">
+          <div className="flex items-center gap-3 px-4 py-3 bg-g-card border border-g-border rounded-lg shadow-2xl shadow-black/40">
+            <div className={cn(
+              'w-2 h-2 rounded-full',
+              alertNotification.severity === 'critical' ? 'bg-red-500' :
+              alertNotification.severity === 'high' ? 'bg-orange-500' :
+              alertNotification.severity === 'medium' ? 'bg-yellow-500' : 'bg-blue-500'
+            )} />
+            <div>
+              <p className="text-[10px] font-medium text-g-text-secondary capitalize">
+                {alertNotification.severity} Alert
+              </p>
+              <p className="text-sm text-g-text">{alertNotification.title}</p>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <button
+              onClick={() => setAlertNotification(null)}
+              className="ml-2 text-g-text-muted hover:text-g-text transition-colors"
+            >
+              &times;
+            </button>
+          </div>
+        </div>
+      )}
 
       <CommandPalette
         isOpen={commandPaletteOpen}
@@ -202,18 +182,18 @@ export default function Home() {
       {/* Status Bar */}
       <footer
         className={cn(
-          'fixed bottom-0 right-0 h-6 flex items-center justify-between text-[9px] font-mono text-zinc-600 px-4 bg-intel-surface border-t border-intel-border transition-all duration-200 z-10 uppercase tracking-wider',
-          sidebarCollapsed ? 'left-[56px]' : 'left-[280px]'
+          'fixed bottom-0 right-0 h-7 flex items-center justify-between text-[11px] text-g-text-muted px-4 bg-g-surface/80 backdrop-blur-sm border-t border-g-border transition-all duration-200 z-10',
+          sidebarCollapsed ? 'left-[60px]' : 'left-[260px]'
         )}
       >
         <div className="flex items-center gap-4">
-          <span>VIOSINT_v0.1.0</span>
-          <span className={wsConnected ? 'text-green-500' : ''}>
-            {wsConnected ? 'WS:CONNECTED' : 'WS:DISCONNECTED'}
+          <span className="font-mono text-[10px]">VIOSINT v0.1.0</span>
+          <span className={cn('font-mono text-[10px]', wsConnected ? 'text-g-success' : '')}>
+            {wsConnected ? 'Connected' : 'Disconnected'}
           </span>
         </div>
         <div className="flex items-center gap-4">
-          <span>{realtimeDetections.length}_tracks</span>
+          <span className="font-mono text-[10px]">{realtimeDetections.length} tracks</span>
         </div>
       </footer>
     </div>

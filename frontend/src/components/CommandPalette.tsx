@@ -79,39 +79,39 @@ export default function CommandPalette({ isOpen, onClose, onNavigate }: CommandP
 
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh]">
-      <div className="absolute inset-0 bg-black/80" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full max-w-lg animate-fade-in">
-        <div className="overflow-hidden bg-intel-surface border border-intel-border">
+        <div className="overflow-hidden bg-g-surface border border-g-border rounded-xl shadow-2xl shadow-black/50">
           {/* Search Input */}
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-intel-border">
-            <span className="text-[10px] font-mono text-zinc-600">&gt;</span>
+          <div className="flex items-center gap-3 px-4 py-3.5 border-b border-g-border">
+            <Search className="w-4 h-4 text-g-text-muted" />
             <input
               ref={inputRef}
               type="text"
-              placeholder="search --cmd"
+              placeholder="Search commands..."
               value={query}
               onChange={(e) => {
                 setQuery(e.target.value);
                 setSelectedIndex(0);
               }}
               onKeyDown={handleKeyDown}
-              className="flex-1 bg-transparent text-zinc-200 text-[12px] font-mono placeholder-zinc-600 outline-none"
+              className="flex-1 bg-transparent text-g-text text-sm placeholder-g-text-muted outline-none"
             />
-            <kbd className="px-1.5 py-0.5 text-[9px] font-mono text-zinc-600 border border-intel-border">
+            <kbd className="px-2 py-1 text-[10px] font-mono text-g-text-dim bg-white/[0.04] rounded">
               ESC
             </kbd>
           </div>
 
           {/* Results */}
-          <div className="max-h-[300px] overflow-y-auto">
+          <div className="max-h-[300px] overflow-y-auto py-1">
             {filtered.length === 0 ? (
-              <div className="px-4 py-8 text-center text-[11px] font-mono text-zinc-600">
+              <div className="px-4 py-8 text-center text-sm text-g-text-muted">
                 No results found
               </div>
             ) : (
               categories.map((category) => (
                 <div key={category}>
-                  <p className="px-4 py-1.5 mono-label">
+                  <p className="px-4 py-1.5 text-[11px] font-medium text-g-text-dim uppercase tracking-wide">
                     {category}
                   </p>
                   {filtered
@@ -131,22 +131,22 @@ export default function CommandPalette({ isOpen, onClose, onNavigate }: CommandP
                           className={cn(
                             'w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors',
                             isSelected
-                              ? 'bg-white/[0.04] text-zinc-100'
-                              : 'text-zinc-500 hover:bg-white/[0.02]'
+                              ? 'bg-g-accent/10 text-g-text'
+                              : 'text-g-text-secondary hover:bg-white/[0.03]'
                           )}
                         >
                           <div className={cn(
-                            'w-7 h-7 flex items-center justify-center flex-shrink-0 border',
-                            isSelected ? 'border-zinc-500 text-zinc-200' : 'border-intel-border text-zinc-600'
+                            'w-8 h-8 flex items-center justify-center flex-shrink-0 rounded-md',
+                            isSelected ? 'bg-g-accent/15 text-g-accent' : 'bg-white/[0.04] text-g-text-muted'
                           )}>
-                            <Icon className="w-3.5 h-3.5" />
+                            <Icon className="w-4 h-4" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-[11px] font-mono uppercase tracking-wider">{cmd.label}</p>
-                            <p className="text-[10px] text-zinc-600 truncate">{cmd.description}</p>
+                            <p className="text-sm font-medium">{cmd.label}</p>
+                            <p className="text-xs text-g-text-muted truncate">{cmd.description}</p>
                           </div>
                           {isSelected && (
-                            <span className="text-[9px] text-zinc-600 font-mono uppercase">Enter</span>
+                            <span className="text-[10px] text-g-text-dim font-mono">Enter</span>
                           )}
                         </button>
                       );
@@ -157,17 +157,17 @@ export default function CommandPalette({ isOpen, onClose, onNavigate }: CommandP
           </div>
 
           {/* Footer */}
-          <div className="flex items-center gap-4 px-4 py-2 border-t border-intel-border text-[9px] font-mono text-zinc-600 uppercase tracking-wider">
-            <span className="flex items-center gap-1">
-              <kbd className="px-1 py-0.5 border border-intel-border">&uarr;&darr;</kbd>
+          <div className="flex items-center gap-4 px-4 py-2.5 border-t border-g-border text-[10px] text-g-text-dim">
+            <span className="flex items-center gap-1.5">
+              <kbd className="px-1.5 py-0.5 bg-white/[0.04] rounded font-mono">&uarr;&darr;</kbd>
               Navigate
             </span>
-            <span className="flex items-center gap-1">
-              <kbd className="px-1 py-0.5 border border-intel-border">Enter</kbd>
+            <span className="flex items-center gap-1.5">
+              <kbd className="px-1.5 py-0.5 bg-white/[0.04] rounded font-mono">Enter</kbd>
               Select
             </span>
-            <span className="flex items-center gap-1">
-              <kbd className="px-1 py-0.5 border border-intel-border">Esc</kbd>
+            <span className="flex items-center gap-1.5">
+              <kbd className="px-1.5 py-0.5 bg-white/[0.04] rounded font-mono">Esc</kbd>
               Close
             </span>
           </div>

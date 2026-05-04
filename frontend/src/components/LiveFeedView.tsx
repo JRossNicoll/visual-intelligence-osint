@@ -1,29 +1,20 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
 import {
-  Activity,
+  Box,
   Camera,
+  Car,
   Crosshair,
-  Eye,
   Maximize2,
   Minimize2,
-  Pause,
-  Play,
   Radio,
-  Settings,
   User,
-  Car,
-  Box,
-  Zap,
-  Clock,
-  Grid3X3,
 } from 'lucide-react';
 import type { Detection, Stream, WSFrameDetections } from '@/types';
 import { streamsApi } from '@/lib/api';
 import { getStreamWS, WSClient } from '@/lib/websocket';
-import { cn, formatRelativeTime } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 
 interface DetectionOverlayProps {
   detections: Detection[];
@@ -45,9 +36,9 @@ function DetectionOverlay({
 
   const getColor = (entityType: string) => {
     switch (entityType) {
-      case 'person': return { border: '#a1a1aa', bg: 'rgba(161, 161, 170, 0.08)', text: '#a1a1aa' };
-      case 'vehicle': return { border: '#71717a', bg: 'rgba(113, 113, 122, 0.08)', text: '#71717a' };
-      default: return { border: '#52525b', bg: 'rgba(82, 82, 91, 0.08)', text: '#52525b' };
+      case 'person': return { border: '#4a9eff', bg: 'rgba(74, 158, 255, 0.08)', text: '#4a9eff' };
+      case 'vehicle': return { border: '#34d399', bg: 'rgba(52, 211, 153, 0.08)', text: '#34d399' };
+      default: return { border: '#a78bfa', bg: 'rgba(167, 139, 250, 0.08)', text: '#a78bfa' };
     }
   };
 
@@ -63,7 +54,6 @@ function DetectionOverlay({
 
         return (
           <div key={`${det.track_id || i}-${det.label}`}>
-            {/* Bounding Box */}
             <div
               className="absolute transition-all duration-75"
               style={{
@@ -73,41 +63,37 @@ function DetectionOverlay({
                 height: `${height}px`,
                 border: `1px solid ${color.border}`,
                 backgroundColor: color.bg,
+                borderRadius: '4px',
               }}
             >
-              {/* Corner markers */}
-              <div className="absolute -top-px -left-px w-2 h-2 border-t border-l" style={{ borderColor: color.border }} />
-              <div className="absolute -top-px -right-px w-2 h-2 border-t border-r" style={{ borderColor: color.border }} />
-              <div className="absolute -bottom-px -left-px w-2 h-2 border-b border-l" style={{ borderColor: color.border }} />
-              <div className="absolute -bottom-px -right-px w-2 h-2 border-b border-r" style={{ borderColor: color.border }} />
+              <div className="absolute -top-px -left-px w-2.5 h-2.5 border-t-2 border-l-2 rounded-tl-sm" style={{ borderColor: color.border }} />
+              <div className="absolute -top-px -right-px w-2.5 h-2.5 border-t-2 border-r-2 rounded-tr-sm" style={{ borderColor: color.border }} />
+              <div className="absolute -bottom-px -left-px w-2.5 h-2.5 border-b-2 border-l-2 rounded-bl-sm" style={{ borderColor: color.border }} />
+              <div className="absolute -bottom-px -right-px w-2.5 h-2.5 border-b-2 border-r-2 rounded-br-sm" style={{ borderColor: color.border }} />
             </div>
 
-            {/* Label */}
             <div
-              className="absolute flex items-center gap-1 px-1 py-0.5 text-[8px] font-mono font-bold tracking-wider uppercase"
+              className="absolute flex items-center gap-1 px-1.5 py-0.5 text-[8px] font-semibold tracking-wider uppercase rounded"
               style={{
                 left: `${left}px`,
-                top: `${Math.max(0, top - 16)}px`,
+                top: `${Math.max(0, top - 18)}px`,
                 backgroundColor: color.border,
-                color: '#0a0a0a',
+                color: '#050507',
               }}
             >
-              {det.track_id != null && (
-                <span className="opacity-70">#{det.track_id}</span>
-              )}
+              {det.track_id != null && <span className="opacity-70">#{det.track_id}</span>}
               <span>{det.label}</span>
               <span className="opacity-60">{Math.round(det.confidence * 100)}%</span>
             </div>
 
-            {/* Attributes */}
             {det.attributes && Object.keys(det.attributes).length > 0 && (
               <div
-                className="absolute text-[7px] font-mono px-1 py-0.5 whitespace-nowrap"
+                className="absolute text-[7px] font-mono px-1.5 py-0.5 whitespace-nowrap rounded"
                 style={{
                   left: `${left}px`,
                   top: `${top + height + 2}px`,
                   color: color.text,
-                  backgroundColor: 'rgba(10,10,10,0.85)',
+                  backgroundColor: 'rgba(5,5,7,0.85)',
                 }}
               >
                 {Object.entries(det.attributes)
@@ -121,10 +107,9 @@ function DetectionOverlay({
         );
       })}
 
-      {/* Crosshair overlay */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/2 left-0 right-0 h-px bg-zinc-600/10" />
-        <div className="absolute top-0 bottom-0 left-1/2 w-px bg-zinc-600/10" />
+        <div className="absolute top-1/2 left-0 right-0 h-px bg-white/[0.03]" />
+        <div className="absolute top-0 bottom-0 left-1/2 w-px bg-white/[0.03]" />
       </div>
     </div>
   );
@@ -174,18 +159,17 @@ function StreamFeed({ stream, isExpanded, onToggleExpand }: StreamFeedProps) {
 
   return (
     <div className={cn(
-      'border border-intel-border overflow-hidden transition-all',
+      'bg-g-card border border-g-border rounded-lg overflow-hidden transition-all',
       isExpanded ? 'col-span-full' : ''
     )}>
-      {/* Video Area */}
       <div
         ref={containerRef}
         className="relative bg-black overflow-hidden aspect-video"
       >
-        <div className="absolute inset-0 flex items-center justify-center bg-intel-bg">
+        <div className="absolute inset-0 flex items-center justify-center bg-g-bg">
           {stream.status === 'active' ? (
             <>
-              <Camera className="w-10 h-10 text-zinc-900" />
+              <Camera className="w-10 h-10 text-g-text-dim/20" />
               <DetectionOverlay
                 detections={detections}
                 containerWidth={containerWidth}
@@ -196,54 +180,51 @@ function StreamFeed({ stream, isExpanded, onToggleExpand }: StreamFeedProps) {
             </>
           ) : (
             <div className="text-center">
-              <Camera className="w-8 h-8 text-zinc-800 mx-auto mb-2" />
-              <p className="text-[10px] font-mono text-zinc-700 uppercase">{stream.status}</p>
+              <Camera className="w-8 h-8 text-g-text-dim mx-auto mb-2" />
+              <p className="text-xs text-g-text-dim capitalize">{stream.status}</p>
             </div>
           )}
         </div>
 
-        {/* Top bar overlay */}
-        <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-2 bg-gradient-to-b from-black/60 to-transparent">
+        <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-3 bg-gradient-to-b from-black/60 to-transparent">
           <div className="flex items-center gap-2">
             {stream.status === 'active' && (
-              <span className="flex items-center gap-1 px-1.5 py-0.5 bg-red-600/80 text-white text-[8px] font-mono font-bold uppercase tracking-widest">
-                <span className="w-1 h-1 bg-white animate-pulse" />
+              <span className="flex items-center gap-1.5 px-2 py-0.5 bg-g-danger/90 text-white text-[9px] font-bold rounded">
+                <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
                 LIVE
               </span>
             )}
-            <span className="text-[10px] text-white/70 font-mono">{stream.name}</span>
+            <span className="text-xs text-white/70">{stream.name}</span>
           </div>
           <div className="flex items-center gap-2">
             {connected && (
-              <span className="flex items-center gap-1 text-[8px] text-green-400 font-mono uppercase">
-                <Radio className="w-2.5 h-2.5" />
-                WS
+              <span className="flex items-center gap-1 text-[9px] text-g-success font-mono">
+                <Radio className="w-3 h-3" /> WS
               </span>
             )}
             <button
               onClick={onToggleExpand}
-              className="p-1 hover:bg-white/10 transition-colors"
+              className="p-1 hover:bg-white/10 transition-colors rounded"
             >
               {isExpanded ? (
-                <Minimize2 className="w-3 h-3 text-white/50" />
+                <Minimize2 className="w-3.5 h-3.5 text-white/50" />
               ) : (
-                <Maximize2 className="w-3 h-3 text-white/50" />
+                <Maximize2 className="w-3.5 h-3.5 text-white/50" />
               )}
             </button>
           </div>
         </div>
 
-        {/* Bottom stats bar */}
         {stream.status === 'active' && (
-          <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between p-2 bg-gradient-to-t from-black/60 to-transparent">
-            <div className="flex items-center gap-3 text-[9px] text-white/50 font-mono uppercase">
-              <span>{stats.fps.toFixed(1)}_fps</span>
-              <span>{detections.length}_det</span>
-              <span>{stats.activeTracks}_trk</span>
+          <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between p-3 bg-gradient-to-t from-black/60 to-transparent">
+            <div className="flex items-center gap-3 text-[10px] text-white/40 font-mono">
+              <span>{stats.fps.toFixed(1)} fps</span>
+              <span>{detections.length} det</span>
+              <span>{stats.activeTracks} trk</span>
               <span>#{stats.frameNumber}</span>
             </div>
             {stream.location_name && (
-              <span className="text-[8px] text-white/30 font-mono uppercase">
+              <span className="text-[9px] text-white/30 font-mono">
                 {stream.location_name}
               </span>
             )}
@@ -251,27 +232,26 @@ function StreamFeed({ stream, isExpanded, onToggleExpand }: StreamFeedProps) {
         )}
       </div>
 
-      {/* Detection Summary Panel (when expanded) */}
       {isExpanded && detections.length > 0 && (
-        <div className="p-3 border-t border-intel-border">
-          <div className="flex items-center gap-2 mb-2">
-            <Crosshair className="w-3 h-3 text-zinc-500" />
-            <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400">Active Detections</span>
-            <span className="text-[9px] font-mono text-zinc-600">({detections.length})</span>
+        <div className="p-4 border-t border-g-border">
+          <div className="flex items-center gap-2.5 mb-3">
+            <Crosshair className="w-3.5 h-3.5 text-g-text-muted" />
+            <span className="text-xs font-medium text-g-text-secondary">Active Detections</span>
+            <span className="text-xs text-g-text-muted">({detections.length})</span>
           </div>
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-px bg-intel-border">
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
             {detections.slice(0, 12).map((det, i) => (
               <div
                 key={`${det.track_id || i}`}
-                className="p-2 bg-intel-card text-center"
+                className="p-2.5 bg-g-surface border border-g-border rounded-md text-center"
               >
-                <div className="w-5 h-5 mx-auto mb-1 flex items-center justify-center border border-intel-border">
-                  {det.entity_type === 'person' ? <User className="w-2.5 h-2.5 text-zinc-500" /> :
-                   det.entity_type === 'vehicle' ? <Car className="w-2.5 h-2.5 text-zinc-500" /> :
-                   <Box className="w-2.5 h-2.5 text-zinc-500" />}
+                <div className="w-6 h-6 mx-auto mb-1.5 flex items-center justify-center bg-white/[0.04] rounded text-g-text-muted">
+                  {det.entity_type === 'person' ? <User className="w-3 h-3" /> :
+                   det.entity_type === 'vehicle' ? <Car className="w-3 h-3" /> :
+                   <Box className="w-3 h-3" />}
                 </div>
-                <p className="text-[9px] text-zinc-400 truncate capitalize">{det.label}</p>
-                <p className="text-[8px] font-mono text-zinc-600">
+                <p className="text-[10px] text-g-text truncate capitalize">{det.label}</p>
+                <p className="text-[9px] font-mono text-g-text-muted mt-0.5">
                   {Math.round(det.confidence * 100)}%
                 </p>
               </div>
@@ -300,7 +280,7 @@ export default function LiveFeedView() {
       }
     };
     fetchStreams();
-    const interval = setInterval(fetchStreams, 10000);
+    const interval = setInterval(fetchStreams, 15000);
     return () => clearInterval(interval);
   }, []);
 
@@ -308,20 +288,17 @@ export default function LiveFeedView() {
   const inactiveStreams = streams.filter((s) => s.status !== 'active');
 
   return (
-    <div className="p-6 pb-12 space-y-6">
-      {/* Header */}
+    <div className="p-6 pb-14 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-light text-white">Live Feed</h2>
-          <p className="text-[11px] font-mono text-zinc-600 mt-1 uppercase tracking-wider">
-            Real-time video streams with detection overlays
-          </p>
+          <h2 className="text-2xl font-semibold text-white tracking-tight">Live Feed</h2>
+          <p className="text-sm text-g-text-secondary mt-1">Real-time video streams with detection overlays</p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1.5 text-[10px] font-mono text-zinc-600 uppercase">
-            <Camera className="w-3.5 h-3.5" />
+          <span className="flex items-center gap-2 text-xs text-g-text-muted">
+            <Camera className="w-4 h-4" />
             {activeStreams.length > 0 && (
-              <span className="w-1.5 h-1.5 bg-green-500 animate-pulse" />
+              <span className="w-2 h-2 bg-g-success rounded-full animate-pulse" />
             )}
             <span>{activeStreams.length} active</span>
           </span>
@@ -329,35 +306,30 @@ export default function LiveFeedView() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-20 text-zinc-600">
+        <div className="flex items-center justify-center py-20 text-g-text-muted">
           <Camera className="w-4 h-4 animate-pulse mr-2" />
-          <span className="text-[11px] font-mono uppercase">Loading streams...</span>
+          <span className="text-sm">Loading streams...</span>
         </div>
       ) : streams.length === 0 ? (
         <div className="text-center py-20">
-          <div className="w-12 h-12 flex items-center justify-center mx-auto mb-4 border border-intel-border">
-            <Camera className="w-5 h-5 text-zinc-600" />
+          <div className="w-14 h-14 flex items-center justify-center mx-auto mb-4 bg-white/[0.04] rounded-xl">
+            <Camera className="w-6 h-6 text-g-text-muted" />
           </div>
-          <p className="text-zinc-400 text-sm">No video streams available</p>
-          <p className="text-[11px] font-mono text-zinc-600 mt-1">Configure streams to start live monitoring</p>
+          <p className="text-g-text-secondary text-sm font-medium">No video streams available</p>
+          <p className="text-xs text-g-text-muted mt-1">Configure streams to start live monitoring</p>
         </div>
       ) : (
         <>
-          {/* Active Streams */}
           {activeStreams.length > 0 && (
             <div>
-              <h3 className="mono-label mb-3 flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-green-500 animate-pulse" />
-                Active Streams
-              </h3>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className={cn(
-                  'grid gap-px bg-intel-border',
-                  expandedStream ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'
-                )}
-              >
+              <div className="flex items-center gap-2.5 mb-3">
+                <span className="w-2 h-2 bg-g-success rounded-full animate-pulse" />
+                <h3 className="text-xs font-medium text-g-text-secondary uppercase tracking-wide">Active Streams</h3>
+              </div>
+              <div className={cn(
+                'grid gap-4',
+                expandedStream ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'
+              )}>
                 {activeStreams.map((stream) => (
                   <StreamFeed
                     key={stream.id}
@@ -368,15 +340,14 @@ export default function LiveFeedView() {
                     }
                   />
                 ))}
-              </motion.div>
+              </div>
             </div>
           )}
 
-          {/* Inactive Streams */}
           {inactiveStreams.length > 0 && (
             <div>
-              <h3 className="mono-label mb-3">Inactive Streams</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-intel-border">
+              <h3 className="text-xs font-medium text-g-text-secondary uppercase tracking-wide mb-3">Inactive Streams</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {inactiveStreams.map((stream) => (
                   <StreamFeed
                     key={stream.id}
