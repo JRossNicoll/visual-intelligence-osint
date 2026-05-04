@@ -61,13 +61,18 @@ export default function StreamsView() {
           ...newStream,
           is_live: false,
         });
-        setUploadProgress(`Uploading ${selectedFile.name}...`);
-        await streamsApi.uploadVideo(stream.id, selectedFile);
-        setUploadProgress('Upload complete. Starting analysis...');
         try {
-          await streamsApi.start(stream.id);
-        } catch {
-          // CV pipeline may not be ready yet
+          setUploadProgress(`Uploading ${selectedFile.name}...`);
+          await streamsApi.uploadVideo(stream.id, selectedFile);
+          setUploadProgress('Upload complete. Starting analysis...');
+          try {
+            await streamsApi.start(stream.id);
+          } catch {
+            // CV pipeline may not be ready yet
+          }
+        } catch (uploadErr) {
+          try { await streamsApi.delete(stream.id); } catch { /* best-effort cleanup */ }
+          throw uploadErr;
         }
       } else {
         await streamsApi.create(newStream);
