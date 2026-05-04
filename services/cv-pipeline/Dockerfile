@@ -21,9 +21,8 @@ WORKDIR /app
 # Copy dependency files first for caching
 COPY pyproject.toml poetry.lock* ./
 
-# Pre-install problematic deps, then install the rest via poetry
-RUN pip install --no-cache-dir setuptools wheel numpy \
-    && pip install --no-cache-dir lap==0.4.0 \
+# Install dependencies
+RUN pip install --no-cache-dir setuptools wheel \
     && poetry config virtualenvs.create false \
     && poetry install --no-interaction --no-ansi --no-dev 2>/dev/null || \
        poetry install --no-interaction --no-ansi

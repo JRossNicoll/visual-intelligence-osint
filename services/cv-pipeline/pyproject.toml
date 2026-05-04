@@ -21,7 +21,7 @@ pydantic = "^2.5.0"
 pydantic-settings = "^2.1.0"
 scipy = "^1.11.0"
 filterpy = "^1.4.5"
-lap = "^0.4.0"
+lapx = ">=0.5.2"
 redis = "^5.0.1"
 
 [tool.poetry.group.dev.dependencies]
