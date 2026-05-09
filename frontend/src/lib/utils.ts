@@ -26,7 +26,7 @@ export function severityColor(severity: string): string {
     case 'high': return 'text-orange-400 bg-orange-500/10 border-orange-500/30';
     case 'medium': return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30';
     case 'low': return 'text-blue-400 bg-blue-500/10 border-blue-500/30';
-    default: return 'text-gray-400 bg-gray-500/10 border-gray-500/30';
+    default: return 'text-zinc-400 bg-zinc-500/10 border-zinc-500/30';
   }
 }
 
@@ -44,7 +44,7 @@ export function statusColor(status: string): string {
     case 'processing': return 'text-blue-400';
     case 'error': return 'text-red-400';
     case 'ready': return 'text-yellow-400';
-    default: return 'text-gray-400';
+    default: return 'text-zinc-400';
   }
 }
 

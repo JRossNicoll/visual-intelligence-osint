@@ -3,7 +3,7 @@ FROM python:3.11-slim as base
 # System deps for OpenCV and ML
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
-    libgl1-mesa-glx \
+    libgl1 \
     libglib2.0-0 \
     libsm6 \
     libxext6 \
@@ -22,7 +22,8 @@ WORKDIR /app
 COPY pyproject.toml poetry.lock* ./
 
 # Install dependencies
-RUN poetry config virtualenvs.create false \
+RUN pip install --no-cache-dir setuptools wheel \
+    && poetry config virtualenvs.create false \
     && poetry install --no-interaction --no-ansi --no-dev 2>/dev/null || \
        poetry install --no-interaction --no-ansi
 

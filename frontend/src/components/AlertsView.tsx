@@ -4,20 +4,15 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   AlertTriangle,
   Bell,
-  BellOff,
   Check,
   CheckCircle,
-  ChevronDown,
-  Clock,
   Eye,
-  Filter,
-  Shield,
   X,
   Zap,
 } from 'lucide-react';
 import { alertsApi } from '@/lib/api';
 import type { Alert } from '@/types';
-import { formatRelativeTime, formatTimestamp, severityColor, cn } from '@/lib/utils';
+import { formatRelativeTime, cn } from '@/lib/utils';
 
 interface AlertDetailProps {
   alert: Alert;
@@ -29,132 +24,123 @@ interface AlertDetailProps {
 function AlertDetail({ alert, onClose, onAcknowledge, onMarkRead }: AlertDetailProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-intel-surface border border-intel-border rounded-2xl overflow-hidden">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={onClose} />
+      <div className="relative w-full max-w-md bg-g-surface border border-g-border rounded-xl overflow-hidden shadow-2xl shadow-black/50 animate-fade-in">
         {/* Severity Banner */}
         <div className={cn(
-          'px-6 py-4 border-b',
-          alert.severity === 'critical' ? 'bg-red-500/10 border-red-500/20' :
-          alert.severity === 'high' ? 'bg-orange-500/10 border-orange-500/20' :
-          alert.severity === 'medium' ? 'bg-yellow-500/10 border-yellow-500/20' :
-          'bg-blue-500/10 border-blue-500/20'
+          'px-5 py-3.5 border-b flex items-center justify-between',
+          alert.severity === 'critical' ? 'border-red-500/20 bg-red-500/[0.05]' :
+          alert.severity === 'high' ? 'border-orange-500/20 bg-orange-500/[0.05]' :
+          alert.severity === 'medium' ? 'border-yellow-500/20 bg-yellow-500/[0.05]' :
+          'border-blue-500/20 bg-blue-500/[0.05]'
         )}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <AlertTriangle className={cn(
-                'w-5 h-5',
-                alert.severity === 'critical' ? 'text-red-400' :
-                alert.severity === 'high' ? 'text-orange-400' :
-                alert.severity === 'medium' ? 'text-yellow-400' : 'text-blue-400'
-              )} />
-              <span className="text-sm font-bold uppercase tracking-wider text-white">
-                {alert.severity} - {alert.alert_type.replace(/_/g, ' ')}
-              </span>
-            </div>
-            <button onClick={onClose} className="p-1 rounded hover:bg-white/10">
-              <X className="w-4 h-4 text-gray-400" />
-            </button>
+          <div className="flex items-center gap-2.5">
+            <AlertTriangle className={cn(
+              'w-4 h-4',
+              alert.severity === 'critical' ? 'text-red-400' :
+              alert.severity === 'high' ? 'text-orange-400' :
+              alert.severity === 'medium' ? 'text-yellow-400' : 'text-blue-400'
+            )} />
+            <span className="text-xs font-medium text-g-text capitalize">
+              {alert.severity} — {alert.alert_type.replace(/_/g, ' ')}
+            </span>
           </div>
+          <button onClick={onClose} className="p-1.5 hover:bg-white/[0.05] transition-colors rounded-md">
+            <X className="w-4 h-4 text-g-text-muted" />
+          </button>
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-4">
+        <div className="p-5 space-y-4">
           <div>
-            <h3 className="text-base font-bold text-white mb-1">{alert.title}</h3>
+            <h3 className="text-sm font-medium text-g-text mb-1">{alert.title}</h3>
             {alert.description && (
-              <p className="text-sm text-gray-400">{alert.description}</p>
+              <p className="text-xs text-g-text-muted">{alert.description}</p>
             )}
           </div>
 
-          {/* Details Grid */}
           <div className="grid grid-cols-2 gap-3">
             {alert.confidence != null && (
-              <div className="bg-intel-card border border-intel-border rounded-lg p-3">
-                <div className="text-xs text-gray-500 mb-1">Confidence</div>
-                <div className="text-sm font-bold text-white">
-                  {Math.round(alert.confidence * 100)}%
-                </div>
+              <div className="bg-g-card border border-g-border rounded-lg p-3">
+                <div className="text-[11px] text-g-text-muted mb-1">Confidence</div>
+                <div className="text-sm font-semibold text-white">{Math.round(alert.confidence * 100)}%</div>
               </div>
             )}
             {alert.similarity_score != null && (
-              <div className="bg-intel-card border border-intel-border rounded-lg p-3">
-                <div className="text-xs text-gray-500 mb-1">Similarity</div>
-                <div className="text-sm font-bold text-intel-accent">
-                  {Math.round(alert.similarity_score * 100)}%
-                </div>
+              <div className="bg-g-card border border-g-border rounded-lg p-3">
+                <div className="text-[11px] text-g-text-muted mb-1">Similarity</div>
+                <div className="text-sm font-semibold text-white">{Math.round(alert.similarity_score * 100)}%</div>
               </div>
             )}
             {alert.frame_number != null && (
-              <div className="bg-intel-card border border-intel-border rounded-lg p-3">
-                <div className="text-xs text-gray-500 mb-1">Frame</div>
-                <div className="text-sm font-bold text-white">#{alert.frame_number}</div>
+              <div className="bg-g-card border border-g-border rounded-lg p-3">
+                <div className="text-[11px] text-g-text-muted mb-1">Frame</div>
+                <div className="text-sm font-semibold text-white font-mono">#{alert.frame_number}</div>
               </div>
             )}
-            <div className="bg-intel-card border border-intel-border rounded-lg p-3">
-              <div className="text-xs text-gray-500 mb-1">Time</div>
-              <div className="text-sm font-bold text-white">
-                {formatRelativeTime(alert.created_at)}
-              </div>
+            <div className="bg-g-card border border-g-border rounded-lg p-3">
+              <div className="text-[11px] text-g-text-muted mb-1">Time</div>
+              <div className="text-sm text-white">{formatRelativeTime(alert.created_at)}</div>
             </div>
           </div>
 
           {/* References */}
-          <div className="space-y-2 text-sm">
+          <div className="bg-g-card border border-g-border rounded-lg divide-y divide-g-border">
             {alert.entity_id && (
-              <div className="flex items-center justify-between py-1.5 border-b border-intel-border/30">
-                <span className="text-gray-400">Entity</span>
-                <span className="text-white font-mono text-xs">{alert.entity_id.slice(0, 16)}...</span>
+              <div className="flex items-center justify-between px-3 py-2.5">
+                <span className="text-xs text-g-text-muted">Entity</span>
+                <span className="text-[11px] font-mono text-g-text-secondary bg-white/[0.03] px-2 py-0.5 rounded">{alert.entity_id.slice(0, 16)}...</span>
               </div>
             )}
             {alert.target_id && (
-              <div className="flex items-center justify-between py-1.5 border-b border-intel-border/30">
-                <span className="text-gray-400">Target</span>
-                <span className="text-white font-mono text-xs">{alert.target_id.slice(0, 16)}...</span>
+              <div className="flex items-center justify-between px-3 py-2.5">
+                <span className="text-xs text-g-text-muted">Target</span>
+                <span className="text-[11px] font-mono text-g-text-secondary bg-white/[0.03] px-2 py-0.5 rounded">{alert.target_id.slice(0, 16)}...</span>
               </div>
             )}
             {alert.stream_id && (
-              <div className="flex items-center justify-between py-1.5 border-b border-intel-border/30">
-                <span className="text-gray-400">Stream</span>
-                <span className="text-white font-mono text-xs">{alert.stream_id.slice(0, 16)}...</span>
+              <div className="flex items-center justify-between px-3 py-2.5">
+                <span className="text-xs text-g-text-muted">Stream</span>
+                <span className="text-[11px] font-mono text-g-text-secondary bg-white/[0.03] px-2 py-0.5 rounded">{alert.stream_id.slice(0, 16)}...</span>
               </div>
             )}
           </div>
 
           {/* Status Badges */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {alert.is_read && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-medium text-blue-400 bg-blue-400/10 rounded-full">
                 <Eye className="w-3 h-3" /> Read
               </span>
             )}
             {alert.is_acknowledged && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-green-500/10 text-green-400 border border-green-500/20">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-medium text-green-400 bg-green-400/10 rounded-full">
                 <CheckCircle className="w-3 h-3" /> Acknowledged
               </span>
             )}
             {alert.webhook_delivered && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-purple-500/10 text-purple-400 border border-purple-500/20">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-medium text-purple-400 bg-purple-400/10 rounded-full">
                 <Zap className="w-3 h-3" /> Webhook Sent
               </span>
             )}
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-1">
             {!alert.is_read && (
               <button
                 onClick={() => onMarkRead(alert.id)}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-500/10 text-blue-400 border border-blue-500/30 rounded-lg text-sm font-medium hover:bg-blue-500/20 transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-xs font-medium text-g-text border border-g-border rounded-md hover:bg-white/[0.04] transition-all"
               >
-                <Eye className="w-4 h-4" /> Mark Read
+                <Eye className="w-3.5 h-3.5" /> Mark Read
               </button>
             )}
             {!alert.is_acknowledged && (
               <button
                 onClick={() => onAcknowledge(alert.id)}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-intel-accent/10 text-intel-accent border border-intel-accent/30 rounded-lg text-sm font-medium hover:bg-intel-accent/20 transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-xs font-medium text-g-success border border-g-success/20 rounded-md hover:bg-g-success/10 transition-all"
               >
-                <Check className="w-4 h-4" /> Acknowledge
+                <Check className="w-3.5 h-3.5" /> Acknowledge
               </button>
             )}
           </div>
@@ -198,7 +184,7 @@ export default function AlertsView() {
 
   useEffect(() => {
     fetchAlerts();
-    const interval = setInterval(fetchAlerts, 5000);
+    const interval = setInterval(fetchAlerts, 15000);
     return () => clearInterval(interval);
   }, [fetchAlerts]);
 
@@ -222,183 +208,151 @@ export default function AlertsView() {
     }
   };
 
-  const severityIcon = (severity: string) => {
-    switch (severity) {
-      case 'critical': return <AlertTriangle className="w-4 h-4 text-red-400" />;
-      case 'high': return <AlertTriangle className="w-4 h-4 text-orange-400" />;
-      case 'medium': return <Bell className="w-4 h-4 text-yellow-400" />;
-      case 'low': return <Bell className="w-4 h-4 text-blue-400" />;
-      default: return <Bell className="w-4 h-4 text-gray-400" />;
-    }
-  };
+  const filterChip = (active: boolean) => cn(
+    'px-3 py-1.5 text-xs font-medium rounded-md border transition-all capitalize',
+    active ? 'text-g-accent bg-g-accent/10 border-g-accent/20' : 'text-g-text-muted border-g-border hover:text-g-text hover:border-g-border-light'
+  );
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
+    <div className="p-6 pb-14 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-white">Intelligence Alerts</h2>
-          <p className="text-sm text-gray-400 mt-1">
-            Target matches, reappearances, and anomaly notifications
-          </p>
+          <h2 className="text-2xl font-semibold text-white tracking-tight">Intelligence Alerts</h2>
+          <p className="text-sm text-g-text-secondary mt-1">Target matches, reappearances, and anomaly notifications</p>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-400">
-            {alerts.filter(a => !a.is_read).length} unread
-          </span>
-        </div>
+        <span className="text-xs text-g-text-muted">
+          {alerts.filter(a => !a.is_read).length} unread
+        </span>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3">
-        {/* Severity */}
-        <div className="flex items-center gap-1">
+      <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-g-text-muted mr-1">Severity</span>
           {['', 'critical', 'high', 'medium', 'low'].map((sev) => (
             <button
-              key={sev}
-              onClick={() => setFilterSeverity(sev)}
-              className={cn(
-                'px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors capitalize',
-                filterSeverity === sev
-                  ? 'bg-intel-accent/10 text-intel-accent border-intel-accent/30'
-                  : 'text-gray-400 border-intel-border hover:text-white'
-              )}
-            >
-              {sev || 'All'}
-            </button>
+              key={sev || 'all'}
+              onClick={() => { setFilterSeverity(sev); setPage(0); }}
+              className={filterChip(filterSeverity === sev)}
+            >{sev || 'All'}</button>
           ))}
         </div>
 
-        {/* Read status */}
-        <select
-          value={filterRead}
-          onChange={(e) => setFilterRead(e.target.value)}
-          className="px-3 py-1.5 bg-intel-card border border-intel-border rounded-lg text-xs text-gray-300 focus:outline-none focus:border-intel-accent"
-        >
-          <option value="">All Alerts</option>
-          <option value="unread">Unread Only</option>
-          <option value="read">Read Only</option>
-        </select>
+        <div className="h-5 w-px bg-g-border" />
 
-        {/* Type */}
-        <select
-          value={filterType}
-          onChange={(e) => setFilterType(e.target.value)}
-          className="px-3 py-1.5 bg-intel-card border border-intel-border rounded-lg text-xs text-gray-300 focus:outline-none focus:border-intel-accent"
-        >
-          <option value="">All Types</option>
-          <option value="target_match">Target Match</option>
-          <option value="reappearance">Reappearance</option>
-          <option value="anomaly">Anomaly</option>
-        </select>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-g-text-muted mr-1">Status</span>
+          {[
+            { value: '', label: 'All' },
+            { value: 'unread', label: 'Unread' },
+            { value: 'read', label: 'Read' },
+          ].map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => { setFilterRead(opt.value); setPage(0); }}
+              className={filterChip(filterRead === opt.value)}
+            >{opt.label}</button>
+          ))}
+        </div>
+
+        <div className="h-5 w-px bg-g-border" />
+
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-g-text-muted mr-1">Type</span>
+          {[
+            { value: '', label: 'All' },
+            { value: 'target_match', label: 'Match' },
+            { value: 'reappearance', label: 'Reappear' },
+            { value: 'anomaly', label: 'Anomaly' },
+          ].map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => { setFilterType(opt.value); setPage(0); }}
+              className={filterChip(filterType === opt.value)}
+            >{opt.label}</button>
+          ))}
+        </div>
       </div>
 
       {/* Alert List */}
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <Bell className="w-6 h-6 text-intel-accent animate-pulse" />
+        <div className="flex items-center justify-center py-20 text-g-text-muted">
+          <Bell className="w-4 h-4 animate-pulse mr-2" />
+          <span className="text-sm">Loading alerts...</span>
         </div>
       ) : alerts.length === 0 ? (
         <div className="text-center py-20">
-          <BellOff className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-          <p className="text-gray-400">No alerts</p>
-          <p className="text-sm text-gray-500 mt-1">
-            Alerts are generated when targets are matched or entities reappear
-          </p>
+          <div className="w-14 h-14 flex items-center justify-center mx-auto mb-4 bg-white/[0.04] rounded-xl">
+            <Bell className="w-6 h-6 text-g-text-muted" />
+          </div>
+          <p className="text-g-text-secondary text-sm font-medium">No alerts found</p>
+          <p className="text-xs text-g-text-muted mt-1">Alerts will appear when targets are matched</p>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="bg-g-card border border-g-border rounded-lg divide-y divide-g-border overflow-hidden">
           {alerts.map((alert) => (
-            <div
+            <button
               key={alert.id}
               onClick={() => setSelectedAlert(alert)}
               className={cn(
-                'flex items-start gap-4 p-4 rounded-xl border cursor-pointer transition-all hover:shadow-lg',
-                !alert.is_read
-                  ? 'bg-intel-card border-intel-border hover:border-intel-accent/30'
-                  : 'bg-intel-card/50 border-intel-border/50 hover:border-intel-border',
-                alert.severity === 'critical' && !alert.is_read && 'glow-red'
+                'w-full px-4 py-3.5 text-left hover:bg-white/[0.02] transition-colors',
+                !alert.is_read && 'border-l-2 border-l-g-accent'
               )}
             >
-              {/* Severity Icon */}
-              <div className={cn(
-                'p-2 rounded-lg mt-0.5',
-                alert.severity === 'critical' ? 'bg-red-500/10' :
-                alert.severity === 'high' ? 'bg-orange-500/10' :
-                alert.severity === 'medium' ? 'bg-yellow-500/10' : 'bg-blue-500/10'
-              )}>
-                {severityIcon(alert.severity)}
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className={cn(
-                    'text-sm font-semibold truncate',
-                    !alert.is_read ? 'text-white' : 'text-gray-300'
-                  )}>
-                    {alert.title}
-                  </h3>
-                  {!alert.is_read && (
-                    <span className="flex-shrink-0 w-2 h-2 bg-intel-accent rounded-full" />
-                  )}
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 mt-0.5">
+                  <AlertTriangle className={cn(
+                    'w-4 h-4',
+                    alert.severity === 'critical' ? 'text-red-400' :
+                    alert.severity === 'high' ? 'text-orange-400' :
+                    alert.severity === 'medium' ? 'text-yellow-400' : 'text-blue-400'
+                  )} />
                 </div>
-                {alert.description && (
-                  <p className="text-xs text-gray-400 truncate mb-1">{alert.description}</p>
-                )}
-                <div className="flex items-center gap-3 text-xs text-gray-500">
-                  <span className="capitalize">{alert.alert_type.replace(/_/g, ' ')}</span>
-                  {alert.similarity_score != null && (
-                    <span className="text-intel-accent">
-                      {Math.round(alert.similarity_score * 100)}% match
-                    </span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <h3 className="text-sm text-g-text truncate font-medium">{alert.title}</h3>
+                    {!alert.is_read && (
+                      <span className="w-1.5 h-1.5 bg-g-accent rounded-full flex-shrink-0" />
+                    )}
+                  </div>
+                  {alert.description && (
+                    <p className="text-xs text-g-text-muted truncate mb-1">{alert.description}</p>
                   )}
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    {formatRelativeTime(alert.created_at)}
-                  </span>
+                  <div className="flex items-center gap-3 text-xs text-g-text-dim">
+                    <span className={cn(
+                      'capitalize',
+                      alert.severity === 'critical' ? 'text-red-400' :
+                      alert.severity === 'high' ? 'text-orange-400' :
+                      alert.severity === 'medium' ? 'text-yellow-400' : 'text-blue-400'
+                    )}>{alert.severity}</span>
+                    <span className="capitalize">{alert.alert_type.replace(/_/g, ' ')}</span>
+                    <span>{formatRelativeTime(alert.created_at)}</span>
+                    {alert.is_acknowledged && <span className="text-g-success">Ack</span>}
+                  </div>
                 </div>
               </div>
-
-              {/* Status */}
-              <div className="flex flex-col items-end gap-2">
-                <span className={cn(
-                  'px-2 py-0.5 rounded text-xs font-semibold uppercase',
-                  severityColor(alert.severity)
-                )}>
-                  {alert.severity}
-                </span>
-                {alert.is_acknowledged && (
-                  <CheckCircle className="w-4 h-4 text-green-400" />
-                )}
-              </div>
-            </div>
+            </button>
           ))}
         </div>
       )}
 
       {/* Pagination */}
-      {alerts.length >= pageSize && (
-        <div className="flex items-center justify-center gap-4 pt-4">
+      {(page > 0 || alerts.length >= pageSize) && (
+        <div className="flex items-center justify-center gap-3 pt-2">
           <button
             onClick={() => setPage(Math.max(0, page - 1))}
             disabled={page === 0}
-            className="px-4 py-2 text-sm text-gray-400 hover:text-white disabled:opacity-30 transition-colors"
-          >
-            Previous
-          </button>
-          <span className="text-sm text-gray-500">Page {page + 1}</span>
+            className="px-4 py-1.5 text-xs font-medium text-g-text-secondary border border-g-border rounded-md hover:bg-white/[0.04] disabled:opacity-30 transition-all"
+          >Previous</button>
+          <span className="text-xs text-g-text-muted px-3">Page {page + 1}</span>
           <button
             onClick={() => setPage(page + 1)}
             disabled={alerts.length < pageSize}
-            className="px-4 py-2 text-sm text-gray-400 hover:text-white disabled:opacity-30 transition-colors"
-          >
-            Next
-          </button>
+            className="px-4 py-1.5 text-xs font-medium text-g-text-secondary border border-g-border rounded-md hover:bg-white/[0.04] disabled:opacity-30 transition-all"
+          >Next</button>
         </div>
       )}
 
-      {/* Alert Detail Modal */}
       {selectedAlert && (
         <AlertDetail
           alert={selectedAlert}
